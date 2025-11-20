@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QuantStrategy | ETF 策略设计器</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 配置 Tailwind 主题 -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              border: "hsl(var(--border))",
+              input: "hsl(var(--input))",
+              ring: "hsl(var(--ring))",
+              background: "hsl(var(--background))",
+              foreground: "hsl(var(--foreground))",
+              primary: {
+                DEFAULT: "hsl(var(--primary))",
+                foreground: "hsl(var(--primary-foreground))",
+              },
+              secondary: {
+                DEFAULT: "hsl(var(--secondary))",
+                foreground: "hsl(var(--secondary-foreground))",
+              },
+              destructive: {
+                DEFAULT: "hsl(var(--destructive))",
+                foreground: "hsl(var(--destructive-foreground))",
+              },
+              muted: {
+                DEFAULT: "hsl(var(--muted))",
+                foreground: "hsl(var(--muted-foreground))",
+              },
+              accent: {
+                DEFAULT: "hsl(var(--accent))",
+                foreground: "hsl(var(--accent-foreground))",
+              },
+            },
+            borderRadius: {
+              lg: "var(--radius)",
+              md: "calc(var(--radius) - 2px)",
+              sm: "calc(var(--radius) - 4px)",
+            },
+          },
+        },
+      };
+    </script>
+    <!-- 引入 FontAwesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- 引入 Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body
+    class="bg-slate-50 text-slate-900 antialiased min-h-screen flex flex-col"
+  >
+    <!-- 顶部导航 -->
+    <nav class="border-b bg-white/75 backdrop-blur-md sticky top-0 z-30">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold"
+            >
+              Q
+            </div>
+            <span class="font-bold text-xl tracking-tight text-slate-800"
+              >QuantStrategy</span
+            >
+          </div>
+          <div class="flex items-center gap-4">
+            <button
+              class="text-sm text-slate-500 hover:text-slate-900 transition-colors"
+            >
+              文档
+            </button>
+            <div
+              class="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600"
+            >
+              <i class="fa-solid fa-user text-sm"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+      <!-- 1. 初始欢迎状态 -->
+      <div
+        id="welcome-state"
+        class="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-8 animate-fade-in"
+      >
+        <div class="space-y-4 max-w-2xl">
+          <h1
+            class="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900"
+          >
+            将投资直觉转化为<br />
+            <span class="text-indigo-600">可量化的策略</span>
+          </h1>
+          <p class="text-lg text-slate-600 leading-relaxed">
+            无需编写代码。通过简单的对话式交互，构建基于价格行为和技术指标的 ETF
+            交易策略，并立即验证其历史表现。
+          </p>
+        </div>
+        <button
+          id="btn-create-strategy"
+          class="group relative inline-flex items-center justify-center px-8 py-3 text-base font-medium text-white bg-indigo-600 rounded-full hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-500/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          <i
+            class="fa-solid fa-plus mr-2 group-hover:rotate-90 transition-transform"
+          ></i>
+          创建新策略回测
+        </button>
+
+        <!-- 功能特性预览 -->
+        <div
+          class="grid grid-cols-1 sm:grid-cols-3 gap-8 mt-12 w-full max-w-4xl text-left"
+        >
+          <div
+            class="p-6 bg-white rounded-xl border border-slate-200 shadow-sm"
+          >
+            <div
+              class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center mb-4"
+            >
+              <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <h3 class="font-semibold text-slate-900">精准回测</h3>
+            <p class="text-sm text-slate-500 mt-2">
+              基于 Yahoo Finance 真实历史数据，毫秒级计算。
+            </p>
+          </div>
+          <div
+            class="p-6 bg-white rounded-xl border border-slate-200 shadow-sm"
+          >
+            <div
+              class="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center mb-4"
+            >
+              <i class="fa-solid fa-bolt"></i>
+            </div>
+            <h3 class="font-semibold text-slate-900">信号驱动</h3>
+            <p class="text-sm text-slate-500 mt-2">
+              支持价格回撤、突破、RSI 等多种触发条件。
+            </p>
+          </div>
+          <div
+            class="p-6 bg-white rounded-xl border border-slate-200 shadow-sm"
+          >
+            <div
+              class="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center mb-4"
+            >
+              <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <h3 class="font-semibold text-slate-900">风险控制</h3>
+            <p class="text-sm text-slate-500 mt-2">
+              内置冷却期和仓位管理，模拟真实交易环境。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. 策略设计状态 -->
+      <div id="design-state" class="hidden space-y-6 animate-fade-in">
+        <!-- 顶部信息栏 -->
+        <div
+          class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col sm:flex-row items-center justify-between gap-4"
+        >
+          <div class="flex items-center gap-6 text-sm">
+            <div class="flex flex-col">
+              <span
+                class="text-slate-500 text-xs uppercase font-semibold tracking-wider"
+                >回测标的</span
+              >
+              <span id="info-symbol" class="font-bold text-slate-900 text-lg"
+                >-</span
+              >
+            </div>
+            <div class="h-8 w-px bg-slate-200"></div>
+            <div class="flex flex-col">
+              <span
+                class="text-slate-500 text-xs uppercase font-semibold tracking-wider"
+                >时间范围</span
+              >
+              <span id="info-daterange" class="font-medium text-slate-700"
+                >-</span
+              >
+            </div>
+            <div class="h-8 w-px bg-slate-200 hidden sm:block"></div>
+            <div class="flex flex-col hidden sm:flex">
+              <span
+                class="text-slate-500 text-xs uppercase font-semibold tracking-wider"
+                >初始本金</span
+              >
+              <span id="info-capital" class="font-medium text-slate-700"
+                >-</span
+              >
+            </div>
+          </div>
+          <button
+            id="btn-reset"
+            class="text-sm text-slate-500 hover:text-red-600 transition-colors flex items-center gap-1"
+          >
+            <i class="fa-solid fa-rotate-left"></i> 重置
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <!-- 左侧：触发器列表 -->
+          <div class="lg:col-span-2 space-y-6">
+            <div class="flex items-center justify-between">
+              <h2 class="text-xl font-bold text-slate-900">策略触发器</h2>
+              <button
+                id="btn-add-trigger"
+                class="inline-flex items-center px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-indigo-600 transition-colors shadow-sm"
+              >
+                <i class="fa-solid fa-plus mr-2"></i> 添加规则
+              </button>
+            </div>
+
+            <div id="triggers-list" class="space-y-4 min-h-[300px]">
+              <!-- 空状态 -->
+              <div
+                class="empty-state border-2 border-dashed border-slate-200 rounded-xl p-12 flex flex-col items-center justify-center text-center"
+              >
+                <div
+                  class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4"
+                >
+                  <i
+                    class="fa-solid fa-layer-group text-slate-300 text-2xl"
+                  ></i>
+                </div>
+                <h3 class="text-slate-900 font-medium">暂无策略规则</h3>
+                <p class="text-slate-500 text-sm mt-1 max-w-xs">
+                  点击右上角的“添加规则”按钮，开始构建您的第一个交易信号。
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 右侧：概览与操作 -->
+          <div class="lg:col-span-1 space-y-6">
+            <div
+              class="bg-slate-900 rounded-xl p-6 text-white shadow-lg relative overflow-hidden"
+            >
+              <div
+                class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-indigo-500 rounded-full opacity-20 blur-2xl"
+              ></div>
+              <h3 class="text-lg font-semibold mb-4">准备就绪</h3>
+              <p class="text-slate-300 text-sm mb-6">
+                回测引擎将模拟
+                <span class="text-white font-bold">逐日交易</span
+                >，并自动处理分红再投资。
+              </p>
+              <button
+                id="btn-run-backtest"
+                disabled
+                class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:cursor-not-allowed disabled:text-slate-400 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-900/20"
+              >
+                <i class="fa-solid fa-play"></i> 运行回测
+              </button>
+              <p
+                id="backtest-hint"
+                class="text-xs text-center text-slate-400 mt-3"
+              >
+                <i class="fa-solid fa-circle-info mr-1"></i>
+                请至少添加一条触发器
+              </p>
+            </div>
+
+            <!-- 提示卡片 -->
+            <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
+              <h4 class="text-blue-800 font-medium text-sm mb-2">
+                <i class="fa-solid fa-lightbulb mr-1"></i> 策略提示
+              </h4>
+              <p class="text-blue-600 text-xs leading-relaxed">
+                优秀的策略通常包含“买入”和“卖出”两类规则。尝试组合使用价格回撤（买入）和新高突破（卖出）。
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ================= 模态对话框区域 ================= -->
+
+    <!-- 1. 设置向导 -->
+    <div
+      id="setup-dialog"
+      class="fixed inset-0 z-50 hidden"
+      aria-labelledby="modal-title"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"
+      ></div>
+      <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div
+          class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0"
+        >
+          <div
+            class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-100"
+          >
+            <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+              <div class="sm:flex sm:items-start">
+                <div
+                  class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10"
+                >
+                  <i class="fa-solid fa-sliders text-indigo-600"></i>
+                </div>
+                <div
+                  class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full"
+                >
+                  <h3
+                    class="text-lg font-semibold leading-6 text-slate-900"
+                    id="modal-title"
+                  >
+                    设置回测基础参数
+                  </h3>
+                  <div class="mt-6 space-y-5">
+                    <div>
+                      <label
+                        for="input-symbol"
+                        class="block text-sm font-medium leading-6 text-slate-900"
+                        >ETF 代码</label
+                      >
+                      <div class="mt-2">
+                        <input
+                          type="text"
+                          id="input-symbol"
+                          class="block w-full rounded-md border-0 py-2.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 uppercase"
+                          placeholder="例如: QQQ, SPY"
+                          value="QQQ"
+                        />
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                      <div>
+                        <label
+                          class="block text-sm font-medium leading-6 text-slate-900"
+                          >开始日期</label
+                        >
+                        <input
+                          type="date"
+                          id="input-start-date"
+                          value="2020-01-01"
+                          class="mt-2 block w-full rounded-md border-0 py-2.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label
+                          class="block text-sm font-medium leading-6 text-slate-900"
+                          >结束日期</label
+                        >
+                        <input
+                          type="date"
+                          id="input-end-date"
+                          value="2024-12-31"
+                          class="mt-2 block w-full rounded-md border-0 py-2.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label
+                        for="input-capital"
+                        class="block text-sm font-medium leading-6 text-slate-900"
+                        >初始本金</label
+                      >
+                      <div class="relative mt-2 rounded-md shadow-sm">
+                        <div
+                          class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3"
+                        >
+                          <span class="text-slate-500 sm:text-sm">$</span>
+                        </div>
+                        <input
+                          type="number"
+                          id="input-capital"
+                          class="block w-full rounded-md border-0 py-2.5 pl-7 pr-12 text-slate-900 ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                          value="10000"
+                        />
+                        <div
+                          class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3"
+                        >
+                          <span class="text-slate-500 sm:text-sm">USD</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-slate-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 border-t border-slate-100"
+            >
+              <button
+                id="btn-confirm-setup"
+                type="button"
+                class="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 sm:ml-3 sm:w-auto transition-colors"
+              >
+                开始设计策略
+              </button>
+              <button
+                id="btn-cancel-setup"
+                type="button"
+                class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto transition-colors"
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. 触发器构建器 -->
+    <div
+      id="trigger-dialog"
+      class="fixed inset-0 z-50 hidden"
+      aria-labelledby="modal-title"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"
+      ></div>
+      <div class="fixed inset-0 z-10 overflow-y-auto">
+        <div
+          class="flex min-h-full items-center justify-center p-4 text-center"
+        >
+          <div
+            class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all sm:w-full sm:max-w-2xl border border-slate-100"
+          >
+            <div class="bg-white px-6 py-6">
+              <h3 class="text-xl font-bold text-slate-900 mb-6">
+                创建交易触发器
+              </h3>
+
+              <div class="space-y-8">
+                <!-- IF -->
+                <div class="relative pl-8 border-l-2 border-indigo-100">
+                  <div
+                    class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-indigo-600 border-4 border-white shadow-sm"
+                  ></div>
+                  <h4
+                    class="text-sm font-bold text-indigo-600 uppercase tracking-wider mb-3"
+                  >
+                    如果 (IF)
+                  </h4>
+                  <div
+                    class="bg-slate-50 rounded-lg p-4 border border-slate-200"
+                  >
+                    <label class="block text-xs font-medium text-slate-500 mb-2"
+                      >触发条件</label
+                    >
+                    <select
+                      id="select-condition-type"
+                      class="block w-full rounded-md border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 mb-4"
+                    >
+                      <optgroup label="核心：基于价格行为">
+                        <option value="drawdown" selected>
+                          价格从高点回撤 (Buy the Dip)
+                        </option>
+                        <option value="price-streak">
+                          价格连续涨跌 (Momentum)
+                        </option>
+                        <option value="new-high-low">
+                          价格创下新高/新低 (Breakout)
+                        </option>
+                        <option value="period-return">
+                          周期内涨跌幅 (Volatility)
+                        </option>
+                      </optgroup>
+                      <optgroup label="辅助：技术指标">
+                        <option value="rsi">RSI 指标</option>
+                        <option value="ma">移动平均线 (MA)</option>
+                      </optgroup>
+                    </select>
+                    <!-- 动态参数容器 -->
+                    <div
+                      id="condition-params"
+                      class="flex flex-wrap items-center gap-3 p-3 bg-white rounded border border-slate-200 shadow-sm"
+                    ></div>
+                  </div>
+                </div>
+
+                <!-- THEN -->
+                <div class="relative pl-8 border-l-2 border-emerald-100">
+                  <div
+                    class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-emerald-500 border-4 border-white shadow-sm"
+                  ></div>
+                  <h4
+                    class="text-sm font-bold text-emerald-600 uppercase tracking-wider mb-3"
+                  >
+                    那么 (THEN)
+                  </h4>
+                  <div
+                    class="bg-slate-50 rounded-lg p-4 border border-slate-200"
+                  >
+                    <div class="grid grid-cols-3 gap-4 mb-4">
+                      <div class="col-span-1">
+                        <label
+                          class="block text-xs font-medium text-slate-500 mb-2"
+                          >动作</label
+                        >
+                        <select
+                          id="select-action-type"
+                          class="block w-full rounded-md border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-emerald-600 sm:text-sm"
+                        >
+                          <option value="buy">买入</option>
+                          <option value="sell">卖出</option>
+                        </select>
+                      </div>
+                      <div class="col-span-2" id="action-params">
+                        <!-- 动态动作参数 -->
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- AND -->
+                <div class="relative pl-8 border-l-2 border-slate-100">
+                  <div
+                    class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-slate-400 border-4 border-white shadow-sm"
+                  ></div>
+                  <h4
+                    class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3"
+                  >
+                    并且 (AND)
+                  </h4>
+                  <div class="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="checkbox-cooldown"
+                      class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600"
+                    />
+                    <label
+                      for="checkbox-cooldown"
+                      class="text-sm text-slate-700"
+                      >启用冷却期</label
+                    >
+                    <div
+                      id="cooldown-params"
+                      class="hidden flex items-center gap-2 ml-2 animate-fade-in"
+                    >
+                      <span class="text-sm text-slate-500">在</span>
+                      <input
+                        type="number"
+                        id="input-cooldown-days"
+                        value="5"
+                        class="w-16 rounded-md border-0 py-1.5 px-2 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm text-center"
+                      />
+                      <span class="text-sm text-slate-500"
+                        >个交易日内不再触发</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-slate-50 px-6 py-4 flex justify-end gap-3 border-t border-slate-100"
+            >
+              <button
+                id="btn-cancel-trigger"
+                class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors"
+              >
+                取消
+              </button>
+              <button
+                id="btn-add-trigger-confirm"
+                class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-500 shadow-sm transition-colors"
+              >
+                添加此规则
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. 加载状态 -->
+    <div
+      id="loading-dialog"
+      class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm"
+    >
+      <div
+        class="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl"
+      >
+        <div class="relative w-16 h-16 mx-auto mb-6">
+          <div
+            class="absolute inset-0 border-4 border-slate-100 rounded-full"
+          ></div>
+          <div
+            class="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"
+          ></div>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900 mb-2">正在执行回测</h3>
+        <p class="text-sm text-slate-500">正在分析数千个交易日的数据...</p>
+      </div>
+    </div>
+
+    <!-- 4. 结果报告 -->
+    <div
+      id="results-dialog"
+      class="fixed inset-0 z-50 hidden bg-slate-50 overflow-y-auto"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- 报告头部 -->
+        <div class="flex items-center justify-between mb-8">
+          <div>
+            <h2 class="text-2xl font-bold text-slate-900">策略回测报告</h2>
+            <p class="text-sm text-slate-500 mt-1">
+              生成时间: <span id="report-date">2025-11-19</span>
+            </p>
+          </div>
+          <button
+            id="btn-close-results"
+            class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm"
+          >
+            <i class="fa-solid fa-arrow-left mr-2"></i> 返回设计器
+          </button>
+        </div>
+
+        <!-- KPI 卡片 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <!-- 我的策略 -->
+          <div
+            class="bg-white rounded-xl border border-indigo-100 shadow-sm overflow-hidden"
+          >
+            <div
+              class="bg-indigo-50/50 px-6 py-4 border-b border-indigo-100 flex justify-between items-center"
+            >
+              <h3 class="font-bold text-indigo-900 flex items-center gap-2">
+                <div class="w-3 h-3 rounded-full bg-indigo-600"></div>
+                我的策略
+              </h3>
+              <span
+                class="text-xs font-medium px-2 py-1 bg-indigo-100 text-indigo-700 rounded"
+                >Active Strategy</span
+              >
+            </div>
+            <div class="p-6 grid grid-cols-3 gap-4 text-center">
+              <div>
+                <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">
+                  总回报率
+                </p>
+                <p class="text-2xl font-bold text-emerald-600">+92.5%</p>
+              </div>
+              <div>
+                <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">
+                  年化回报
+                </p>
+                <p class="text-xl font-bold text-slate-900">18.5%</p>
+              </div>
+              <div>
+                <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">
+                  最大回撤
+                </p>
+                <p class="text-xl font-bold text-rose-600">-12.3%</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 基准 -->
+          <div
+            class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden opacity-80"
+          >
+            <div
+              class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center"
+            >
+              <h3 class="font-bold text-slate-700 flex items-center gap-2">
+                <div class="w-3 h-3 rounded-full bg-slate-400"></div>
+                买入并持有 (基准)
+              </h3>
+              <span
+                class="text-xs font-medium px-2 py-1 bg-slate-100 text-slate-600 rounded"
+                >Benchmark</span
+              >
+            </div>
+            <div class="p-6 grid grid-cols-3 gap-4 text-center">
+              <div>
+                <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">
+                  总回报率
+                </p>
+                <p class="text-2xl font-bold text-slate-700">+76.0%</p>
+              </div>
+              <div>
+                <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">
+                  年化回报
+                </p>
+                <p class="text-xl font-bold text-slate-700">15.2%</p>
+              </div>
+              <div>
+                <p class="text-xs text-slate-500 uppercase tracking-wider mb-1">
+                  最大回撤
+                </p>
+                <p class="text-xl font-bold text-slate-700">-28.5%</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 图表区域 -->
+        <div
+          class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-8"
+        >
+          <h3 class="text-lg font-bold text-slate-900 mb-6">净值曲线对比</h3>
+          <div class="relative h-[400px] w-full">
+            <canvas id="equityChart"></canvas>
+          </div>
+        </div>
+
+        <!-- 交易记录 -->
+        <div
+          class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
+        >
+          <div class="px-6 py-4 border-b border-slate-200">
+            <h3 class="font-bold text-slate-900">近期交易记录</h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200">
+              <thead class="bg-slate-50">
+                <tr>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider"
+                  >
+                    日期
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider"
+                  >
+                    动作
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider"
+                  >
+                    价格
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider"
+                  >
+                    金额/份额
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider"
+                  >
+                    触发规则
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-slate-200">
+                <tr>
+                  <td
+                    class="px-6 py-4 whitespace-nowrap text-sm text-slate-900"
+                  >
+                    2024-11-15
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span
+                      class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"
+                      >买入</span
+                    >
+                  </td>
+                  <td
+                    class="px-6 py-4 whitespace-nowrap text-sm text-slate-500"
+                  >
+                    $450.20
+                  </td>
+                  <td
+                    class="px-6 py-4 whitespace-nowrap text-sm text-slate-900"
+                  >
+                    $1,000.00
+                  </td>
+                  <td
+                    class="px-6 py-4 whitespace-nowrap text-sm text-slate-500"
+                  >
+                    价格从60日高点下跌超过15%
+                  </td>
+                </tr>
+                <tr>
+                  <td
+                    class="px-6 py-4 whitespace-nowrap text-sm text-slate-900"
+                  >
+                    2024-10-01
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span
+                      class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800"
+                      >卖出</span
+                    >
+                  </td>
+                  <td
+                    class="px-6 py-4 whitespace-nowrap text-sm text-slate-500"
+                  >
+                    $480.50
+                  </td>
+                  <td
+                    class="px-6 py-4 whitespace-nowrap text-sm text-slate-900"
+                  >
+                    10% 持仓
+                  </td>
+                  <td
+                    class="px-6 py-4 whitespace-nowrap text-sm text-slate-500"
+                  >
+                    价格创下52周新高
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/app.js"></script>
+  </body>
+</html>
