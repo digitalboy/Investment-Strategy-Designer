@@ -4,28 +4,40 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "backend",
+	"name": "investment-strategy-designer-backend",
 	"main": "src/index.ts",
 	"compatibility_date": "2025-11-19",
 	"observability": {
 		"enabled": true
-	}
+	},
+	/**
+	 * Environment Variables
+	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
+	 */
+	"vars": {
+		"FIREBASE_PROJECT_ID": "beike-e6301"
+	},
+
+	"d1_databases": [
+		{
+			"binding": "etf_strategy_db",
+			"database_name": "etf-strategy-db",
+			"database_id": "ba656bfd-0f8f-4617-b4c8-1542d8c01bfe",
+			"migrations_dir": "migrations"
+		}
+	],
+	"kv_namespaces": [
+		{
+			"binding": "ETF_STRATEGY_DATA",
+			"id": "93d8dbac3c244e60b91679b849942a6f",
+			"remote": true
+		}
+	]
 	/**
 	 * Smart Placement
 	 * Docs: https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
 	 */
 	// "placement": { "mode": "smart" }
-	/**
-	 * Bindings
-	 * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including
-	 * databases, object storage, AI inference, real-time communication and more.
-	 * https://developers.cloudflare.com/workers/runtime-apis/bindings/
-	 */
-	/**
-	 * Environment Variables
-	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
-	 */
-	// "vars": { "MY_VARIABLE": "production_value" }
 	/**
 	 * Note: Use secrets to store sensitive data.
 	 * https://developers.cloudflare.com/workers/configuration/secrets/
