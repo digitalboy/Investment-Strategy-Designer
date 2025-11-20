@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useStrategyStore } from '@/stores/strategy'
 import type { Trigger, TriggerCondition, TriggerAction } from '@/types'
 import {
@@ -52,6 +52,28 @@ const actionAmount = ref(1000)
 // Cooldown State
 const enableCooldown = ref(true)
 const cooldownDays = ref(5)
+
+// Reset form when dialog opens
+watch(() => props.open, (newVal) => {
+    if (newVal) {
+        conditionType.value = 'drawdownFromPeak'
+        conditionParams.value = {
+            days: 60,
+            percentage: 15,
+            direction: 'down',
+            count: 3,
+            unit: 'day',
+            period: 14,
+            threshold: 30,
+            operator: 'below'
+        }
+        actionType.value = 'buy'
+        actionValueType.value = 'fixedAmount'
+        actionAmount.value = 1000
+        enableCooldown.value = true
+        cooldownDays.value = 5
+    }
+})
 
 const handleSave = () => {
     try {

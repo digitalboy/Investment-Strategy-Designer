@@ -22,6 +22,7 @@ export const useStrategyStore = defineStore('strategy', () => {
 
     // Community State
     const publicStrategies = ref<StrategySummaryDTO[]>([])
+    const userStrategies = ref<StrategySummaryDTO[]>([])
     const currentStrategyComments = ref<CommentEntity[]>([])
 
     // Actions
@@ -30,13 +31,19 @@ export const useStrategyStore = defineStore('strategy', () => {
     }
 
     const addTrigger = (trigger: Trigger) => {
-        config.value.triggers = [...config.value.triggers, trigger]
+        config.value = {
+            ...config.value,
+            triggers: [...config.value.triggers, trigger]
+        }
     }
 
     const removeTrigger = (index: number) => {
         const newTriggers = [...config.value.triggers]
         newTriggers.splice(index, 1)
-        config.value.triggers = newTriggers
+        config.value = {
+            ...config.value,
+            triggers: newTriggers
+        }
     }
 
     const runBacktest = async () => {
@@ -116,6 +123,28 @@ export const useStrategyStore = defineStore('strategy', () => {
         }
     }
 
+    const fetchUserStrategies = async () => {
+        isLoading.value = true
+        error.value = null
+        const authStore = useAuthStore()
+        const token = await authStore.getFreshToken()
+
+        if (!token) return
+
+        try {
+            const response = await axios.get(
+                `${API_BASE_URL}/strategies?scope=mine`,
+                { headers: { 'Authorization': `Bearer ${token}` } }
+            )
+            userStrategies.value = response.data
+        } catch (e: any) {
+            error.value = e.message || 'Failed to fetch user strategies'
+            console.error(e)
+        } finally {
+            isLoading.value = false
+        }
+    }
+
     const toggleLike = async (strategyId: string) => {
         const authStore = useAuthStore()
         const token = await authStore.getFreshToken()
@@ -181,6 +210,7 @@ export const useStrategyStore = defineStore('strategy', () => {
         isLoading,
         error,
         publicStrategies,
+        userStrategies,
         currentStrategyComments,
         setConfig,
         addTrigger,
@@ -188,6 +218,7 @@ export const useStrategyStore = defineStore('strategy', () => {
         runBacktest,
         saveStrategy,
         fetchPublicStrategies,
+        fetchUserStrategies,
         toggleLike,
         fetchComments,
         addComment,

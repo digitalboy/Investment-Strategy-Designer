@@ -22,18 +22,20 @@ const emit = defineEmits(['update:open', 'saved'])
 const store = useStrategyStore()
 const name = ref('')
 const description = ref('')
+const isPublic = ref(false)
 const isSaving = ref(false)
 
 const handleSave = async () => {
   if (!name.value) return
-  
+
   isSaving.value = true
   try {
-    await store.saveStrategy(name.value, description.value)
+    await store.saveStrategy(name.value, description.value, isPublic.value)
     emit('saved')
     emit('update:open', false)
     name.value = ''
     description.value = ''
+    isPublic.value = false
   } catch (error) {
     console.error('Failed to save strategy:', error)
   } finally {
@@ -63,6 +65,15 @@ const handleSave = async () => {
             描述 (可选)
           </Label>
           <Input id="description" v-model="description" placeholder="简要描述策略逻辑" class="col-span-3" />
+        </div>
+        <div class="grid grid-cols-4 items-center gap-4">
+          <div class="col-start-2 col-span-3 flex items-center space-x-2">
+            <input type="checkbox" id="isPublic" v-model="isPublic"
+              class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+            <Label for="isPublic" class="font-normal cursor-pointer">
+              公开分享到社区 (允许他人查看和点赞)
+            </Label>
+          </div>
         </div>
       </div>
       <DialogFooter>

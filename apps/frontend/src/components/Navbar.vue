@@ -11,6 +11,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
+const emit = defineEmits(['navigate-home'])
+
 const authStore = useAuthStore()
 
 const handleLogin = async () => {
@@ -30,11 +32,14 @@ const handleLogout = () => {
     <nav class="border-b bg-white/75 backdrop-blur-md sticky top-0 z-30">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">
-                        Q
+                <div class="flex items-center gap-8">
+                    <div class="flex items-center gap-3 cursor-pointer" @click="$emit('navigate-home')">
+                        <div
+                            class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">
+                            Q
+                        </div>
+                        <span class="font-bold text-xl tracking-tight text-slate-800">QuantStrategy</span>
                     </div>
-                    <span class="font-bold text-xl tracking-tight text-slate-800">QuantStrategy</span>
                 </div>
                 <div class="flex items-center gap-4">
                     <Button variant="ghost" class="text-sm text-slate-500 hover:text-slate-900 transition-colors">

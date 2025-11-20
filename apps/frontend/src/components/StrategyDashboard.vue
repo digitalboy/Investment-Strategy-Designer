@@ -8,6 +8,9 @@ import TriggerBuilderDialog from './TriggerBuilderDialog.vue'
 import ResultsReportDialog from './ResultsReportDialog.vue'
 import SaveStrategyDialog from './SaveStrategyDialog.vue'
 import type { Trigger } from '@/types'
+import { ArrowLeft } from 'lucide-vue-next'
+
+const emit = defineEmits(['edit-setup', 'back'])
 
 const store = useStrategyStore()
 const { config } = storeToRefs(store)
@@ -74,18 +77,24 @@ const onStrategySaved = () => {
         <!-- Top Info Bar -->
         <div
             class="bg-white border border-slate-200 rounded-lg p-4 flex flex-wrap gap-4 items-center justify-between shadow-sm">
-            <div class="flex gap-6 text-sm">
-                <div>
-                    <span class="text-slate-500">回测标的:</span>
-                    <span class="ml-2 font-semibold text-slate-900">{{ config.etfSymbol }}</span>
-                </div>
-                <div>
-                    <span class="text-slate-500">时间范围:</span>
-                    <span class="ml-2 font-semibold text-slate-900">{{ config.startDate }} 至 {{ config.endDate }}</span>
-                </div>
-                <div>
-                    <span class="text-slate-500">初始本金:</span>
-                    <span class="ml-2 font-semibold text-slate-900">${{ config.initialCapital }}</span>
+            <div class="flex items-center gap-4">
+                <Button variant="ghost" size="icon" @click="$emit('back')" class="mr-2">
+                    <ArrowLeft class="h-4 w-4" />
+                </Button>
+                <div class="flex gap-6 text-sm">
+                    <div>
+                        <span class="text-slate-500">回测标的:</span>
+                        <span class="ml-2 font-semibold text-slate-900">{{ config.etfSymbol }}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500">时间范围:</span>
+                        <span class="ml-2 font-semibold text-slate-900">{{ config.startDate }} 至 {{ config.endDate
+                        }}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500">初始本金:</span>
+                        <span class="ml-2 font-semibold text-slate-900">${{ config.initialCapital }}</span>
+                    </div>
                 </div>
             </div>
             <Button variant="outline" size="sm" @click="$emit('edit-setup')">修改设置</Button>
