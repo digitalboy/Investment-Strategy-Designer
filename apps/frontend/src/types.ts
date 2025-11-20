@@ -14,8 +14,33 @@ export interface StrategyEntity {
     description?: string;
     config: string;       // JSON string
     is_public: number;    // 0 or 1
+    view_count: number;
+    like_count: number;
+    clone_count: number;
     created_at: string;
     updated_at: string;
+}
+
+export interface StrategySummaryDTO {
+    id: string;
+    name: string;
+    description?: string;
+    updatedAt: string;
+    isPublic: boolean;
+    stats: {
+        views: number;
+        likes: number;
+        clones: number;
+    };
+}
+
+export interface CommentEntity {
+    id: string;
+    strategy_id: string;
+    user_id: string;
+    content: string;
+    created_at: string;
+    user_email?: string; // Optional, joined from users table
 }
 
 export interface StrategyConfig {

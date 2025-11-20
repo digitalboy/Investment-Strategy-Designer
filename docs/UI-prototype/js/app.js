@@ -15,7 +15,10 @@ const AppState = {
 // DOM 元素引用
 const Elements = {
   welcomeState: document.getElementById("welcome-state"),
-  designState: document.getElementById("design-state"),
+  dashboardView: document.getElementById("dashboard-view"),
+  editorView: document.getElementById("editor-view"),
+  discoveryView: document.getElementById("discovery-view"),
+  strategyDetailModal: document.getElementById("strategy-detail-modal"),
 
   infoSymbol: document.getElementById("info-symbol"),
   infoDaterange: document.getElementById("info-daterange"),
@@ -286,6 +289,156 @@ function initEventListeners() {
     );
 }
 
+// --- New Features for V2.1 ---
+
+function showSection(sectionId) {
+  // Hide all main views
+  Elements.welcomeState.classList.add("hidden");
+  Elements.dashboardView.classList.add("hidden");
+  Elements.editorView.classList.add("hidden");
+  Elements.discoveryView.classList.add("hidden");
+
+  // Reset nav buttons
+  const navDiscovery = document.getElementById("nav-discovery");
+  const navDashboard = document.getElementById("nav-dashboard");
+
+  navDiscovery.classList.remove("text-indigo-600");
+  navDiscovery.classList.add("text-slate-500");
+  navDashboard.classList.remove("text-indigo-600");
+  navDashboard.classList.add("text-slate-500");
+
+  // Show selected view
+  if (sectionId === "dashboard") {
+    navDashboard.classList.add("text-indigo-600");
+    navDashboard.classList.remove("text-slate-500");
+    Elements.dashboardView.classList.remove("hidden");
+  } else if (sectionId === "editor") {
+    navDashboard.classList.add("text-indigo-600");
+    navDashboard.classList.remove("text-slate-500");
+    Elements.editorView.classList.remove("hidden");
+  } else if (sectionId === "discovery") {
+    navDiscovery.classList.add("text-indigo-600");
+    navDiscovery.classList.remove("text-slate-500");
+    Elements.discoveryView.classList.remove("hidden");
+  }
+}
+
+function createNewStrategy() {
+  // Reset editor state
+  document.getElementById("strategy-name-input").value = "未命名策略";
+  document
+    .getElementById("public-toggle")
+    .setAttribute("aria-checked", "false");
+  const btn = document.getElementById("public-toggle");
+  const knob = btn.querySelector("span");
+  btn.classList.add("bg-slate-200");
+  btn.classList.remove("bg-indigo-600");
+  knob.classList.remove("translate-x-5");
+  knob.classList.add("translate-x-0");
+
+  AppState.triggers = [];
+  renderTriggersList();
+
+  showSection("editor");
+}
+
+function editStrategy(id) {
+  // Mock load strategy data
+  const strategyNames = {
+    s1: "稳健定投 Plus",
+    s2: "纳指激进策略",
+    s3: "标普500 均线策略",
+    s4: "全天候配置",
+  };
+
+  document.getElementById("strategy-name-input").value =
+    strategyNames[id] || "我的策略";
+
+  // Mock triggers for demo
+  if (id === "s1") {
+    AppState.triggers = [
+      {
+        id: 1,
+        type: "drawdown",
+        descHtml:
+          '价格从 <span class="font-bold text-indigo-600">20日高点</span> 下跌超过 <span class="font-bold text-indigo-600">5%</span>',
+      },
+    ];
+  } else {
+    AppState.triggers = [];
+  }
+  renderTriggersList();
+
+  showSection("editor");
+}
+function openStrategyDetail(id) {
+  Elements.strategyDetailModal.classList.remove("hidden");
+  document.body.style.overflow = "hidden"; // Prevent background scrolling
+}
+
+function closeStrategyDetail() {
+  Elements.strategyDetailModal.classList.add("hidden");
+  document.body.style.overflow = "";
+}
+
+function togglePublicSwitch() {
+  const btn = document.getElementById("public-toggle");
+  const isChecked = btn.getAttribute("aria-checked") === "true";
+  const newState = !isChecked;
+
+  btn.setAttribute("aria-checked", newState);
+
+  const knob = btn.querySelector("span");
+  if (newState) {
+    btn.classList.remove("bg-slate-200");
+    btn.classList.add("bg-indigo-600");
+    knob.classList.add("translate-x-5");
+    knob.classList.remove("translate-x-0");
+  } else {
+    btn.classList.add("bg-slate-200");
+    btn.classList.remove("bg-indigo-600");
+    knob.classList.remove("translate-x-5");
+    knob.classList.add("translate-x-0");
+  }
+}
+
+function saveStrategy() {
+  const name = document.getElementById("strategy-name-input").value;
+  const isPublic =
+    document.getElementById("public-toggle").getAttribute("aria-checked") ===
+    "true";
+  const triggerCount = AppState.triggers.length;
+
+  // Mock save
+  const btn = document.querySelector('button[onclick="saveStrategy()"]');
+  const originalText = btn.innerHTML;
+
+  btn.innerHTML =
+    '<i class="fa-solid fa-circle-check animate-bounce"></i> 已保存';
+  btn.classList.remove("bg-indigo-600", "hover:bg-indigo-500");
+  btn.classList.add("bg-green-600", "hover:bg-green-500");
+
+  setTimeout(() => {
+    btn.innerHTML = originalText;
+    btn.classList.add("bg-indigo-600", "hover:bg-indigo-500");
+    btn.classList.remove("bg-green-600", "hover:bg-green-500");
+    alert(
+      `策略 "${name}" 已保存！\n状态: ${
+        isPublic ? "公开" : "私有"
+      }\n包含 ${triggerCount} 个规则`
+    );
+  }, 1500);
+}
+
+// Expose functions to global scope for HTML onclick handlers
+window.showSection = showSection;
+window.openStrategyDetail = openStrategyDetail;
+window.closeStrategyDetail = closeStrategyDetail;
+window.togglePublicSwitch = togglePublicSwitch;
+window.saveStrategy = saveStrategy;
+window.createNewStrategy = createNewStrategy;
+window.editStrategy = editStrategy;
+
 function toggleModal(modal, show) {
   if (show) {
     modal.classList.remove("hidden");
@@ -311,7 +464,7 @@ function confirmSetup() {
   Elements.infoCapital.textContent = `$${AppState.setup.capital.toLocaleString()}`;
 
   Elements.welcomeState.classList.add("hidden");
-  Elements.designState.classList.remove("hidden");
+  Elements.dashboardView.classList.remove("hidden");
 
   toggleModal(Elements.setupDialog, false);
 }
@@ -320,7 +473,7 @@ function resetStrategy() {
   if (confirm("确定要重置吗？所有规则将被清空。")) {
     AppState.triggers = [];
     renderTriggersList();
-    Elements.designState.classList.add("hidden");
+    Elements.dashboardView.classList.add("hidden");
     Elements.welcomeState.classList.remove("hidden");
   }
 }
@@ -458,6 +611,11 @@ function confirmTrigger() {
 }
 
 function renderTriggersList() {
+  const badge = document.getElementById("trigger-count-badge");
+  if (badge) {
+    badge.textContent = AppState.triggers.length;
+  }
+
   if (AppState.triggers.length === 0) {
     Elements.triggersList.innerHTML = `
             <div class="empty-state border-2 border-dashed border-slate-200 rounded-xl p-12 flex flex-col items-center justify-center text-center">

@@ -75,14 +75,32 @@
           </div>
           <div class="flex items-center gap-4">
             <button
+              id="nav-discovery"
+              onclick="showSection('discovery')"
+              class="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+            >
+              发现
+            </button>
+            <button
+              id="nav-dashboard"
+              onclick="showSection('dashboard')"
+              class="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors"
+            >
+              工作台
+            </button>
+            <div class="h-6 w-px bg-slate-200 mx-2"></div>
+            <button
               class="text-sm text-slate-500 hover:text-slate-900 transition-colors"
             >
               文档
             </button>
-            <div
-              class="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600"
-            >
-              <i class="fa-solid fa-user text-sm"></i>
+            <div class="flex items-center gap-2 pl-2">
+              <div
+                class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-200"
+              >
+                D
+              </div>
+              <span class="text-sm font-medium text-slate-700 hidden sm:block">David</span>
             </div>
           </div>
         </div>
@@ -91,10 +109,10 @@
 
     <!-- 主内容区 -->
     <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-      <!-- 1. 初始欢迎状态 -->
+      <!-- 1. 初始欢迎状态 (Hidden for logged-in user) -->
       <div
         id="welcome-state"
-        class="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-8 animate-fade-in"
+        class="hidden flex flex-col items-center justify-center min-h-[60vh] text-center space-y-8 animate-fade-in"
       >
         <div class="space-y-4 max-w-2xl">
           <h1
@@ -164,8 +182,272 @@
         </div>
       </div>
 
-      <!-- 2. 策略设计状态 -->
-      <div id="design-state" class="hidden space-y-6 animate-fade-in">
+      <!-- 2. 策略列表 (Dashboard) -->
+      <div id="dashboard-view" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+          <div>
+            <h2 class="text-2xl font-bold text-slate-900">我的策略库</h2>
+            <p class="text-sm text-slate-500 mt-1">管理您的所有投资策略，追踪回测表现。</p>
+          </div>
+          <button onclick="createNewStrategy()" class="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors shadow-sm">
+            <i class="fa-solid fa-plus mr-2"></i> 创建新策略
+          </button>
+        </div>
+
+        <!-- Filters & Sort -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <div class="relative flex-1 sm:flex-none">
+              <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+              <input type="text" placeholder="搜索策略..." class="pl-9 pr-4 py-2 border-slate-300 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500 w-full sm:w-64">
+            </div>
+            <select class="border-slate-300 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500">
+              <option>所有标签</option>
+              <option>SPY</option>
+              <option>QQQ</option>
+              <option>VOO</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <span class="text-sm text-slate-500">排序:</span>
+            <select class="border-slate-300 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500">
+              <option>最近更新</option>
+              <option>创建时间</option>
+              <option>年化收益 (高到低)</option>
+            </select>
+            <div class="h-6 w-px bg-slate-200 mx-2"></div>
+            <button class="p-2 text-slate-400 hover:text-indigo-600 transition-colors"><i class="fa-solid fa-list"></i></button>
+            <button class="p-2 text-indigo-600 bg-indigo-50 rounded"><i class="fa-solid fa-border-all"></i></button>
+          </div>
+        </div>
+
+        <!-- Strategy Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <!-- Strategy Card 1 -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow cursor-pointer group relative" onclick="editStrategy('s1')">
+            <div class="absolute top-4 right-4">
+              <button class="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-100" onclick="event.stopPropagation()">
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+              </button>
+            </div>
+            <div class="flex items-center gap-2 mb-4">
+              <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">公开</span>
+              <span class="text-xs text-slate-400">2小时前</span>
+            </div>
+            <h4 class="font-bold text-slate-900 mb-2 text-lg group-hover:text-indigo-600 transition-colors">稳健定投 Plus</h4>
+            <p class="text-sm text-slate-500 mb-4 line-clamp-2">基于 RSI 指标的定投增强策略，在超卖时加大投入。</p>
+            <div class="flex items-center gap-2 mb-4">
+              <span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded">SPY</span>
+              <span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded">RSI</span>
+            </div>
+            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+              <div>
+                <p class="text-xs text-slate-500">年化收益</p>
+                <p class="text-lg font-bold text-green-600">+12.5%</p>
+              </div>
+              <div>
+                <p class="text-xs text-slate-500">最大回撤</p>
+                <p class="text-lg font-bold text-slate-900">-15.2%</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Strategy Card 2 -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow cursor-pointer group relative" onclick="editStrategy('s2')">
+            <div class="absolute top-4 right-4">
+              <button class="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-100" onclick="event.stopPropagation()">
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+              </button>
+            </div>
+            <div class="flex items-center gap-2 mb-4">
+              <span class="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full font-medium">草稿</span>
+              <span class="text-xs text-slate-400">3天前</span>
+            </div>
+            <h4 class="font-bold text-slate-900 mb-2 text-lg group-hover:text-indigo-600 transition-colors">纳指激进策略</h4>
+            <p class="text-sm text-slate-500 mb-4 line-clamp-2">利用 MACD 金叉进行波段操作，适合波动较大的市场。</p>
+            <div class="flex items-center gap-2 mb-4">
+              <span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded">QQQ</span>
+              <span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded">MACD</span>
+            </div>
+            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+              <div>
+                <p class="text-xs text-slate-500">年化收益</p>
+                <p class="text-lg font-bold text-slate-400">--</p>
+              </div>
+              <div>
+                <p class="text-xs text-slate-500">最大回撤</p>
+                <p class="text-lg font-bold text-slate-400">--</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Strategy Card 3 -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow cursor-pointer group relative" onclick="editStrategy('s3')">
+            <div class="absolute top-4 right-4">
+              <button class="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-100" onclick="event.stopPropagation()">
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+              </button>
+            </div>
+            <div class="flex items-center gap-2 mb-4">
+              <span class="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full font-medium">草稿</span>
+              <span class="text-xs text-slate-400">1周前</span>
+            </div>
+            <h4 class="font-bold text-slate-900 mb-2 text-lg group-hover:text-indigo-600 transition-colors">标普500 均线策略</h4>
+            <p class="text-sm text-slate-500 mb-4 line-clamp-2">简单的双均线交叉策略，长期持有。</p>
+            <div class="flex items-center gap-2 mb-4">
+              <span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded">VOO</span>
+              <span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded">MA</span>
+            </div>
+            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+              <div>
+                <p class="text-xs text-slate-500">年化收益</p>
+                <p class="text-lg font-bold text-green-600">+10.2%</p>
+              </div>
+              <div>
+                <p class="text-xs text-slate-500">最大回撤</p>
+                <p class="text-lg font-bold text-slate-900">-18.5%</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Strategy Card 4 -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow cursor-pointer group relative" onclick="editStrategy('s4')">
+            <div class="absolute top-4 right-4">
+              <button class="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-100" onclick="event.stopPropagation()">
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+              </button>
+            </div>
+            <div class="flex items-center gap-2 mb-4">
+              <span class="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full font-medium">草稿</span>
+              <span class="text-xs text-slate-400">2周前</span>
+            </div>
+            <h4 class="font-bold text-slate-900 mb-2 text-lg group-hover:text-indigo-600 transition-colors">全天候配置</h4>
+            <p class="text-sm text-slate-500 mb-4 line-clamp-2">参考桥水全天候策略，配置股票、债券和黄金。</p>
+            <div class="flex items-center gap-2 mb-4">
+              <span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded">GLD</span>
+              <span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded">TLT</span>
+            </div>
+            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+              <div>
+                <p class="text-xs text-slate-500">年化收益</p>
+                <p class="text-lg font-bold text-green-600">+8.5%</p>
+              </div>
+              <div>
+                <p class="text-xs text-slate-500">最大回撤</p>
+                <p class="text-lg font-bold text-slate-900">-6.2%</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex items-center justify-between border-t border-slate-200 pt-4">
+          <div class="flex flex-1 justify-between sm:hidden">
+            <a href="#" class="relative inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">上一页</a>
+            <a href="#" class="relative ml-3 inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">下一页</a>
+          </div>
+          <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div>
+              <p class="text-sm text-slate-700">
+                显示第 <span class="font-medium">1</span> 到 <span class="font-medium">4</span> 条，共 <span class="font-medium">12</span> 条策略
+              </p>
+            </div>
+            <div>
+              <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                <a href="#" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:z-20 focus:outline-offset-0">
+                  <span class="sr-only">上一页</span>
+                  <i class="fa-solid fa-chevron-left h-5 w-5 flex items-center justify-center"></i>
+                </a>
+                <a href="#" aria-current="page" class="relative z-10 inline-flex items-center bg-indigo-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">1</a>
+                <a href="#" class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-900 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:z-20 focus:outline-offset-0">2</a>
+                <a href="#" class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-900 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:z-20 focus:outline-offset-0">3</a>
+                <a href="#" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:z-20 focus:outline-offset-0">
+                  <span class="sr-only">下一页</span>
+                  <i class="fa-solid fa-chevron-right h-5 w-5 flex items-center justify-center"></i>
+                </a>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. 策略编辑器 (Editor) -->
+      <div id="editor-view" class="hidden space-y-6 animate-fade-in">
+        <!-- Strategy Header (New) -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div
+            class="flex flex-col md:flex-row md:items-center justify-between gap-4"
+          >
+            <div class="flex-1">
+              <label
+                for="strategy-name-input"
+                class="block text-sm font-medium text-slate-700 mb-1"
+                >策略名称</label
+              >
+              <div class="flex items-center gap-3">
+                <input
+                  type="text"
+                  id="strategy-name-input"
+                  class="block w-full md:w-96 rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-lg font-semibold text-slate-900 placeholder-slate-400"
+                  placeholder="给你的策略起个名字 (例如: 稳健定投 Plus)"
+                  value="我的 ETF 投资策略"
+                />
+                <span
+                  class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20"
+                >
+                  草稿
+                </span>
+              </div>
+              <p class="mt-1 text-sm text-slate-500">
+                包含
+                <span
+                  id="trigger-count-badge"
+                  class="font-medium text-slate-900"
+                  >0</span
+                >
+                个触发规则
+              </p>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2 mr-4">
+                <span class="text-sm text-slate-600">公开分享</span>
+                <button
+                  id="public-toggle"
+                  type="button"
+                  class="bg-slate-200 relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2"
+                  role="switch"
+                  aria-checked="false"
+                  onclick="togglePublicSwitch()"
+                >
+                  <span
+                    aria-hidden="true"
+                    class="translate-x-0 pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                  ></span>
+                </button>
+              </div>
+              <button
+                onclick="saveStrategy()"
+                class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              >
+                <svg
+                  class="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H18A2.25 2.25 0 0120.25 6v12A2.25 2.25 0 0118 20.25H6A2.25 2.25 0 013.75 18V6A2.25 2.25 0 016 3.75h1.5m9 0h-9"
+                  />
+                </svg>
+                保存策略
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- 顶部信息栏 -->
         <div
           class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col sm:flex-row items-center justify-between gap-4"
@@ -281,6 +563,217 @@
                 优秀的策略通常包含“买入”和“卖出”两类规则。尝试组合使用价格回撤（买入）和新高突破（卖出）。
               </p>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Discovery View -->
+      <div id="discovery-view" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in">
+        
+        <!-- My Strategies (New) -->
+        <div class="mb-12">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-folder-open text-indigo-600"></i> 我的策略库
+            </h3>
+            <button onclick="showSection('dashboard')" class="text-sm font-medium text-indigo-600 hover:text-indigo-500 flex items-center gap-1">
+              <i class="fa-solid fa-plus"></i> 新建策略
+            </button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- My Strategy 1 -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow cursor-pointer group" onclick="showSection('dashboard')">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">公开</span>
+                  <span class="text-xs text-slate-400">2小时前更新</span>
+                </div>
+                <button class="text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <i class="fa-solid fa-ellipsis"></i>
+                </button>
+              </div>
+              <h4 class="font-bold text-slate-900 mb-2 text-lg">稳健定投 Plus</h4>
+              <div class="flex items-center gap-2 mb-4">
+                <span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded">SPY</span>
+                <span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded">RSI</span>
+              </div>
+              <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+                <div>
+                  <p class="text-xs text-slate-500">年化收益</p>
+                  <p class="text-lg font-bold text-green-600">+12.5%</p>
+                </div>
+                <div>
+                  <p class="text-xs text-slate-500">最大回撤</p>
+                  <p class="text-lg font-bold text-slate-900">-15.2%</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- My Strategy 2 -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow cursor-pointer group" onclick="showSection('dashboard')">
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <span class="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full font-medium">草稿</span>
+                  <span class="text-xs text-slate-400">3天前更新</span>
+                </div>
+                <button class="text-slate-400 hover:text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <i class="fa-solid fa-ellipsis"></i>
+                </button>
+              </div>
+              <h4 class="font-bold text-slate-900 mb-2 text-lg">纳指激进策略</h4>
+              <div class="flex items-center gap-2 mb-4">
+                <span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded">QQQ</span>
+                <span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded">MACD</span>
+              </div>
+              <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+                <div>
+                  <p class="text-xs text-slate-500">年化收益</p>
+                  <p class="text-lg font-bold text-slate-400">--</p>
+                </div>
+                <div>
+                  <p class="text-xs text-slate-500">最大回撤</p>
+                  <p class="text-lg font-bold text-slate-400">--</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Create New Card -->
+            <div class="bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 p-6 flex flex-col items-center justify-center text-center hover:border-indigo-300 hover:bg-indigo-50/50 transition-all cursor-pointer group" onclick="showSection('dashboard')">
+              <div class="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-plus text-indigo-600 text-lg"></i>
+              </div>
+              <h4 class="font-medium text-slate-900">创建新策略</h4>
+              <p class="text-xs text-slate-500 mt-1">从零开始构建或基于模板</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="mb-12">
+          <h3 class="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+            <i class="fa-solid fa-trophy text-yellow-500"></i> 社区精选榜单
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+             <!-- Top 1 -->
+             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 relative overflow-hidden group hover:shadow-md transition-shadow cursor-pointer" onclick="openStrategyDetail('s1')">
+                <div class="absolute top-0 right-0 bg-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">#1</div>
+                <div class="flex items-center gap-3 mb-4">
+                   <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">A</div>
+                   <div>
+                      <h4 class="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">双均线趋势增强</h4>
+                      <p class="text-xs text-slate-500">@AlexTrader</p>
+                   </div>
+                </div>
+                <div class="flex items-center gap-2 mb-4">
+                  <span class="bg-indigo-50 text-indigo-700 text-xs px-2 py-0.5 rounded font-medium">SPY</span>
+                  <span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded">MA Cross</span>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                   <div>
+                      <p class="text-xs text-slate-500">年化收益</p>
+                      <p class="text-lg font-bold text-green-600">+18.5%</p>
+                   </div>
+                   <div>
+                      <p class="text-xs text-slate-500">最大回撤</p>
+                      <p class="text-lg font-bold text-slate-900">-12.3%</p>
+                   </div>
+                </div>
+                <div class="flex items-center justify-between text-xs text-slate-500">
+                   <span><i class="fa-regular fa-heart mr-1"></i> 128</span>
+                   <span><i class="fa-regular fa-clone mr-1"></i> 45</span>
+                </div>
+             </div>
+             <!-- Top 2 -->
+             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 relative overflow-hidden group hover:shadow-md transition-shadow cursor-pointer" onclick="openStrategyDetail('s2')">
+                <div class="absolute top-0 right-0 bg-slate-400 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">#2</div>
+                <div class="flex items-center gap-3 mb-4">
+                   <div class="h-10 w-10 rounded-full bg-pink-100 flex items-center justify-center text-pink-600 font-bold">S</div>
+                   <div>
+                      <h4 class="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">RSI 超卖反弹</h4>
+                      <p class="text-xs text-slate-500">@SarahInvest</p>
+                   </div>
+                </div>
+                <div class="flex items-center gap-2 mb-4">
+                  <span class="bg-indigo-50 text-indigo-700 text-xs px-2 py-0.5 rounded font-medium">QQQ</span>
+                  <span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded">RSI</span>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                   <div>
+                      <p class="text-xs text-slate-500">年化收益</p>
+                      <p class="text-lg font-bold text-green-600">+15.2%</p>
+                   </div>
+                   <div>
+                      <p class="text-xs text-slate-500">最大回撤</p>
+                      <p class="text-lg font-bold text-slate-900">-8.5%</p>
+                   </div>
+                </div>
+                <div class="flex items-center justify-between text-xs text-slate-500">
+                   <span><i class="fa-regular fa-heart mr-1"></i> 96</span>
+                   <span><i class="fa-regular fa-clone mr-1"></i> 32</span>
+                </div>
+             </div>
+             <!-- Top 3 -->
+             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 relative overflow-hidden group hover:shadow-md transition-shadow cursor-pointer" onclick="openStrategyDetail('s3')">
+                <div class="absolute top-0 right-0 bg-orange-400 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">#3</div>
+                <div class="flex items-center gap-3 mb-4">
+                   <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">M</div>
+                   <div>
+                      <h4 class="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">MACD 零轴突破</h4>
+                      <p class="text-xs text-slate-500">@MikeQuant</p>
+                   </div>
+                </div>
+                <div class="flex items-center gap-2 mb-4">
+                  <span class="bg-indigo-50 text-indigo-700 text-xs px-2 py-0.5 rounded font-medium">VOO</span>
+                  <span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded">MACD</span>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                   <div>
+                      <p class="text-xs text-slate-500">年化收益</p>
+                      <p class="text-lg font-bold text-green-600">+14.8%</p>
+                   </div>
+                   <div>
+                      <p class="text-xs text-slate-500">最大回撤</p>
+                      <p class="text-lg font-bold text-slate-900">-15.1%</p>
+                   </div>
+                </div>
+                <div class="flex items-center justify-between text-xs text-slate-500">
+                   <span><i class="fa-regular fa-heart mr-1"></i> 85</span>
+                   <span><i class="fa-regular fa-clone mr-1"></i> 28</span>
+                </div>
+             </div>
+          </div>
+        </div>
+
+        <!-- All Strategies -->
+        <div>
+          <div class="flex items-center justify-between mb-6">
+             <h3 class="text-xl font-bold text-slate-900">最新发布</h3>
+             <div class="flex gap-2">
+                <select class="text-sm border-slate-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                   <option>按时间排序</option>
+                   <option>按热度排序</option>
+                   <option>按收益排序</option>
+                </select>
+             </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+             <!-- Strategy Card 4 -->
+             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow cursor-pointer" onclick="openStrategyDetail('s4')">
+                <div class="flex items-center justify-between mb-4">
+                   <div class="flex items-center gap-2">
+                      <div class="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-xs">D</div>
+                      <span class="text-sm text-slate-600">@DavidCode</span>
+                   </div>
+                   <span class="text-xs text-slate-400">2小时前</span>
+                </div>
+                <h4 class="font-bold text-slate-900 mb-2">布林带回归策略</h4>
+                <p class="text-sm text-slate-500 mb-4 line-clamp-2">利用布林带上下轨进行逆势交易，适合震荡行情。</p>
+                <div class="flex items-center gap-4 text-sm">
+                   <span class="font-medium text-green-600">+12.5% 年化</span>
+                   <span class="text-slate-300">|</span>
+                   <span class="text-slate-500">SPY</span>
+                </div>
+             </div>
           </div>
         </div>
       </div>
@@ -415,7 +908,6 @@
           </div>
         </div>
       </div>
-    </div>
 
     <!-- 2. 触发器构建器 -->
     <div
@@ -581,7 +1073,6 @@
           </div>
         </div>
       </div>
-    </div>
 
     <!-- 3. 加载状态 -->
     <div
@@ -620,6 +1111,7 @@
           </div>
           <button
             id="btn-close-results"
+            onclick="showSection('editor')"
             class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm"
           >
             <i class="fa-solid fa-arrow-left mr-2"></i> 返回设计器
@@ -820,6 +1312,99 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Strategy Detail Modal -->
+    <div id="strategy-detail-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
+       <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl m-4">
+          <div class="sticky top-0 bg-white z-10 px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+             <h3 class="text-xl font-bold text-slate-900">策略详情</h3>
+             <button onclick="closeStrategyDetail()" class="text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-xl"></i>
+             </button>
+          </div>
+          <div class="p-6">
+             <!-- Header Info -->
+             <div class="flex items-start justify-between mb-8">
+                <div>
+                   <h2 class="text-2xl font-bold text-slate-900 mb-2">双均线趋势增强</h2>
+                   <div class="flex items-center gap-4 text-sm text-slate-500">
+                      <span class="flex items-center gap-1"><i class="fa-regular fa-user"></i> @AlexTrader</span>
+                      <span class="flex items-center gap-1"><i class="fa-regular fa-clock"></i> 2天前发布</span>
+                      <span class="flex items-center gap-1"><i class="fa-solid fa-eye"></i> 1,234 次查看</span>
+                   </div>
+                </div>
+                <button class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-indigo-700 transition-colors shadow-sm">
+                   <i class="fa-regular fa-clone mr-2"></i> 克隆策略
+                </button>
+             </div>
+
+             <!-- Performance Chart Placeholder -->
+             <div class="bg-slate-50 rounded-xl p-6 mb-8 h-64 flex items-center justify-center border border-slate-200">
+                <p class="text-slate-400">策略收益走势图 (示例)</p>
+             </div>
+
+             <!-- Description -->
+             <div class="mb-8">
+                <h4 class="font-bold text-slate-900 mb-2">策略描述</h4>
+                <p class="text-slate-600 leading-relaxed">
+                   这是一个基于双均线交叉的经典趋势跟踪策略。当短期均线（MA20）上穿长期均线（MA60）时买入，反之卖出。同时结合了 RSI 指标作为过滤条件，避免在超买区域追高。适合长期持有 SPY 等宽基指数 ETF。
+                </p>
+             </div>
+
+             <!-- Comments Section -->
+             <div class="border-t border-slate-100 pt-8">
+                <h4 class="font-bold text-slate-900 mb-6">社区讨论 (3)</h4>
+                
+                <!-- Comment Input -->
+                <div class="flex gap-4 mb-8">
+                   <div class="h-10 w-10 rounded-full bg-slate-200 flex-shrink-0"></div>
+                   <div class="flex-1">
+                      <textarea class="w-full rounded-lg border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-3 text-sm" rows="3" placeholder="写下你的看法..."></textarea>
+                      <div class="flex justify-end mt-2">
+                         <button class="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 mr-2">取消</button>
+                         <button class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700">发表评论</button>
+                      </div>
+                   </div>
+                </div>
+
+                <!-- Comment List -->
+                <div class="space-y-6">
+                   <!-- Comment 1 -->
+                   <div class="flex gap-4">
+                      <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold flex-shrink-0">J</div>
+                      <div>
+                         <div class="flex items-center gap-2 mb-1">
+                            <span class="font-bold text-slate-900 text-sm">JackMa</span>
+                            <span class="text-xs text-slate-400">1天前</span>
+                         </div>
+                         <p class="text-slate-600 text-sm">这个策略在震荡市表现如何？我看回撤控制得不错。</p>
+                         <div class="flex items-center gap-4 mt-2 text-xs text-slate-500">
+                            <button class="hover:text-indigo-600"><i class="fa-regular fa-thumbs-up"></i> 5</button>
+                            <button class="hover:text-indigo-600">回复</button>
+                         </div>
+                      </div>
+                   </div>
+                   <!-- Comment 2 -->
+                   <div class="flex gap-4">
+                      <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold flex-shrink-0">A</div>
+                      <div>
+                         <div class="flex items-center gap-2 mb-1">
+                            <span class="font-bold text-slate-900 text-sm">AlexTrader</span>
+                            <span class="bg-indigo-100 text-indigo-700 text-xs px-2 py-0.5 rounded-full">作者</span>
+                            <span class="text-xs text-slate-400">1天前</span>
+                         </div>
+                         <p class="text-slate-600 text-sm">回复 @JackMa: 在震荡市会有一些磨损，所以加了 RSI 过滤。建议配合低波动率 ETF 使用。</p>
+                         <div class="flex items-center gap-4 mt-2 text-xs text-slate-500">
+                            <button class="hover:text-indigo-600"><i class="fa-regular fa-thumbs-up"></i> 2</button>
+                            <button class="hover:text-indigo-600">回复</button>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+             </div>
+          </div>
+       </div>
     </div>
 
     <script src="js/app.js"></script>

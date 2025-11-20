@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { StrategyConfig, Trigger, BacktestResultDTO } from '@/types'
+import type { StrategyConfig, Trigger, BacktestResultDTO, StrategySummaryDTO, CommentEntity } from '@/types'
 import axios from 'axios'
 import { useAuthStore } from './auth'
+
+const API_BASE_URL = 'https://investment-strategy-designer-backend.digitalboyzone.workers.dev/api/v1'
 
 export const useStrategyStore = defineStore('strategy', () => {
     // State
@@ -17,6 +19,10 @@ export const useStrategyStore = defineStore('strategy', () => {
     const backtestResult = ref<BacktestResultDTO | null>(null)
     const isLoading = ref(false)
     const error = ref<string | null>(null)
+
+    // Community State
+    const publicStrategies = ref<StrategySummaryDTO[]>([])
+    const currentStrategyComments = ref<CommentEntity[]>([])
 
     // Actions
     const setConfig = (newConfig: Partial<StrategyConfig>) => {
@@ -44,10 +50,8 @@ export const useStrategyStore = defineStore('strategy', () => {
                 headers['Authorization'] = `Bearer ${authStore.token}`
             }
 
-            // Assuming the backend is running on localhost:8787
-            // In production, this should be configured via environment variables
             const response = await axios.post(
-                'https://investment-strategy-designer-backend.digitalboyzone.workers.dev/api/v1/backtest',
+                `${API_BASE_URL}/backtest`,
                 config.value,
                 { headers }
             )
@@ -60,7 +64,7 @@ export const useStrategyStore = defineStore('strategy', () => {
         }
     }
 
-    const saveStrategy = async (name: string, description: string) => {
+    const saveStrategy = async (name: string, description: string, isPublic: boolean = false) => {
         isLoading.value = true
         error.value = null
         const authStore = useAuthStore()
@@ -79,11 +83,12 @@ export const useStrategyStore = defineStore('strategy', () => {
             }
 
             await axios.post(
-                'https://investment-strategy-designer-backend.digitalboyzone.workers.dev/api/v1/strategies',
+                `${API_BASE_URL}/strategies`,
                 {
                     name,
                     description,
-                    config: config.value
+                    config: config.value,
+                    isPublic
                 },
                 { headers }
             )
@@ -93,6 +98,68 @@ export const useStrategyStore = defineStore('strategy', () => {
             throw e
         } finally {
             isLoading.value = false
+        }
+    }
+
+    const fetchPublicStrategies = async (sortBy: 'recent' | 'popular' | 'return' = 'recent') => {
+        isLoading.value = true
+        error.value = null
+
+        try {
+            const response = await axios.get(`${API_BASE_URL}/strategies?scope=public&sort=${sortBy}`)
+            publicStrategies.value = response.data
+        } catch (e: any) {
+            error.value = e.message || 'Failed to fetch public strategies'
+            console.error(e)
+        } finally {
+            isLoading.value = false
+        }
+    }
+
+    const toggleLike = async (strategyId: string) => {
+        const authStore = useAuthStore()
+        const token = await authStore.getFreshToken()
+
+        if (!token) throw new Error('Must be logged in to like')
+
+        try {
+            await axios.post(
+                `${API_BASE_URL}/strategies/${strategyId}/like`,
+                {},
+                { headers: { 'Authorization': `Bearer ${token}` } }
+            )
+            // Optimistically update UI or refetch
+        } catch (e) {
+            console.error('Failed to toggle like', e)
+            throw e
+        }
+    }
+
+    const fetchComments = async (strategyId: string) => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/strategies/${strategyId}/comments`)
+            currentStrategyComments.value = response.data
+        } catch (e) {
+            console.error('Failed to fetch comments', e)
+        }
+    }
+
+    const addComment = async (strategyId: string, content: string) => {
+        const authStore = useAuthStore()
+        const token = await authStore.getFreshToken()
+
+        if (!token) throw new Error('Must be logged in to comment')
+
+        try {
+            const response = await axios.post(
+                `${API_BASE_URL}/strategies/${strategyId}/comments`,
+                { content },
+                { headers: { 'Authorization': `Bearer ${token}` } }
+            )
+            currentStrategyComments.value.unshift(response.data)
+        } catch (e) {
+            console.error('Failed to add comment', e)
+            throw e
         }
     }
 
@@ -113,11 +180,17 @@ export const useStrategyStore = defineStore('strategy', () => {
         backtestResult,
         isLoading,
         error,
+        publicStrategies,
+        currentStrategyComments,
         setConfig,
         addTrigger,
         removeTrigger,
         runBacktest,
         saveStrategy,
+        fetchPublicStrategies,
+        toggleLike,
+        fetchComments,
+        addComment,
         reset
     }
 })
