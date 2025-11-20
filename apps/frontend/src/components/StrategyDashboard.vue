@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useStrategyStore } from '@/stores/strategy'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -9,8 +10,8 @@ import SaveStrategyDialog from './SaveStrategyDialog.vue'
 import type { Trigger } from '@/types'
 
 const store = useStrategyStore()
-const config = computed(() => store.config)
-const triggers = computed(() => store.config.triggers)
+const { config } = storeToRefs(store)
+const triggers = computed(() => config.value.triggers)
 
 const showTriggerBuilder = ref(false)
 const showResults = ref(false)
@@ -127,8 +128,8 @@ const onStrategySaved = () => {
         <!-- Bottom Action -->
         <div class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 flex justify-center z-20">
             <div class="max-w-7xl w-full flex justify-end px-4 sm:px-6 lg:px-8 gap-4">
-                <Button variant="outline" size="lg" class="w-full sm:w-auto"
-                    :disabled="triggers.length === 0" @click="showSaveDialog = true">
+                <Button variant="outline" size="lg" class="w-full sm:w-auto" :disabled="triggers.length === 0"
+                    @click="showSaveDialog = true">
                     保存策略
                 </Button>
                 <Button size="lg" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white"

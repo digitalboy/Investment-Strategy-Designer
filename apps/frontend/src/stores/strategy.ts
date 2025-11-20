@@ -24,11 +24,13 @@ export const useStrategyStore = defineStore('strategy', () => {
     }
 
     const addTrigger = (trigger: Trigger) => {
-        config.value.triggers.push(trigger)
+        config.value.triggers = [...config.value.triggers, trigger]
     }
 
     const removeTrigger = (index: number) => {
-        config.value.triggers.splice(index, 1)
+        const newTriggers = [...config.value.triggers]
+        newTriggers.splice(index, 1)
+        config.value.triggers = newTriggers
     }
 
     const runBacktest = async () => {
@@ -63,7 +65,9 @@ export const useStrategyStore = defineStore('strategy', () => {
         error.value = null
         const authStore = useAuthStore()
 
-        if (!authStore.token) {
+        const token = await authStore.getFreshToken()
+
+        if (!token) {
             error.value = 'User must be logged in to save strategy'
             isLoading.value = false
             throw new Error('User must be logged in to save strategy')
@@ -71,7 +75,7 @@ export const useStrategyStore = defineStore('strategy', () => {
 
         try {
             const headers = {
-                'Authorization': `Bearer ${authStore.token}`
+                'Authorization': `Bearer ${token}`
             }
 
             await axios.post(

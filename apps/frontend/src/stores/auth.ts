@@ -45,6 +45,20 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
+    const getFreshToken = async () => {
+        if (user.value) {
+            try {
+                const newToken = await user.value.getIdToken()
+                token.value = newToken
+                return newToken
+            } catch (error) {
+                console.error('Error getting fresh token:', error)
+                return null
+            }
+        }
+        return null
+    }
+
     const isAuthenticated = computed(() => !!user.value)
 
     return {
@@ -54,6 +68,7 @@ export const useAuthStore = defineStore('auth', () => {
         isAuthenticated,
         init,
         signInWithGoogle,
-        signOut
+        signOut,
+        getFreshToken
     }
 })

@@ -54,62 +54,64 @@ const enableCooldown = ref(true)
 const cooldownDays = ref(5)
 
 const handleSave = () => {
-    let condition: TriggerCondition
+    try {
+        let condition: TriggerCondition
 
-    if (conditionType.value === 'drawdownFromPeak') {
-        condition = {
-            type: 'drawdownFromPeak',
-            params: {
-                days: Number(conditionParams.value.days),
-                percentage: Number(conditionParams.value.percentage)
+        if (conditionType.value === 'drawdownFromPeak') {
+            condition = {
+                type: 'drawdownFromPeak',
+                params: {
+                    days: Number(conditionParams.value.days),
+                    percentage: Number(conditionParams.value.percentage)
+                }
+            }
+        } else if (conditionType.value === 'priceStreak') {
+            condition = {
+                type: 'priceStreak',
+                params: {
+                    direction: conditionParams.value.direction,
+                    count: Number(conditionParams.value.count),
+                    unit: conditionParams.value.unit
+                }
+            }
+        } else if (conditionType.value === 'rsi') {
+            condition = {
+                type: 'rsi',
+                params: {
+                    period: Number(conditionParams.value.period),
+                    threshold: Number(conditionParams.value.threshold),
+                    operator: conditionParams.value.operator
+                }
+            }
+        } else {
+            // Default fallback
+            condition = {
+                type: 'drawdownFromPeak',
+                params: { days: 60, percentage: 15 }
             }
         }
-    } else if (conditionType.value === 'priceStreak') {
-        condition = {
-            type: 'priceStreak',
-            params: {
-                direction: conditionParams.value.direction,
-                count: Number(conditionParams.value.count),
-                unit: conditionParams.value.unit
+
+        const action: TriggerAction = {
+            type: actionType.value,
+            value: {
+                type: actionValueType.value as any,
+                amount: Number(actionAmount.value)
             }
         }
-    } else if (conditionType.value === 'rsi') {
-        condition = {
-            type: 'rsi',
-            params: {
-                period: Number(conditionParams.value.period),
-                threshold: Number(conditionParams.value.threshold),
-                operator: conditionParams.value.operator
-            }
-        }
-    } else {
-        // Default fallback
-        condition = {
-            type: 'drawdownFromPeak',
-            params: { days: 60, percentage: 15 }
-        }
-    }
 
-    const action: TriggerAction = {
-        type: actionType.value,
-        value: {
-            type: actionValueType.value as any,
-            amount: Number(actionAmount.value)
+        const trigger: Trigger = {
+            condition,
+            action,
+            cooldown: enableCooldown.value ? { days: Number(cooldownDays.value) } : undefined
         }
-    }
 
-    const trigger: Trigger = {
-        condition,
-        action,
-        cooldown: enableCooldown.value ? { days: Number(cooldownDays.value) } : undefined
+        store.addTrigger(trigger)
+        emit('update:open', false)
+    } catch (error) {
+        console.error('Error in handleSave:', error);
     }
-
-    store.addTrigger(trigger)
-    emit('update:open', false)
 }
-</script>
-
-<template>
+</script><template>
     <Dialog :open="open" @update:open="$emit('update:open', $event)">
         <DialogContent class="sm:max-w-[600px]">
             <DialogHeader>
