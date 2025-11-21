@@ -11,7 +11,7 @@ import SaveStrategyDialog from './SaveStrategyDialog.vue'
 import StockLoading from './StockLoading.vue'
 import { Badge } from '@/components/ui/badge'
 import type { Trigger } from '@/types'
-import { ArrowLeft, Trash2 } from 'lucide-vue-next'
+import { ArrowLeft, Trash2, Calendar, Wallet, Layers, Settings, Activity } from 'lucide-vue-next'
 
 const emit = defineEmits(['edit-setup', 'back'])
 
@@ -43,12 +43,6 @@ const investingHorizon = computed(() => {
 })
 
 const strategyTitle = computed(() => currentStrategyName.value || currentStrategyMetadata.value?.name || '未命名策略')
-
-const summaryTiles = computed(() => ([
-    { label: '投资区间', value: investingHorizon.value },
-    { label: '初始本金', value: formatCurrency(config.value.initialCapital) },
-    { label: '触发器数量', value: `${triggers.value.length} 个` }
-]))
 
 const statusBadge = computed(() => {
     if (error.value) {
@@ -173,7 +167,7 @@ const describeTrigger = (trigger: Trigger) => {
     }
 }
 
-const triggerSummaries = computed(() => triggers.value.map((trigger, index) => {
+const triggerSummaries = computed(() => triggers.value.map((trigger: Trigger, index: number) => {
     const details = describeTrigger(trigger)
     return {
         id: `${index}-${trigger.condition?.type ?? 'unknown'}`,
@@ -228,44 +222,73 @@ const handleUpdate = async () => {
 
 <template>
     <div class="space-y-6 pb-36 animate-fade-in">
+        <!-- Header Section -->
         <section
-            class="rounded-2xl border border-slate-200 bg-linear-to-r from-indigo-600 via-indigo-500 to-indigo-400 p-6 text-white shadow-sm">
-            <div class="flex flex-wrap items-start justify-between gap-4">
-                <div class="flex items-start gap-3">
-                    <Button variant="outline" size="icon"
-                        class="border-white/40 bg-white/10 text-white hover:bg-white/20" @click="$emit('back')">
-                        <ArrowLeft class="h-4 w-4" />
-                    </Button>
-                    <div>
-                        <p class="text-xs uppercase tracking-[0.3em] text-white/70">策略回测</p>
-                        <h1 class="text-2xl font-semibold mt-1">{{ strategyTitle }}</h1>
-                        <p class="text-sm text-white/80 mt-1">标的：{{ config.etfSymbol || '尚未选择标的' }}</p>
-                        <p class="text-sm text-white/80">{{ investingHorizon }}</p>
+            class="bg-linear-to-r from-slate-900 to-slate-800 border-b border-slate-700 px-6 py-5 -mx-6 -mt-6 mb-6 shadow-md sticky top-0 z-20">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                    <!-- Left: Title & Meta -->
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-2 text-slate-400">
+                            <Button variant="ghost" size="icon"
+                                class="h-8 w-8 -ml-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-full"
+                                @click="$emit('back')">
+                                <ArrowLeft class="h-4 w-4" />
+                            </Button>
+                            <span class="text-xs font-medium uppercase tracking-wider text-slate-400">策略回测工作台</span>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <h1 class="text-2xl font-bold text-white tracking-tight">{{ strategyTitle }}</h1>
+                            <Badge variant="outline"
+                                class="font-mono text-indigo-300 bg-indigo-500/20 border-indigo-500/30 px-2.5 py-0.5">
+                                {{ config.etfSymbol || '未选标的' }}
+                            </Badge>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-x-8 gap-y-2 text-sm text-slate-400">
+                            <div class="flex items-center gap-2 group cursor-help" title="回测时间范围">
+                                <Calendar
+                                    class="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition-colors" />
+                                <span class="font-medium group-hover:text-slate-200 transition-colors">{{
+                                    investingHorizon }}</span>
+                            </div>
+                            <div class="flex items-center gap-2 group cursor-help" title="初始本金">
+                                <Wallet class="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition-colors" />
+                                <span class="font-medium group-hover:text-slate-200 transition-colors">{{
+                                    formatCurrency(config.initialCapital) }}</span>
+                            </div>
+                            <div class="flex items-center gap-2 group cursor-help" title="触发器数量">
+                                <Layers class="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition-colors" />
+                                <span class="font-medium group-hover:text-slate-200 transition-colors">{{
+                                    triggers.length }} 个触发器</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Status & Actions -->
+                    <div class="flex items-center gap-4 pt-2">
+                        <div class="text-right hidden md:block">
+                            <div class="text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-semibold">当前状态
+                            </div>
+                            <Badge :class="['px-2.5 py-0.5', statusBadge.classes]">{{ statusBadge.label }}</Badge>
+                        </div>
+
+                        <div class="h-8 w-px bg-slate-700 mx-2 hidden md:block"></div>
+
+                        <Button v-if="canEdit" variant="outline"
+                            class="border-slate-600 bg-transparent text-slate-300 hover:bg-white/5 hover:text-white hover:border-slate-500"
+                            @click="$emit('edit-setup')">
+                            <Settings class="h-4 w-4 mr-2 text-slate-400" />
+                            设置
+                        </Button>
                     </div>
                 </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <Badge v-if="statusBadge" variant="outline"
-                        :class="['border text-xs font-semibold px-3 py-1', statusBadge.classes]">
-                        {{ statusBadge.label }}
-                    </Badge>
-                    <Button v-if="canEdit" variant="secondary" size="sm"
-                        class="bg-white/10 border-white/40 text-white hover:bg-white/20" @click="$emit('edit-setup')">
-                        修改设置
-                    </Button>
-                </div>
             </div>
-            <div class="mt-6 grid gap-4 sm:grid-cols-3">
-                <div v-for="tile in summaryTiles" :key="tile.label"
-                    class="rounded-xl border border-white/25 bg-white/10 p-4 text-sm backdrop-blur">
-                    <p class="text-white/70 text-xs">{{ tile.label }}</p>
-                    <p class="mt-2 text-base font-semibold text-white">{{ tile.value }}</p>
-                </div>
-            </div>
-            <p class="mt-4 text-sm text-white/85" v-if="statusBadge?.description">{{ statusBadge.description }}</p>
         </section>
 
-        <div class="grid gap-6 lg:grid-cols-[2fr,1fr]">
-            <Card class="border-slate-200 shadow-sm">
+        <div class="grid gap-6 lg:grid-cols-[3fr,1fr]">
+            <Card class="border-slate-200 shadow-sm h-fit">
                 <CardHeader class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <CardTitle>触发器面板</CardTitle>
@@ -320,28 +343,44 @@ const handleUpdate = async () => {
                 </CardContent>
             </Card>
 
-            <Card class="border-slate-200 shadow-sm">
-                <CardHeader>
-                    <CardTitle>执行指南</CardTitle>
-                    <CardDescription>确保关键配置完善后再运行回测或保存策略。</CardDescription>
+            <Card class="border-slate-200 shadow-sm h-fit sticky top-24">
+                <CardHeader class="pb-3">
+                    <CardTitle class="text-base">执行指南</CardTitle>
                 </CardHeader>
-                <CardContent class="grid gap-4 text-sm text-slate-600 lg:grid-cols-3">
-                    <div class="rounded-xl border border-slate-200 p-3 h-full">
-                        <p class="text-xs font-semibold text-slate-400">状态</p>
-                        <p class="mt-1 text-sm text-slate-900">{{ statusBadge?.label }}</p>
-                        <p class="mt-1 text-xs text-slate-500">{{ statusBadge?.description || '暂无异常' }}</p>
+                <CardContent class="grid gap-4 text-sm text-slate-600">
+                    <div class="rounded-lg border border-slate-100 bg-slate-50 p-3">
+                        <div class="flex items-center gap-2 mb-2">
+                            <Activity class="h-4 w-4 text-indigo-500" />
+                            <span class="font-medium text-slate-900">当前状态</span>
+                        </div>
+                        <p class="text-xs text-slate-500 leading-relaxed">{{ statusBadge?.description || '暂无异常' }}</p>
                     </div>
-                    <div class="rounded-xl border border-slate-200 p-3 space-y-2 h-full">
-                        <p class="text-xs font-semibold text-slate-400">提示</p>
-                        <ul class="list-disc space-y-1 pl-5">
-                            <li>保证至少一个条件与动作配对。</li>
-                            <li>确认时间范围、本金与标的是否准确。</li>
-                            <li v-if="canEdit">保存后可在社区或个人空间复用策略。</li>
+
+                    <div class="space-y-2">
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">提示</p>
+                        <ul class="space-y-2">
+                            <li class="flex gap-2 text-xs text-slate-600">
+                                <span class="text-indigo-500">•</span>
+                                交易将在信号触发后的次日开盘时执行。
+                            </li>
+                            <li class="flex gap-2 text-xs text-slate-600">
+                                <span class="text-indigo-500">•</span>
+                                保证至少一个条件与动作配对。
+                            </li>
+                            <li class="flex gap-2 text-xs text-slate-600">
+                                <span class="text-indigo-500">•</span>
+                                确认时间范围、本金与标的是否准确。
+                            </li>
+                            <li v-if="canEdit" class="flex gap-2 text-xs text-slate-600">
+                                <span class="text-indigo-500">•</span>
+                                保存后可在社区或个人空间复用策略。
+                            </li>
                         </ul>
                     </div>
-                    <div class="rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-slate-700 h-full">
-                        <p class="text-xs font-semibold text-indigo-600">最新回测</p>
-                        <p class="mt-1 text-sm">{{ backtestResult ? '已有回测结果，可重新运行以刷新表现。' : '尚未运行回测，点击【运行回测】即可开始。' }}</p>
+
+                    <div v-if="backtestResult" class="rounded-lg border border-green-200 bg-green-50 p-3">
+                        <p class="text-xs font-semibold text-green-700 mb-1">回测完成</p>
+                        <p class="text-xs text-green-600">已有回测结果，可重新运行以刷新表现。</p>
                     </div>
                 </CardContent>
             </Card>

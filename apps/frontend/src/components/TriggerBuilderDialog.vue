@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useStrategyStore } from '@/stores/strategy'
 import type { Trigger, TriggerCondition, TriggerAction } from '@/types'
 import {
@@ -53,6 +53,37 @@ const actionAmount = ref(1000)
 const enableCooldown = ref(true)
 const cooldownDays = ref(5)
 
+const actionValueOptions = computed(() => {
+    if (actionType.value === 'buy') {
+        return [
+            { value: 'fixedAmount', label: '固定金额 ($)' },
+            { value: 'cashPercent', label: '可用现金百分比 (%)' },
+            { value: 'totalValuePercent', label: '总资产目标仓位 (%)' },
+        ]
+    }
+
+    return [
+        { value: 'fixedAmount', label: '固定金额 ($)' },
+        { value: 'positionPercent', label: '持仓百分比 (%)' },
+        { value: 'totalValuePercent', label: '总资产目标仓位 (%)' },
+    ]
+})
+
+const actionValueSuffix = computed(() => actionValueType.value === 'fixedAmount' ? '$' : '%')
+
+const actionValueHint = computed(() => {
+    switch (actionValueType.value) {
+        case 'cashPercent':
+            return '使用账户当前可用现金的百分比进行下单'
+        case 'positionPercent':
+            return '卖出当前持仓的一定百分比'
+        case 'totalValuePercent':
+            return '调整仓位，使其占账户总资产的指定百分比'
+        default:
+            return '输入本次交易的金额或百分比'
+    }
+})
+
 // Reset form when dialog opens
 watch(() => props.open, (newVal) => {
     if (newVal) {
@@ -75,42 +106,84 @@ watch(() => props.open, (newVal) => {
     }
 })
 
+// Ensure action value type is valid for the current action
+watch(actionValueOptions, (options) => {
+    if (!options.find(option => option.value === actionValueType.value)) {
+        actionValueType.value = options[0]?.value || 'fixedAmount'
+    }
+}, { immediate: true })
+
 const handleSave = () => {
     try {
         let condition: TriggerCondition
 
-        if (conditionType.value === 'drawdownFromPeak') {
-            condition = {
-                type: 'drawdownFromPeak',
-                params: {
-                    days: Number(conditionParams.value.days),
-                    percentage: Number(conditionParams.value.percentage)
+        switch (conditionType.value) {
+            case 'drawdownFromPeak':
+                condition = {
+                    type: 'drawdownFromPeak',
+                    params: {
+                        days: Number(conditionParams.value.days),
+                        percentage: Number(conditionParams.value.percentage)
+                    }
                 }
-            }
-        } else if (conditionType.value === 'priceStreak') {
-            condition = {
-                type: 'priceStreak',
-                params: {
-                    direction: conditionParams.value.direction,
-                    count: Number(conditionParams.value.count),
-                    unit: conditionParams.value.unit
+                break
+            case 'priceStreak':
+                condition = {
+                    type: 'priceStreak',
+                    params: {
+                        direction: conditionParams.value.direction,
+                        count: Number(conditionParams.value.count),
+                        unit: conditionParams.value.unit
+                    }
                 }
-            }
-        } else if (conditionType.value === 'rsi') {
-            condition = {
-                type: 'rsi',
-                params: {
-                    period: Number(conditionParams.value.period),
-                    threshold: Number(conditionParams.value.threshold),
-                    operator: conditionParams.value.operator
+                break
+            case 'rsi':
+                condition = {
+                    type: 'rsi',
+                    params: {
+                        period: Number(conditionParams.value.period),
+                        threshold: Number(conditionParams.value.threshold),
+                        operator: conditionParams.value.operator
+                    }
                 }
-            }
-        } else {
-            // Default fallback
-            condition = {
-                type: 'drawdownFromPeak',
-                params: { days: 60, percentage: 15 }
-            }
+                break
+            case 'newHigh':
+                condition = {
+                    type: 'newHigh',
+                    params: { days: Number(conditionParams.value.days) }
+                }
+                break
+            case 'newLow':
+                condition = {
+                    type: 'newLow',
+                    params: { days: Number(conditionParams.value.days) }
+                }
+                break
+            case 'periodReturn':
+                condition = {
+                    type: 'periodReturn',
+                    params: {
+                        days: Number(conditionParams.value.days),
+                        percentage: Number(conditionParams.value.percentage),
+                        direction: conditionParams.value.direction
+                    }
+                }
+                break
+            case 'maCross':
+                condition = {
+                    type: 'maCross',
+                    params: {
+                        period: Number(conditionParams.value.period),
+                        direction: conditionParams.value.direction
+                    }
+                }
+                break
+            default:
+                // Default fallback
+                condition = {
+                    type: 'drawdownFromPeak',
+                    params: { days: 60, percentage: 15 }
+                }
         }
 
         const action: TriggerAction = {
@@ -159,8 +232,12 @@ const handleSave = () => {
                                         <SelectLabel>价格行为</SelectLabel>
                                         <SelectItem value="drawdownFromPeak">从高点回撤</SelectItem>
                                         <SelectItem value="priceStreak">连续涨/跌</SelectItem>
+                                        <SelectItem value="newHigh">创 N 日新高</SelectItem>
+                                        <SelectItem value="newLow">创 N 日新低</SelectItem>
+                                        <SelectItem value="periodReturn">区间涨跌幅</SelectItem>
                                         <SelectLabel>技术指标</SelectLabel>
                                         <SelectItem value="rsi">RSI 超买/超卖</SelectItem>
+                                        <SelectItem value="maCross">均线交叉</SelectItem>
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
@@ -243,6 +320,69 @@ const handleSave = () => {
                             <Input type="number" v-model="conditionParams.threshold" />
                         </div>
                     </div>
+
+                    <div v-if="conditionType === 'newHigh' || conditionType === 'newLow'"
+                        class="grid grid-cols-2 gap-4 bg-slate-50 p-3 rounded-md">
+                        <div>
+                            <Label>过去多少天</Label>
+                            <div class="relative">
+                                <Input type="number" v-model="conditionParams.days" />
+                                <span class="absolute right-3 top-2.5 text-xs text-slate-500">天</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="conditionType === 'periodReturn'"
+                        class="grid grid-cols-3 gap-4 bg-slate-50 p-3 rounded-md">
+                        <div>
+                            <Label>过去多少天</Label>
+                            <div class="relative">
+                                <Input type="number" v-model="conditionParams.days" />
+                                <span class="absolute right-3 top-2.5 text-xs text-slate-500">天</span>
+                            </div>
+                        </div>
+                        <div>
+                            <Label>方向</Label>
+                            <Select v-model="conditionParams.direction">
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="up">上涨</SelectItem>
+                                    <SelectItem value="down">下跌</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div>
+                            <Label>幅度</Label>
+                            <div class="relative">
+                                <Input type="number" v-model="conditionParams.percentage" />
+                                <span class="absolute right-3 top-2.5 text-xs text-slate-500">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="conditionType === 'maCross'" class="grid grid-cols-2 gap-4 bg-slate-50 p-3 rounded-md">
+                        <div>
+                            <Label>均线周期</Label>
+                            <div class="relative">
+                                <Input type="number" v-model="conditionParams.period" />
+                                <span class="absolute right-3 top-2.5 text-xs text-slate-500">天</span>
+                            </div>
+                        </div>
+                        <div>
+                            <Label>穿越方向</Label>
+                            <Select v-model="conditionParams.direction">
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="above">向上穿越 (金叉)</SelectItem>
+                                    <SelectItem value="below">向下穿越 (死叉)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- THEN Action -->
@@ -268,8 +408,10 @@ const handleSave = () => {
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="fixedAmount">固定金额 ($)</SelectItem>
-                                    <SelectItem value="cashPercent">可用现金百分比 (%)</SelectItem>
+                                    <SelectItem v-for="option in actionValueOptions" :key="option.value"
+                                        :value="option.value">
+                                        {{ option.label }}
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -277,7 +419,12 @@ const handleSave = () => {
                     <div class="grid grid-cols-2 gap-4 bg-slate-50 p-3 rounded-md">
                         <div>
                             <Label>数值</Label>
-                            <Input type="number" v-model="actionAmount" />
+                            <div class="relative">
+                                <Input type="number" v-model="actionAmount" class="pr-10" />
+                                <span class="absolute right-3 top-2.5 text-xs text-slate-500">{{ actionValueSuffix
+                                    }}</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">{{ actionValueHint }}</p>
                         </div>
                     </div>
                 </div>

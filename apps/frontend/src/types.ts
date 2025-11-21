@@ -29,6 +29,7 @@ export interface StrategySummaryDTO {
     description?: string;
     updatedAt: string;
     isPublic: boolean;
+    etfSymbol?: string;
     stats: {
         views: number;
         likes: number;
@@ -86,27 +87,6 @@ export interface TriggerAction {
     };
 }
 
-
-
-export interface CreateStrategyDTO {
-    name: string;
-    description?: string;
-    config: StrategyConfig;
-}
-
-export interface UpdateStrategyDTO {
-    name?: string;
-    description?: string;
-    config?: StrategyConfig;
-}
-
-export interface PerformanceMetrics {
-    totalReturn: number;
-    annualizedReturn: number;
-    maxDrawdown: number;
-    sharpeRatio?: number;
-}
-
 export interface BacktestResultDTO {
     metadata: {
         symbol: string;
@@ -120,6 +100,44 @@ export interface BacktestResultDTO {
         dates: string[];
         strategyEquity: number[];
         benchmarkEquity: number[];
-        underlyingPrice?: number[];
+        underlyingPrice: number[];
     };
+    trades: Trade[];
+}
+
+export interface Trade {
+    date: string;
+    action: 'buy' | 'sell';
+    quantity: number;
+    price: number;
+    reason: string;
+}
+
+export interface PerformanceMetrics {
+    totalReturn: number;
+    annualizedReturn: number;
+    maxDrawdown: number;
+    sharpeRatio: number;
+    tradeStats: TradeStats;
+}
+
+export interface TradeStats {
+    totalTrades: number;
+    buyCount: number;
+    sellCount: number;
+    totalInvested: number;
+    totalProceeds: number;
+}
+
+export interface CreateStrategyDTO {
+    name: string;
+    description?: string;
+    config: StrategyConfig;
+}
+
+export interface UpdateStrategyDTO {
+    name?: string;
+    description?: string;
+    config?: StrategyConfig;
+    isPublic?: boolean;
 }
