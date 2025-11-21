@@ -18,6 +18,7 @@ onMounted(() => {
 })
 
 const startCreate = () => {
+  strategyStore.reset()
   showSetupWizard.value = true
 }
 

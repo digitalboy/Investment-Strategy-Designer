@@ -3,13 +3,13 @@ import { onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useStrategyStore } from '@/stores/strategy'
 import { useAuthStore } from '@/stores/auth'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Plus } from 'lucide-vue-next'
+import { Plus, Trophy, Heart, MessageSquare, RefreshCw } from 'lucide-vue-next'
 
 const emit = defineEmits(['create-strategy', 'view-strategy'])
 
@@ -72,240 +72,252 @@ const handleAddComment = async () => {
 }
 
 const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString()
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffTime = Math.abs(now.getTime() - date.getTime())
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays < 1) return '刚刚更新'
+    if (diffDays < 7) return `${diffDays}天前更新`
+    return date.toLocaleDateString()
+}
+
+const formatPercent = (value?: number) => {
+    if (value === undefined || value === null) return '--'
+    return `${value > 0 ? '+' : ''}${value.toFixed(1)}%`
+}
+
+const getRankColor = (index: number) => {
+    if (index === 0) return 'bg-yellow-400 text-yellow-900' // Gold
+    if (index === 1) return 'bg-slate-300 text-slate-900'   // Silver
+    if (index === 2) return 'bg-amber-600 text-amber-100'   // Bronze
+    return 'bg-slate-100 text-slate-600'
 }
 </script>
 
 <template>
-    <div class="space-y-6">
-        <!-- My Strategy Library -->
-        <div v-if="authStore.isAuthenticated" class="space-y-4">
-            <div class="flex justify-between items-center">
-                <h2 class="text-2xl font-bold tracking-tight">我的策略</h2>
-                <Button variant="ghost" size="sm" @click="strategyStore.fetchUserStrategies()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="mr-2 h-4 w-4">
-                        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                        <path d="M3 3v5h5" />
-                        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-                        <path d="M16 21h5v-5" />
-                    </svg>
-                    刷新
-                </Button>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Create New Strategy Card -->
-                <Card
-                    class="flex flex-col justify-center items-center border-dashed border-2 cursor-pointer hover:bg-slate-50 transition-colors h-full min-h-[200px]"
-                    @click="emit('create-strategy')">
-                    <div class="flex flex-col items-center gap-2 text-slate-500">
-                        <div class="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center">
-                            <Plus class="h-6 w-6" />
-                        </div>
-                        <span class="font-medium">创建新策略</span>
-                    </div>
-                </Card>
+    <div class="min-h-screen bg-linear-to-br from-indigo-500 to-purple-600 p-6 -m-6 rounded-none">
+        <div class="max-w-7xl mx-auto space-y-12">
 
-                <!-- User Strategies -->
-                <Card v-for="strategy in userStrategies" :key="strategy.id"
-                    class="flex flex-col cursor-pointer hover:border-indigo-300 transition-all"
-                    @click="emit('view-strategy', strategy.id)">
-                    <CardHeader>
-                        <div class="flex justify-between items-start">
-                            <div class="space-y-1">
-                                <CardTitle class="text-lg">{{ strategy.name }}</CardTitle>
+            <!-- My Strategy Library -->
+            <div v-if="authStore.isAuthenticated" class="space-y-6">
+                <div class="flex justify-between items-center text-white">
+                    <div class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-folder-open">
+                            <path
+                                d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-3.25 7a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v2" />
+                        </svg>
+                        <h2 class="text-2xl font-bold tracking-tight">我的策略库</h2>
+                    </div>
+                    <Button variant="secondary" size="sm"
+                        class="bg-white/20 hover:bg-white/30 text-white border-none backdrop-blur-sm"
+                        @click="strategyStore.fetchUserStrategies()">
+                        <RefreshCw class="mr-2 h-4 w-4" />
+                        刷新
+                    </Button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- User Strategies -->
+                    <Card v-for="strategy in userStrategies" :key="strategy.id"
+                        class="group relative flex flex-col bg-white border-none shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer rounded-2xl"
+                        @click="emit('view-strategy', strategy.id)">
+                        <CardContent class="p-6 flex flex-col h-full">
+                            <div class="flex justify-between items-start mb-4">
                                 <div class="flex gap-2">
-                                    <Badge :variant="strategy.isPublic ? 'secondary' : 'outline'">
-                                        {{ strategy.isPublic ? '公开' : '私有' }}
+                                    <Badge
+                                        :class="strategy.isPublic ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                                        class="rounded-md px-2 py-0.5 font-normal">
+                                        {{ strategy.isPublic ? '公开' : '草稿' }}
                                     </Badge>
-                                    <Badge variant="outline" class="bg-slate-50">
-                                        {{ strategy.triggerCount || 0 }} 规则
-                                    </Badge>
+                                    <span class="text-xs text-slate-400 flex items-center">{{
+                                        formatDate(strategy.updatedAt) }}</span>
+                                </div>
+                            </div>
+
+                            <h3
+                                class="text-xl font-bold text-slate-800 mb-3 line-clamp-1 group-hover:text-indigo-600 transition-colors">
+                                {{ strategy.name }}</h3>
+
+                            <div class="flex gap-2 mb-6">
+                                <Badge variant="secondary" class="bg-slate-50 text-slate-500 font-normal rounded-md">SPY
+                                </Badge>
+                                <Badge variant="secondary" class="bg-slate-50 text-slate-500 font-normal rounded-md">RSI
+                                </Badge>
+                            </div>
+
+                            <div class="mt-auto pt-4 border-t border-slate-100 grid grid-cols-2 gap-4">
+                                <div>
+                                    <div class="text-xs text-slate-400 mb-1">年化收益</div>
+                                    <div class="text-lg font-bold"
+                                        :class="strategy.returnRate && strategy.returnRate > 0 ? 'text-green-600' : 'text-slate-800'">
+                                        {{ formatPercent(strategy.returnRate) }}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-slate-400 mb-1">最大回撤</div>
+                                    <div class="text-lg font-bold text-slate-800">
+                                        {{ formatPercent(strategy.maxDrawdown) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Create New Strategy Card -->
+                    <Card
+                        class="flex flex-col justify-center items-center bg-white/10 border-2 border-dashed border-white/30 cursor-pointer hover:bg-white/20 hover:border-white/50 transition-all duration-300 h-full min-h-60 rounded-2xl backdrop-blur-sm group"
+                        @click="emit('create-strategy')">
+                        <div class="flex flex-col items-center gap-3 text-white/80 group-hover:text-white">
+                            <div
+                                class="h-14 w-14 rounded-full bg-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <Plus class="h-7 w-7" />
+                            </div>
+                            <span class="font-medium text-lg">创建新策略</span>
+                            <span class="text-xs text-white/50">从零开始构建或基于模板</span>
+                        </div>
+                    </Card>
+                </div>
+
+            </div>
+
+            <!-- Community Leaderboard -->
+            <div class="space-y-6">
+                <div class="flex justify-between items-center text-white">
+                    <div class="flex items-center gap-2">
+                        <Trophy class="h-6 w-6 text-yellow-300" />
+                        <h2 class="text-2xl font-bold tracking-tight">社区精选榜单</h2>
+                    </div>
+                    <div class="flex gap-2 bg-white/10 p-1 rounded-lg backdrop-blur-sm">
+                        <button v-for="sort in ['recent', 'popular', 'return']" :key="sort"
+                            @click="handleSortChange(sort as any)" :class="[
+                                'px-3 py-1.5 text-sm rounded-md transition-all',
+                                sortBy === sort ? 'bg-white text-indigo-600 font-medium shadow-sm' : 'text-white/70 hover:text-white hover:bg-white/10'
+                            ]">
+                            {{ sort === 'recent' ? '最新发布' : (sort === 'popular' ? '最受欢迎' : '收益率') }}
+                        </button>
+                    </div>
+                </div>
+
+                <div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div v-for="i in 6" :key="i" class="h-64 bg-white/10 rounded-2xl animate-pulse"></div>
+                </div>
+
+                <div v-else-if="publicStrategies.length === 0"
+                    class="text-center py-12 text-white/60 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10">
+                    暂无公开策略，快来分享你的第一个策略吧！
+                </div>
+
+                <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <Card v-for="(strategy, index) in publicStrategies" :key="strategy.id"
+                        class="group relative flex flex-col bg-white border-none shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer rounded-2xl"
+                        @click="emit('view-strategy', strategy.id)">
+
+                        <!-- Rank Badge -->
+                        <div
+                            :class="['absolute top-0 right-0 w-12 h-12 flex items-center justify-center rounded-bl-2xl font-bold text-lg shadow-sm z-10', getRankColor(index)]">
+                            #{{ index + 1 }}
+                        </div>
+
+                        <CardContent class="p-6 flex flex-col h-full">
+                            <div class="flex items-center gap-3 mb-4">
+                                <Avatar class="h-10 w-10 border-2 border-indigo-50">
+                                    <AvatarImage v-if="strategy.author?.photoUrl" :src="strategy.author.photoUrl"
+                                        :alt="strategy.author?.displayName" />
+                                    <AvatarFallback class="bg-indigo-100 text-indigo-600 font-bold">
+                                        {{ (strategy.author?.displayName || strategy.author?.email ||
+                                            'U').charAt(0).toUpperCase() }}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div class="overflow-hidden">
+                                    <h3
+                                        class="text-lg font-bold text-slate-800 truncate group-hover:text-indigo-600 transition-colors">
+                                        {{ strategy.name }}</h3>
+                                    <p class="text-xs text-slate-500 truncate">@{{ strategy.author?.displayName ||
+                                        'Unknown' }}</p>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2 mb-6">
+                                <Badge variant="secondary" class="bg-indigo-50 text-indigo-600 font-normal rounded-md">
+                                    ETF</Badge>
+                                <Badge variant="secondary" class="bg-slate-50 text-slate-500 font-normal rounded-md">
+                                    Trend</Badge>
+                            </div>
+
+                            <div class="mt-auto pt-4 border-t border-slate-100 grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <div class="text-xs text-slate-400 mb-1">年化收益</div>
+                                    <div class="text-lg font-bold"
+                                        :class="strategy.returnRate && strategy.returnRate > 0 ? 'text-green-600' : 'text-slate-800'">
+                                        {{ formatPercent(strategy.returnRate) }}
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-slate-400 mb-1">最大回撤</div>
+                                    <div class="text-lg font-bold text-slate-800">
+                                        {{ formatPercent(strategy.maxDrawdown) }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center text-sm text-slate-400 pt-2">
+                                <button @click.stop="handleLike(strategy.id)"
+                                    class="flex items-center gap-1.5 hover:text-red-500 transition-colors group/like">
+                                    <Heart class="w-4 h-4 group-hover/like:fill-current"
+                                        :class="{ 'fill-red-500 text-red-500': false }" />
+                                    <span>{{ strategy.stats.likes }}</span>
+                                </button>
+                                <button @click.stop="openComments(strategy.id)"
+                                    class="flex items-center gap-1.5 hover:text-indigo-500 transition-colors">
+                                    <MessageSquare class="w-4 h-4" />
+                                    <span>{{ strategy.stats.views }}</span>
+                                </button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <!-- Comments Dialog -->
+                <Dialog :open="showCommentsDialog" @update:open="showCommentsDialog = $event">
+                    <DialogContent class="sm:max-w-[500px] max-h-[80vh] flex flex-col">
+                        <DialogHeader>
+                            <DialogTitle>评论区</DialogTitle>
+                            <DialogDescription>
+                                查看和发表关于此策略的评论。
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div class="grow overflow-y-auto py-4 space-y-4 min-h-[200px]">
+                            <div v-if="currentStrategyComments.length === 0" class="text-center text-slate-500 py-8">
+                                暂无评论，快来抢沙发！
+                            </div>
+                            <div v-for="comment in currentStrategyComments" :key="comment.id" class="flex gap-3">
+                                <Avatar class="h-8 w-8">
+                                    <AvatarFallback>{{ comment.user_email?.charAt(0).toUpperCase() || 'U' }}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div class="bg-slate-100 p-3 rounded-lg grow">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-xs font-medium text-slate-700">{{ comment.user_email || '匿名用户'
+                                            }}</span>
+                                        <span class="text-xs text-slate-400">{{ formatDate(comment.created_at) }}</span>
+                                    </div>
+                                    <p class="text-sm text-slate-800">{{ comment.content }}</p>
                                 </div>
                             </div>
                         </div>
-                        <CardDescription class="line-clamp-2 h-10 mt-2">
-                            {{ strategy.description || '暂无描述' }}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent class="grow">
-                        <div class="flex items-center gap-2 mt-2 mb-4">
-                            <Avatar class="h-6 w-6">
-                                <AvatarImage v-if="strategy.author?.photoUrl" :src="strategy.author.photoUrl"
-                                    :alt="strategy.author?.displayName" />
-                                <AvatarFallback class="text-xs bg-indigo-100 text-indigo-600">
-                                    {{ (strategy.author?.displayName || strategy.author?.email ||
-                                        'U').charAt(0).toUpperCase() }}
-                                </AvatarFallback>
-                            </Avatar>
-                            <span class="text-xs text-slate-600 truncate max-w-[150px]" :title="strategy.author?.email">
-                                {{ strategy.author?.displayName || strategy.author?.email || 'Unknown' }}
-                            </span>
-                        </div>
-                        <div class="flex justify-between text-xs text-slate-400">
-                            <span>更新于 {{ formatDate(strategy.updatedAt) }}</span>
-                        </div>
-                    </CardContent>
-                    <CardFooter class="border-t pt-4 flex justify-between items-center text-sm text-slate-600">
-                        <div class="flex gap-4">
-                            <span class="flex items-center gap-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                                    <circle cx="12" cy="12" r="3" />
-                                </svg>
-                                {{ strategy.stats.views }}
-                            </span>
-                            <span class="flex items-center gap-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round">
-                                    <path
-                                        d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-                                </svg>
-                                {{ strategy.stats.likes }}
-                            </span>
-                        </div>
-                    </CardFooter>
-                </Card>
-            </div>
 
-            <div class="border-t border-slate-200 my-8"></div>
-        </div>
-
-        <div class="flex justify-between items-center">
-            <h2 class="text-2xl font-bold tracking-tight">策略广场</h2>
-            <div class="flex gap-2">
-                <Button variant="outline" size="sm" :class="{ 'bg-slate-100': sortBy === 'recent' }"
-                    @click="handleSortChange('recent')">
-                    最新发布
-                </Button>
-                <Button variant="outline" size="sm" :class="{ 'bg-slate-100': sortBy === 'popular' }"
-                    @click="handleSortChange('popular')">
-                    最受欢迎
-                </Button>
-            </div>
-        </div>
-
-        <div v-if="isLoading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div v-for="i in 6" :key="i" class="h-64 bg-slate-100 rounded-lg animate-pulse"></div>
-        </div>
-
-        <div v-else-if="publicStrategies.length === 0" class="text-center py-12 text-slate-500">
-            暂无公开策略，快来分享你的第一个策略吧！
-        </div>
-
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card v-for="strategy in publicStrategies" :key="strategy.id"
-                class="flex flex-col cursor-pointer hover:border-indigo-300 transition-all"
-                @click="emit('view-strategy', strategy.id)">
-                <CardHeader>
-                    <div class="flex justify-between items-start">
-                        <div class="space-y-1">
-                            <CardTitle class="text-lg">{{ strategy.name }}</CardTitle>
+                        <div class="border-t pt-4 mt-auto">
                             <div class="flex gap-2">
-                                <Badge variant="secondary" v-if="strategy.isPublic">公开</Badge>
-                                <Badge variant="outline" class="bg-slate-50">
-                                    {{ strategy.triggerCount || 0 }} 规则
-                                </Badge>
+                                <Input v-model="newComment" placeholder="写下你的想法..." @keyup.enter="handleAddComment" />
+                                <Button @click="handleAddComment" :disabled="!newComment.trim()">发送</Button>
                             </div>
                         </div>
-                    </div>
-                    <CardDescription class="line-clamp-2 h-10 mt-2">
-                        {{ strategy.description || '暂无描述' }}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent class="grow">
-                    <div class="flex items-center gap-2 mt-2 mb-4">
-                        <Avatar class="h-6 w-6">
-                            <AvatarImage v-if="strategy.author?.photoUrl" :src="strategy.author.photoUrl"
-                                :alt="strategy.author?.displayName" />
-                            <AvatarFallback class="text-xs bg-indigo-100 text-indigo-600">
-                                {{ (strategy.author?.displayName || strategy.author?.email ||
-                                'U').charAt(0).toUpperCase() }}
-                            </AvatarFallback>
-                        </Avatar>
-                        <span class="text-xs text-slate-600 truncate max-w-[150px]" :title="strategy.author?.email">
-                            {{ strategy.author?.displayName || strategy.author?.email || 'Unknown' }}
-                        </span>
-                    </div>
-                    <div class="flex justify-between text-xs text-slate-400">
-                        <span>更新于 {{ formatDate(strategy.updatedAt) }}</span>
-                    </div>
-                </CardContent>
-                <CardFooter class="border-t pt-4 flex justify-between items-center text-sm text-slate-600">
-                    <div class="flex gap-4">
-                        <span class="flex items-center gap-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                                <circle cx="12" cy="12" r="3" />
-                            </svg>
-                            {{ strategy.stats.views }}
-                        </span>
-                        <button @click.stop="handleLike(strategy.id)"
-                            class="flex items-center gap-1 hover:text-red-500 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <path
-                                    d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-                            </svg>
-                            {{ strategy.stats.likes }}
-                        </button>
-                        <button @click.stop="openComments(strategy.id)"
-                            class="flex items-center gap-1 hover:text-blue-500 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                            </svg>
-                            评论
-                        </button>
-                    </div>
-                </CardFooter>
-            </Card>
+                    </DialogContent>
+                </Dialog>
+            </div>
         </div>
-
-        <!-- Comments Dialog -->
-        <Dialog :open="showCommentsDialog" @update:open="showCommentsDialog = $event">
-            <DialogContent class="sm:max-w-[500px] max-h-[80vh] flex flex-col">
-                <DialogHeader>
-                    <DialogTitle>评论区</DialogTitle>
-                    <DialogDescription>
-                        查看和发表关于此策略的评论。
-                    </DialogDescription>
-                </DialogHeader>
-
-                <div class="grow overflow-y-auto py-4 space-y-4 min-h-[200px]">
-                    <div v-if="currentStrategyComments.length === 0" class="text-center text-slate-500 py-8">
-                        暂无评论，快来抢沙发！
-                    </div>
-                    <div v-for="comment in currentStrategyComments" :key="comment.id" class="flex gap-3">
-                        <Avatar class="h-8 w-8">
-                            <AvatarFallback>{{ comment.user_email?.charAt(0).toUpperCase() || 'U' }}</AvatarFallback>
-                        </Avatar>
-                        <div class="bg-slate-100 p-3 rounded-lg grow">
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-xs font-medium text-slate-700">{{ comment.user_email || '匿名用户'
-                                }}</span>
-                                <span class="text-xs text-slate-400">{{ formatDate(comment.created_at) }}</span>
-                            </div>
-                            <p class="text-sm text-slate-800">{{ comment.content }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="border-t pt-4 mt-auto">
-                    <div class="flex gap-2">
-                        <Input v-model="newComment" placeholder="写下你的想法..." @keyup.enter="handleAddComment" />
-                        <Button @click="handleAddComment" :disabled="!newComment.trim()">发送</Button>
-                    </div>
-                </div>
-            </DialogContent>
-        </Dialog>
     </div>
 </template>

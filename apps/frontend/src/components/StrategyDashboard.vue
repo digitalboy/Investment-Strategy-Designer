@@ -4,30 +4,25 @@ import { storeToRefs } from 'pinia'
 import { useStrategyStore } from '@/stores/strategy'
 import { useAuthStore } from '@/stores/auth'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import TriggerBuilderDialog from './TriggerBuilderDialog.vue'
 import ResultsReportDialog from './ResultsReportDialog.vue'
 import SaveStrategyDialog from './SaveStrategyDialog.vue'
 import StockLoading from './StockLoading.vue'
+import { Badge } from '@/components/ui/badge'
 import type { Trigger } from '@/types'
-import { ArrowLeft } from 'lucide-vue-next'
+import { ArrowLeft, Trash2 } from 'lucide-vue-next'
 
 const emit = defineEmits(['edit-setup', 'back'])
 
 const store = useStrategyStore()
 const authStore = useAuthStore()
-const { config, currentStrategyMetadata } = storeToRefs(store)
+const { config, currentStrategyMetadata, currentStrategyName, backtestResult, error, isLoading } = storeToRefs(store)
 const triggers = computed(() => config.value.triggers)
 
 const canEdit = computed(() => {
-    // 1. Not logged in -> Cannot edit
     if (!authStore.isAuthenticated) return false
-
-    // 2. Logged in
-    // 2a. Creating new strategy (no metadata) -> Can edit
     if (!currentStrategyMetadata.value) return true
-
-    // 2b. Viewing existing strategy -> Can edit only if owner
     return !!currentStrategyMetadata.value.isOwner
 })
 
@@ -35,47 +30,177 @@ const showTriggerBuilder = ref(false)
 const showResults = ref(false)
 const showSaveDialog = ref(false)
 
-const formatTrigger = (trigger: Trigger) => {
-    let conditionText = ''
-    const c = trigger.condition
-    if (c.type === 'drawdownFromPeak') {
-        conditionText = `价格从 ${c.params.days} 日高点下跌超过 ${c.params.percentage}%`
-    } else if (c.type === 'priceStreak') {
-        const dir = c.params.direction === 'up' ? '上涨' : '下跌'
-        const unit = c.params.unit === 'day' ? '天' : '周'
-        conditionText = `价格连续 ${dir} ${c.params.count} ${unit}`
-    } else if (c.type === 'rsi') {
-        const op = c.params.operator === 'above' ? '高于' : '低于'
-        conditionText = `RSI(${c.params.period}) ${op} ${c.params.threshold}`
-    } else {
-        conditionText = `未知条件`
-    }
-
-    let actionText = ''
-    const a = trigger.action
-    const actionType = a.type === 'buy' ? '买入' : '卖出'
-    if (a.value.type === 'fixedAmount') {
-        actionText = `${actionType} $${a.value.amount}`
-    } else if (a.value.type === 'cashPercent') {
-        actionText = `${actionType} ${a.value.amount}% 现金`
-    } else {
-        actionText = `${actionType} ${a.value.amount}`
-    }
-
-    let cooldownText = ''
-    if (trigger.cooldown) {
-        cooldownText = `(冷却期: ${trigger.cooldown.days} 天)`
-    }
-
-    return `如果 ${conditionText}，那么 ${actionText} ${cooldownText}`
+const formatCurrency = (value?: number | string) => {
+    if (value === undefined || value === null || value === '') return '--'
+    const amount = typeof value === 'number' ? value : Number(value)
+    if (Number.isNaN(amount)) return '--'
+    return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
 }
 
+const investingHorizon = computed(() => {
+    if (!config.value.startDate || !config.value.endDate) return '时间范围未设定'
+    return `${config.value.startDate} → ${config.value.endDate}`
+})
+
+const strategyTitle = computed(() => currentStrategyName.value || currentStrategyMetadata.value?.name || '未命名策略')
+
+const summaryTiles = computed(() => ([
+    { label: '投资区间', value: investingHorizon.value },
+    { label: '初始本金', value: formatCurrency(config.value.initialCapital) },
+    { label: '触发器数量', value: `${triggers.value.length} 个` }
+]))
+
+const statusBadge = computed(() => {
+    if (error.value) {
+        return {
+            label: '需要关注',
+            description: error.value,
+            classes: 'border-red-200 bg-red-50 text-red-700'
+        }
+    }
+    if (isLoading.value) {
+        return {
+            label: '回测中',
+            description: '策略回测正在运行，稍后可查看最新结果。',
+            classes: 'border-indigo-200 bg-indigo-50 text-indigo-700'
+        }
+    }
+    if (!triggers.value.length) {
+        return {
+            label: '等待配置',
+            description: '添加至少一个触发器后即可保存并运行回测。',
+            classes: 'border-amber-200 bg-amber-50 text-amber-700'
+        }
+    }
+    return {
+        label: '准备就绪',
+        description: '配置完整，当前策略可以直接运行回测。',
+        classes: 'border-emerald-200 bg-emerald-50 text-emerald-700'
+    }
+})
+
+const describeTrigger = (trigger: Trigger) => {
+    try {
+        if (!trigger || !trigger.condition) {
+            return {
+                condition: '无效的触发器配置',
+                action: '动作缺失',
+                cooldown: ''
+            }
+        }
+
+        const c = trigger.condition
+        if (!c.params) {
+            return {
+                condition: '触发器参数缺失',
+                action: '动作缺失',
+                cooldown: trigger.cooldown ? `${trigger.cooldown.days} 天` : ''
+            }
+        }
+
+        let conditionText = ''
+        switch (c.type) {
+            case 'drawdownFromPeak':
+                conditionText = `价格从 ${c.params.days} 日高点下跌超过 ${c.params.percentage}%`
+                break
+            case 'priceStreak': {
+                const dir = c.params.direction === 'up' ? '上涨' : '下跌'
+                const unit = c.params.unit === 'day' ? '天' : '周'
+                conditionText = `价格连续 ${dir} ${c.params.count} ${unit}`
+                break
+            }
+            case 'rsi': {
+                const op = c.params.operator === 'above' ? '高于' : '低于'
+                conditionText = `RSI(${c.params.period}) ${op} ${c.params.threshold}`
+                break
+            }
+            case 'newHigh':
+                conditionText = `价格创 ${c.params.days} 日新高`
+                break
+            case 'newLow':
+                conditionText = `价格创 ${c.params.days} 日新低`
+                break
+            case 'periodReturn': {
+                const dir = c.params.direction === 'up' ? '上涨' : '下跌'
+                conditionText = `${c.params.days} 日内${dir}超过 ${c.params.percentage}%`
+                break
+            }
+            case 'maCross': {
+                const dir = c.params.direction === 'above' ? '上穿' : '下穿'
+                conditionText = `价格${dir} MA${c.params.period}`
+                break
+            }
+            default:
+                conditionText = '未知条件'
+        }
+
+        let actionText = '动作缺失'
+        const a = trigger.action
+        if (a) {
+            const actionType = a.type === 'buy' ? '买入' : '卖出'
+            switch (a.value.type) {
+                case 'fixedAmount':
+                    actionText = `${actionType} $${a.value.amount}`
+                    break
+                case 'cashPercent':
+                    actionText = `${actionType} ${a.value.amount}% 现金`
+                    break
+                case 'positionPercent':
+                    actionText = `${actionType} ${a.value.amount}% 持仓`
+                    break
+                case 'totalValuePercent':
+                    actionText = `${actionType} ${a.value.amount}% 总资产`
+                    break
+                default:
+                    actionText = `${actionType} ${a.value.amount}`
+            }
+        }
+
+        const cooldownText = trigger.cooldown ? `${trigger.cooldown.days} 天` : ''
+
+        return {
+            condition: conditionText,
+            action: actionText,
+            cooldown: cooldownText
+        }
+    } catch (e) {
+        console.error('Error formatting trigger:', e, trigger)
+        return {
+            condition: '触发器显示错误',
+            action: '动作显示错误',
+            cooldown: ''
+        }
+    }
+}
+
+const triggerSummaries = computed(() => triggers.value.map((trigger, index) => {
+    const details = describeTrigger(trigger)
+    return {
+        id: `${index}-${trigger.condition?.type ?? 'unknown'}`,
+        order: index + 1,
+        ...details
+    }
+}))
+
+const emptyStateMessage = computed(() => {
+    if (canEdit.value) return '尚未创建触发器，点击下方按钮立即开始。'
+    return '该策略还没有公开触发器配置。'
+})
+
+const hasTriggers = computed(() => triggers.value.length > 0)
+
+const runDisabled = computed(() => !hasTriggers.value || isLoading.value)
+const saveDisabled = computed(() => !hasTriggers.value)
+const updateDisabled = computed(() => !hasTriggers.value || isLoading.value)
+const runDisabledReason = computed(() => {
+    if (!hasTriggers.value) return '请先添加触发器'
+    if (isLoading.value) return '策略回测正在运行'
+    return ''
+})
+
 const handleRunBacktest = async () => {
-    console.log('Starting backtest...')
     await store.runBacktest()
-    console.log('Backtest finished. Error:', store.error)
-    if (!store.error) {
-        console.log('Opening results dialog...')
+    if (!error.value) {
         showResults.value = true
     }
 }
@@ -85,98 +210,170 @@ const removeTrigger = (index: number) => {
 }
 
 const onStrategySaved = () => {
-    // Optional: Show success message
     console.log('Strategy saved successfully')
+}
+
+const handleUpdate = async () => {
+    if (!currentStrategyMetadata.value) return
+
+    try {
+        await store.updateStrategy(currentStrategyMetadata.value.id)
+        alert('策略更新成功！')
+    } catch (e) {
+        console.error('Failed to update strategy:', e)
+        alert('更新失败，请重试')
+    }
 }
 </script>
 
 <template>
-    <div class="space-y-6 animate-fade-in">
-        <!-- Top Info Bar -->
-        <div
-            class="bg-white border border-slate-200 rounded-lg p-4 flex flex-wrap gap-4 items-center justify-between shadow-sm">
-            <div class="flex items-center gap-4">
-                <Button variant="ghost" size="icon" @click="$emit('back')" class="mr-2">
-                    <ArrowLeft class="h-4 w-4" />
-                </Button>
-                <div class="flex gap-6 text-sm">
+    <div class="space-y-6 pb-36 animate-fade-in">
+        <section
+            class="rounded-2xl border border-slate-200 bg-linear-to-r from-indigo-600 via-indigo-500 to-indigo-400 p-6 text-white shadow-sm">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+                <div class="flex items-start gap-3">
+                    <Button variant="outline" size="icon"
+                        class="border-white/40 bg-white/10 text-white hover:bg-white/20" @click="$emit('back')">
+                        <ArrowLeft class="h-4 w-4" />
+                    </Button>
                     <div>
-                        <span class="text-slate-500">回测标的:</span>
-                        <span class="ml-2 font-semibold text-slate-900">{{ config.etfSymbol }}</span>
-                    </div>
-                    <div>
-                        <span class="text-slate-500">时间范围:</span>
-                        <span class="ml-2 font-semibold text-slate-900">{{ config.startDate }} 至 {{ config.endDate
-                        }}</span>
-                    </div>
-                    <div>
-                        <span class="text-slate-500">初始本金:</span>
-                        <span class="ml-2 font-semibold text-slate-900">${{ config.initialCapital }}</span>
+                        <p class="text-xs uppercase tracking-[0.3em] text-white/70">策略回测</p>
+                        <h1 class="text-2xl font-semibold mt-1">{{ strategyTitle }}</h1>
+                        <p class="text-sm text-white/80 mt-1">标的：{{ config.etfSymbol || '尚未选择标的' }}</p>
+                        <p class="text-sm text-white/80">{{ investingHorizon }}</p>
                     </div>
                 </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <Badge v-if="statusBadge" variant="outline"
+                        :class="['border text-xs font-semibold px-3 py-1', statusBadge.classes]">
+                        {{ statusBadge.label }}
+                    </Badge>
+                    <Button v-if="canEdit" variant="secondary" size="sm"
+                        class="bg-white/10 border-white/40 text-white hover:bg-white/20" @click="$emit('edit-setup')">
+                        修改设置
+                    </Button>
+                </div>
             </div>
-            <Button v-if="canEdit" variant="outline" size="sm" @click="$emit('edit-setup')">修改设置</Button>
-        </div>
-
-        <!-- Triggers List -->
-        <div class="space-y-4">
-            <div class="flex items-center justify-between">
-                <h2 class="text-lg font-semibold text-slate-900">我的策略触发器</h2>
-                <Button v-if="canEdit" @click="showTriggerBuilder = true">
-                    <span class="mr-2">+</span> 添加新触发器
-                </Button>
+            <div class="mt-6 grid gap-4 sm:grid-cols-3">
+                <div v-for="tile in summaryTiles" :key="tile.label"
+                    class="rounded-xl border border-white/25 bg-white/10 p-4 text-sm backdrop-blur">
+                    <p class="text-white/70 text-xs">{{ tile.label }}</p>
+                    <p class="mt-2 text-base font-semibold text-white">{{ tile.value }}</p>
+                </div>
             </div>
+            <p class="mt-4 text-sm text-white/85" v-if="statusBadge?.description">{{ statusBadge.description }}</p>
+        </section>
 
-            <div v-if="triggers.length === 0"
-                class="text-center py-12 bg-slate-50 rounded-lg border border-dashed border-slate-300">
-                <p class="text-slate-500">暂无触发器{{ canEdit ? '，请点击上方按钮添加。' : '。' }}</p>
-            </div>
-
-            <div v-else class="space-y-3">
-                <Card v-for="(trigger, index) in triggers" :key="index"
-                    class="group hover:border-indigo-300 transition-colors">
-                    <CardContent class="p-4 flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="h-8 w-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm">
-                                {{ index + 1 }}
+        <div class="grid gap-6 lg:grid-cols-[2fr,1fr]">
+            <Card class="border-slate-200 shadow-sm">
+                <CardHeader class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <CardTitle>触发器面板</CardTitle>
+                        <CardDescription>查看触发顺序并快速调整条件、动作与冷却。</CardDescription>
+                    </div>
+                    <Button v-if="canEdit" size="sm" class="w-full sm:w-auto" @click="showTriggerBuilder = true">
+                        添加触发器
+                    </Button>
+                </CardHeader>
+                <CardContent>
+                    <div v-if="triggerSummaries.length === 0"
+                        class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
+                        <p class="text-slate-500">{{ emptyStateMessage }}</p>
+                        <Button v-if="canEdit" class="mt-4" @click="showTriggerBuilder = true">立即创建</Button>
+                    </div>
+                    <ol v-else class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                        <li v-for="summary in triggerSummaries" :key="summary.id"
+                            class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm h-full">
+                            <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between h-full">
+                                <div class="flex items-start gap-3">
+                                    <span
+                                        class="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-600 text-white font-semibold">
+                                        {{ summary.order }}
+                                    </span>
+                                    <div class="space-y-3">
+                                        <div>
+                                            <p class="text-xs uppercase tracking-wide text-slate-400">条件</p>
+                                            <p class="text-sm font-semibold text-slate-900 mt-1">{{ summary.condition }}
+                                            </p>
+                                        </div>
+                                        <div class="grid gap-3 sm:grid-cols-2">
+                                            <div>
+                                                <p class="text-xs uppercase tracking-wide text-slate-400">动作</p>
+                                                <p class="text-sm text-slate-800 mt-1">{{ summary.action }}</p>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs uppercase tracking-wide text-slate-400">冷却</p>
+                                                <p class="text-sm text-slate-800 mt-1">{{ summary.cooldown || '无冷却' }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <Button v-if="canEdit" variant="ghost" size="icon"
+                                    class="self-start text-slate-400 hover:text-red-600"
+                                    @click="removeTrigger(summary.order - 1)">
+                                    <Trash2 class="h-4 w-4" />
+                                </Button>
                             </div>
-                            <span class="text-slate-700 font-medium">{{ formatTrigger(trigger) }}</span>
-                        </div>
-                        <Button v-if="canEdit" variant="ghost" size="icon" class="text-slate-400 hover:text-red-600"
-                            @click="removeTrigger(index)">
-                            <i class="fa-solid fa-trash"></i>
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
+                        </li>
+                    </ol>
+                </CardContent>
+            </Card>
+
+            <Card class="border-slate-200 shadow-sm">
+                <CardHeader>
+                    <CardTitle>执行指南</CardTitle>
+                    <CardDescription>确保关键配置完善后再运行回测或保存策略。</CardDescription>
+                </CardHeader>
+                <CardContent class="grid gap-4 text-sm text-slate-600 lg:grid-cols-3">
+                    <div class="rounded-xl border border-slate-200 p-3 h-full">
+                        <p class="text-xs font-semibold text-slate-400">状态</p>
+                        <p class="mt-1 text-sm text-slate-900">{{ statusBadge?.label }}</p>
+                        <p class="mt-1 text-xs text-slate-500">{{ statusBadge?.description || '暂无异常' }}</p>
+                    </div>
+                    <div class="rounded-xl border border-slate-200 p-3 space-y-2 h-full">
+                        <p class="text-xs font-semibold text-slate-400">提示</p>
+                        <ul class="list-disc space-y-1 pl-5">
+                            <li>保证至少一个条件与动作配对。</li>
+                            <li>确认时间范围、本金与标的是否准确。</li>
+                            <li v-if="canEdit">保存后可在社区或个人空间复用策略。</li>
+                        </ul>
+                    </div>
+                    <div class="rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-slate-700 h-full">
+                        <p class="text-xs font-semibold text-indigo-600">最新回测</p>
+                        <p class="mt-1 text-sm">{{ backtestResult ? '已有回测结果，可重新运行以刷新表现。' : '尚未运行回测，点击【运行回测】即可开始。' }}</p>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
 
-        <!-- Bottom Action -->
-        <div class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 flex justify-center z-20">
-            <div class="max-w-7xl w-full flex justify-end px-4 sm:px-6 lg:px-8 gap-4">
-                <Button v-if="canEdit" variant="outline" size="lg" class="w-full sm:w-auto"
-                    :disabled="triggers.length === 0" @click="showSaveDialog = true">
-                    保存策略
+        <div class="sticky bottom-0 left-0 right-0 border-t border-slate-200 bg-white/95 p-4 backdrop-blur">
+            <div class="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+                <Button v-if="canEdit && currentStrategyMetadata?.isOwner" variant="outline" size="lg"
+                    class="w-full sm:w-auto border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                    :disabled="updateDisabled" @click="handleUpdate">
+                    更新策略
                 </Button>
-                <Button size="lg" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white"
-                    :disabled="triggers.length === 0 || store.isLoading" @click="handleRunBacktest">
-                    <span v-if="store.isLoading">运行中...</span>
+                <Button v-if="canEdit" variant="outline" size="lg" class="w-full sm:w-auto" :disabled="saveDisabled"
+                    @click="showSaveDialog = true">
+                    {{ currentStrategyMetadata?.isOwner ? '另存为新策略' : '保存策略' }}
+                </Button>
+                <Button size="lg" class="w-full sm:w-auto bg-indigo-600 text-white hover:bg-indigo-700"
+                    :disabled="runDisabled" :title="runDisabledReason" @click="handleRunBacktest">
+                    <span v-if="isLoading">运行中...</span>
                     <span v-else>运行回测</span>
                 </Button>
             </div>
         </div>
 
-        <!-- Dialogs -->
         <TriggerBuilderDialog v-model:open="showTriggerBuilder" />
         <ResultsReportDialog v-model:open="showResults" />
         <SaveStrategyDialog v-model:open="showSaveDialog" @saved="onStrategySaved" />
 
-        <!-- Loading Overlay -->
         <Transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0"
             enter-to-class="opacity-100" leave-active-class="transition duration-150 ease-in"
             leave-from-class="opacity-100" leave-to-class="opacity-0">
-            <StockLoading v-if="store.isLoading" fullscreen text="正在回测策略表现..." />
+            <StockLoading v-if="isLoading" fullscreen text="正在回测策略表现..." />
         </Transition>
     </div>
 </template>

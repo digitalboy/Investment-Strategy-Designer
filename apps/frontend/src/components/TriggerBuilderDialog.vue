@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useStrategyStore } from '@/stores/strategy'
 import type { Trigger, TriggerCondition, TriggerAction } from '@/types'
 import {

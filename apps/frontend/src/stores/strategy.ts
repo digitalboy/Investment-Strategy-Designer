@@ -26,7 +26,8 @@ export const useStrategyStore = defineStore('strategy', () => {
     const currentStrategyComments = ref<CommentEntity[]>([])
 
     // Metadata for the currently loaded strategy (if any)
-    const currentStrategyMetadata = ref<{ id: string; userId: string; isPublic: boolean; isOwner: boolean } | null>(null)
+    const currentStrategyMetadata = ref<{ id: string; userId: string; isPublic: boolean; isOwner: boolean; name?: string } | null>(null)
+    const currentStrategyName = ref('')
 
     // Actions
     const setConfig = (newConfig: Partial<StrategyConfig>) => {
@@ -102,22 +103,104 @@ export const useStrategyStore = defineStore('strategy', () => {
         }
 
         try {
+            // Ensure we have backtest results before saving to include performance metrics
+            if (!backtestResult.value) {
+                console.log('No backtest result found, running auto-backtest before saving...')
+                await runBacktest()
+                // Restore loading state as runBacktest sets it to false
+                isLoading.value = true
+
+                if (error.value) {
+                    throw new Error('Cannot save: Auto-backtest failed')
+                }
+            }
+
             const headers = {
                 'Authorization': `Bearer ${token}`
             }
 
+            const payload: any = {
+                name,
+                description,
+                config: config.value,
+                isPublic
+            }
+
+            // Attach performance metrics if available from the latest backtest
+            if (backtestResult.value?.performance?.strategy) {
+                console.log('Attaching metrics to save payload:', backtestResult.value.performance.strategy)
+                payload.returnRate = backtestResult.value.performance.strategy.annualizedReturn
+                payload.maxDrawdown = backtestResult.value.performance.strategy.maxDrawdown
+            } else {
+                console.warn('Backtest result exists but strategy performance metrics are missing', backtestResult.value)
+            }
+
             await axios.post(
                 `${API_BASE_URL}/strategies`,
-                {
-                    name,
-                    description,
-                    config: config.value,
-                    isPublic
-                },
+                payload,
                 { headers }
             )
         } catch (e: any) {
             error.value = e.message || 'Failed to save strategy'
+            console.error(e)
+            throw e
+        } finally {
+            isLoading.value = false
+        }
+    }
+
+    const updateStrategy = async (id: string, name?: string, description?: string, isPublic?: boolean) => {
+        isLoading.value = true
+        error.value = null
+        const authStore = useAuthStore()
+
+        const token = await authStore.getFreshToken()
+
+        if (!token) {
+            error.value = 'User must be logged in to update strategy'
+            isLoading.value = false
+            throw new Error('User must be logged in to update strategy')
+        }
+
+        try {
+            // Ensure we have backtest results before saving to include performance metrics
+            if (!backtestResult.value) {
+                console.log('No backtest result found, running auto-backtest before updating...')
+                await runBacktest()
+                // Restore loading state as runBacktest sets it to false
+                isLoading.value = true
+
+                if (error.value) {
+                    throw new Error('Cannot update: Auto-backtest failed')
+                }
+            }
+
+            const headers = {
+                'Authorization': `Bearer ${token}`
+            }
+
+            const payload: any = {
+                config: config.value,
+            }
+
+            if (name) payload.name = name
+            if (description !== undefined) payload.description = description
+            if (isPublic !== undefined) payload.isPublic = isPublic
+
+            // Attach performance metrics if available from the latest backtest
+            if (backtestResult.value?.performance?.strategy) {
+                console.log('Attaching metrics to update payload:', backtestResult.value.performance.strategy)
+                payload.returnRate = backtestResult.value.performance.strategy.annualizedReturn
+                payload.maxDrawdown = backtestResult.value.performance.strategy.maxDrawdown
+            }
+
+            await axios.put(
+                `${API_BASE_URL}/strategies/${id}`,
+                payload,
+                { headers }
+            )
+        } catch (e: any) {
+            error.value = e.message || 'Failed to update strategy'
             console.error(e)
             throw e
         } finally {
@@ -210,16 +293,35 @@ export const useStrategyStore = defineStore('strategy', () => {
 
             // Update config with the loaded strategy's config
             if (response.data && response.data.config) {
-                config.value = response.data.config
+                let loadedConfig = response.data.config
+
+                // Handle potential double-stringified config
+                if (typeof loadedConfig === 'string') {
+                    try {
+                        loadedConfig = JSON.parse(loadedConfig)
+                    } catch (e) {
+                        console.error('Failed to parse config string', e)
+                    }
+                }
+
+                // Ensure triggers array exists
+                if (!loadedConfig.triggers) {
+                    loadedConfig.triggers = []
+                }
+
+                config.value = loadedConfig
+                console.log('Loaded strategy config:', config.value)
             }
 
             // Store metadata
             if (response.data) {
+                currentStrategyName.value = response.data.name || response.data.title || ''
                 currentStrategyMetadata.value = {
                     id: response.data.id,
                     userId: response.data.user_id || response.data.userId, // Handle potential casing diffs
                     isPublic: response.data.isPublic || response.data.is_public,
-                    isOwner: !!response.data.isOwner
+                    isOwner: !!response.data.isOwner,
+                    name: response.data.name || response.data.title
                 }
             }
 
@@ -263,6 +365,7 @@ export const useStrategyStore = defineStore('strategy', () => {
         backtestResult.value = null
         error.value = null
         currentStrategyMetadata.value = null
+        currentStrategyName.value = ''
     }
 
     return {
@@ -274,11 +377,13 @@ export const useStrategyStore = defineStore('strategy', () => {
         userStrategies,
         currentStrategyComments,
         currentStrategyMetadata,
+        currentStrategyName,
         setConfig,
         addTrigger,
         removeTrigger,
         runBacktest,
         saveStrategy,
+        updateStrategy,
         fetchPublicStrategies,
         fetchUserStrategies,
         toggleLike,
