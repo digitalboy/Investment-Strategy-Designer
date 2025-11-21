@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useStrategyStore } from '@/stores/strategy'
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,10 +21,19 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:open'])
 
+onMounted(() => {
+    console.log('ResultsReportDialog mounted')
+})
+
+watch(() => props.open, (isOpen) => {
+    console.log('ResultsReportDialog open changed:', isOpen)
+})
+
 const store = useStrategyStore()
 const result = computed(() => store.backtestResult)
 
 const chartData = computed(() => {
+    console.log('Computing chart data. Result:', result.value)
     if (!result.value) return { labels: [], datasets: [] }
 
     return {
@@ -60,6 +70,11 @@ const chartData = computed(() => {
         ]
     }
 })
+
+const formatNumber = (num: number | null | undefined, decimals = 2) => {
+    if (num === null || num === undefined || isNaN(num)) return '-'
+    return num.toFixed(decimals)
+}
 
 const chartOptions = {
     responsive: true,
@@ -128,9 +143,12 @@ const chartOptions = {
         <DialogContent class="sm:max-w-7xl h-[90vh] flex flex-col">
             <DialogHeader>
                 <DialogTitle>策略回测报告</DialogTitle>
+                <DialogDescription>
+                    查看策略的历史回测表现、收益率对比及详细交易数据。
+                </DialogDescription>
             </DialogHeader>
 
-            <div v-if="result" class="flex-1 overflow-y-auto p-1">
+            <div v-if="result && result.performance && result.performance.strategy" class="flex-1 overflow-y-auto p-1">
                 <!-- KPI Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <Card class="border-indigo-200 bg-indigo-50/50">
@@ -142,22 +160,22 @@ const chartOptions = {
                                 <div>
                                     <p class="text-sm text-slate-500">总回报率</p>
                                     <p class="text-2xl font-bold text-slate-900">{{
-                                        result.performance.strategy.totalReturn.toFixed(2) }}%</p>
+                                        formatNumber(result.performance.strategy.totalReturn) }}%</p>
                                 </div>
                                 <div>
                                     <p class="text-sm text-slate-500">年化回报</p>
                                     <p class="text-2xl font-bold text-slate-900">{{
-                                        result.performance.strategy.annualizedReturn.toFixed(2) }}%</p>
+                                        formatNumber(result.performance.strategy.annualizedReturn) }}%</p>
                                 </div>
                                 <div>
                                     <p class="text-sm text-slate-500">最大回撤</p>
                                     <p class="text-2xl font-bold text-red-600">{{
-                                        result.performance.strategy.maxDrawdown.toFixed(2) }}%</p>
+                                        formatNumber(result.performance.strategy.maxDrawdown) }}%</p>
                                 </div>
                                 <div>
                                     <p class="text-sm text-slate-500">夏普比率</p>
                                     <p class="text-2xl font-bold text-slate-900">{{
-                                        result.performance.strategy.sharpeRatio?.toFixed(2) || '-' }}</p>
+                                        formatNumber(result.performance.strategy.sharpeRatio) }}</p>
                                 </div>
                             </div>
                         </CardContent>
@@ -172,17 +190,17 @@ const chartOptions = {
                                 <div>
                                     <p class="text-sm text-slate-500">总回报率</p>
                                     <p class="text-2xl font-bold text-slate-900">{{
-                                        result.performance.benchmark.totalReturn.toFixed(2) }}%</p>
+                                        formatNumber(result.performance.benchmark.totalReturn) }}%</p>
                                 </div>
                                 <div>
                                     <p class="text-sm text-slate-500">年化回报</p>
                                     <p class="text-2xl font-bold text-slate-900">{{
-                                        result.performance.benchmark.annualizedReturn.toFixed(2) }}%</p>
+                                        formatNumber(result.performance.benchmark.annualizedReturn) }}%</p>
                                 </div>
                                 <div>
                                     <p class="text-sm text-slate-500">最大回撤</p>
                                     <p class="text-2xl font-bold text-red-600">{{
-                                        result.performance.benchmark.maxDrawdown.toFixed(2) }}%</p>
+                                        formatNumber(result.performance.benchmark.maxDrawdown) }}%</p>
                                 </div>
                             </div>
                         </CardContent>
@@ -194,8 +212,13 @@ const chartOptions = {
                     <Line :data="chartData" :options="chartOptions" />
                 </div>
             </div>
-            <div v-else class="flex-1 flex items-center justify-center">
-                <p>暂无数据</p>
+            <div v-else class="flex-1 flex items-center justify-center flex-col gap-2">
+                <p class="text-lg font-medium text-slate-900">暂无数据</p>
+                <p class="text-sm text-slate-500">请运行回测以查看结果</p>
+                <p v-if="result && (!result.performance || !result.performance.strategy)"
+                    class="text-xs text-red-500 mt-2">
+                    数据格式错误: 无法解析性能指标
+                </p>
             </div>
 
             <div class="mt-4 flex justify-end">

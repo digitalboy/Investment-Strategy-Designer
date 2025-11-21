@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useStrategyStore } from '@/stores/strategy'
 import Navbar from '@/components/Navbar.vue'
 import WelcomeState from '@/components/WelcomeState.vue'
 import StrategyDashboard from '@/components/StrategyDashboard.vue'
@@ -8,6 +9,7 @@ import CommunityBoard from '@/components/CommunityBoard.vue'
 import SetupWizardDialog from '@/components/SetupWizardDialog.vue'
 
 const authStore = useAuthStore()
+const strategyStore = useStrategyStore()
 const showSetupWizard = ref(false)
 const showEditor = ref(false)
 
@@ -34,6 +36,15 @@ const exitEditor = () => {
 const handleNavigateHome = () => {
   showEditor.value = false
 }
+
+const handleViewStrategy = async (strategyId: string) => {
+  try {
+    await strategyStore.loadStrategy(strategyId)
+    showEditor.value = true
+  } catch (error) {
+    console.error('Failed to load strategy', error)
+  }
+}
 </script>
 
 <template>
@@ -50,12 +61,12 @@ const handleNavigateHome = () => {
         <!-- Not Logged In: Welcome + Community -->
         <div v-if="!authStore.isAuthenticated" class="space-y-12">
           <WelcomeState @start-create="startCreate" />
-          <CommunityBoard @create-strategy="startCreate" />
+          <CommunityBoard @create-strategy="startCreate" @view-strategy="handleViewStrategy" />
         </div>
 
         <!-- Logged In: Community (My Strategies + Public) -->
         <div v-else>
-          <CommunityBoard @create-strategy="startCreate" />
+          <CommunityBoard @create-strategy="startCreate" @view-strategy="handleViewStrategy" />
         </div>
       </template>
     </main>

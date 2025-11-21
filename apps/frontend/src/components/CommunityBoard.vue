@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from '@/components/ui/input'
 import { Plus } from 'lucide-vue-next'
 
-const emit = defineEmits(['create-strategy'])
+const emit = defineEmits(['create-strategy', 'view-strategy'])
 
 const strategyStore = useStrategyStore()
 const authStore = useAuthStore()
@@ -81,7 +81,7 @@ const formatDate = (dateString: string) => {
         <!-- My Strategy Library -->
         <div v-if="authStore.isAuthenticated" class="space-y-4">
             <div class="flex justify-between items-center">
-                <h2 class="text-2xl font-bold tracking-tight">我的策略库</h2>
+                <h2 class="text-2xl font-bold tracking-tight">我的策略</h2>
                 <Button variant="ghost" size="sm" @click="strategyStore.fetchUserStrategies()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -108,20 +108,42 @@ const formatDate = (dateString: string) => {
                 </Card>
 
                 <!-- User Strategies -->
-                <Card v-for="strategy in userStrategies" :key="strategy.id" class="flex flex-col">
+                <Card v-for="strategy in userStrategies" :key="strategy.id"
+                    class="flex flex-col cursor-pointer hover:border-indigo-300 transition-all"
+                    @click="emit('view-strategy', strategy.id)">
                     <CardHeader>
                         <div class="flex justify-between items-start">
-                            <CardTitle class="text-lg">{{ strategy.name }}</CardTitle>
-                            <Badge :variant="strategy.isPublic ? 'secondary' : 'outline'">
-                                {{ strategy.isPublic ? '公开' : '私有' }}
-                            </Badge>
+                            <div class="space-y-1">
+                                <CardTitle class="text-lg">{{ strategy.name }}</CardTitle>
+                                <div class="flex gap-2">
+                                    <Badge :variant="strategy.isPublic ? 'secondary' : 'outline'">
+                                        {{ strategy.isPublic ? '公开' : '私有' }}
+                                    </Badge>
+                                    <Badge variant="outline" class="bg-slate-50">
+                                        {{ strategy.triggerCount || 0 }} 规则
+                                    </Badge>
+                                </div>
+                            </div>
                         </div>
-                        <CardDescription class="line-clamp-2 h-10">
+                        <CardDescription class="line-clamp-2 h-10 mt-2">
                             {{ strategy.description || '暂无描述' }}
                         </CardDescription>
                     </CardHeader>
                     <CardContent class="grow">
-                        <div class="flex justify-between text-sm text-slate-500 mt-4">
+                        <div class="flex items-center gap-2 mt-2 mb-4">
+                            <Avatar class="h-6 w-6">
+                                <AvatarImage v-if="strategy.author?.photoUrl" :src="strategy.author.photoUrl"
+                                    :alt="strategy.author?.displayName" />
+                                <AvatarFallback class="text-xs bg-indigo-100 text-indigo-600">
+                                    {{ (strategy.author?.displayName || strategy.author?.email ||
+                                        'U').charAt(0).toUpperCase() }}
+                                </AvatarFallback>
+                            </Avatar>
+                            <span class="text-xs text-slate-600 truncate max-w-[150px]" :title="strategy.author?.email">
+                                {{ strategy.author?.displayName || strategy.author?.email || 'Unknown' }}
+                            </span>
+                        </div>
+                        <div class="flex justify-between text-xs text-slate-400">
                             <span>更新于 {{ formatDate(strategy.updatedAt) }}</span>
                         </div>
                     </CardContent>
@@ -154,7 +176,7 @@ const formatDate = (dateString: string) => {
         </div>
 
         <div class="flex justify-between items-center">
-            <h2 class="text-2xl font-bold tracking-tight">社区策略广场</h2>
+            <h2 class="text-2xl font-bold tracking-tight">策略广场</h2>
             <div class="flex gap-2">
                 <Button variant="outline" size="sm" :class="{ 'bg-slate-100': sortBy === 'recent' }"
                     @click="handleSortChange('recent')">
@@ -176,18 +198,40 @@ const formatDate = (dateString: string) => {
         </div>
 
         <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card v-for="strategy in publicStrategies" :key="strategy.id" class="flex flex-col">
+            <Card v-for="strategy in publicStrategies" :key="strategy.id"
+                class="flex flex-col cursor-pointer hover:border-indigo-300 transition-all"
+                @click="emit('view-strategy', strategy.id)">
                 <CardHeader>
                     <div class="flex justify-between items-start">
-                        <CardTitle class="text-lg">{{ strategy.name }}</CardTitle>
-                        <Badge variant="secondary" v-if="strategy.isPublic">公开</Badge>
+                        <div class="space-y-1">
+                            <CardTitle class="text-lg">{{ strategy.name }}</CardTitle>
+                            <div class="flex gap-2">
+                                <Badge variant="secondary" v-if="strategy.isPublic">公开</Badge>
+                                <Badge variant="outline" class="bg-slate-50">
+                                    {{ strategy.triggerCount || 0 }} 规则
+                                </Badge>
+                            </div>
+                        </div>
                     </div>
-                    <CardDescription class="line-clamp-2 h-10">
+                    <CardDescription class="line-clamp-2 h-10 mt-2">
                         {{ strategy.description || '暂无描述' }}
                     </CardDescription>
                 </CardHeader>
                 <CardContent class="grow">
-                    <div class="flex justify-between text-sm text-slate-500 mt-4">
+                    <div class="flex items-center gap-2 mt-2 mb-4">
+                        <Avatar class="h-6 w-6">
+                            <AvatarImage v-if="strategy.author?.photoUrl" :src="strategy.author.photoUrl"
+                                :alt="strategy.author?.displayName" />
+                            <AvatarFallback class="text-xs bg-indigo-100 text-indigo-600">
+                                {{ (strategy.author?.displayName || strategy.author?.email ||
+                                'U').charAt(0).toUpperCase() }}
+                            </AvatarFallback>
+                        </Avatar>
+                        <span class="text-xs text-slate-600 truncate max-w-[150px]" :title="strategy.author?.email">
+                            {{ strategy.author?.displayName || strategy.author?.email || 'Unknown' }}
+                        </span>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-400">
                         <span>更新于 {{ formatDate(strategy.updatedAt) }}</span>
                     </div>
                 </CardContent>
@@ -202,7 +246,7 @@ const formatDate = (dateString: string) => {
                             </svg>
                             {{ strategy.stats.views }}
                         </span>
-                        <button @click="handleLike(strategy.id)"
+                        <button @click.stop="handleLike(strategy.id)"
                             class="flex items-center gap-1 hover:text-red-500 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -212,7 +256,7 @@ const formatDate = (dateString: string) => {
                             </svg>
                             {{ strategy.stats.likes }}
                         </button>
-                        <button @click="openComments(strategy.id)"
+                        <button @click.stop="openComments(strategy.id)"
                             class="flex items-center gap-1 hover:text-blue-500 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -231,6 +275,9 @@ const formatDate = (dateString: string) => {
             <DialogContent class="sm:max-w-[500px] max-h-[80vh] flex flex-col">
                 <DialogHeader>
                     <DialogTitle>评论区</DialogTitle>
+                    <DialogDescription>
+                        查看和发表关于此策略的评论。
+                    </DialogDescription>
                 </DialogHeader>
 
                 <div class="grow overflow-y-auto py-4 space-y-4 min-h-[200px]">
@@ -244,7 +291,7 @@ const formatDate = (dateString: string) => {
                         <div class="bg-slate-100 p-3 rounded-lg grow">
                             <div class="flex justify-between items-center mb-1">
                                 <span class="text-xs font-medium text-slate-700">{{ comment.user_email || '匿名用户'
-                                    }}</span>
+                                }}</span>
                                 <span class="text-xs text-slate-400">{{ formatDate(comment.created_at) }}</span>
                             </div>
                             <p class="text-sm text-slate-800">{{ comment.content }}</p>

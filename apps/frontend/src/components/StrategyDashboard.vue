@@ -2,19 +2,34 @@
 import { ref, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useStrategyStore } from '@/stores/strategy'
+import { useAuthStore } from '@/stores/auth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import TriggerBuilderDialog from './TriggerBuilderDialog.vue'
 import ResultsReportDialog from './ResultsReportDialog.vue'
 import SaveStrategyDialog from './SaveStrategyDialog.vue'
+import StockLoading from './StockLoading.vue'
 import type { Trigger } from '@/types'
 import { ArrowLeft } from 'lucide-vue-next'
 
 const emit = defineEmits(['edit-setup', 'back'])
 
 const store = useStrategyStore()
-const { config } = storeToRefs(store)
+const authStore = useAuthStore()
+const { config, currentStrategyMetadata } = storeToRefs(store)
 const triggers = computed(() => config.value.triggers)
+
+const canEdit = computed(() => {
+    // 1. Not logged in -> Cannot edit
+    if (!authStore.isAuthenticated) return false
+
+    // 2. Logged in
+    // 2a. Creating new strategy (no metadata) -> Can edit
+    if (!currentStrategyMetadata.value) return true
+
+    // 2b. Viewing existing strategy -> Can edit only if owner
+    return !!currentStrategyMetadata.value.isOwner
+})
 
 const showTriggerBuilder = ref(false)
 const showResults = ref(false)
@@ -56,8 +71,11 @@ const formatTrigger = (trigger: Trigger) => {
 }
 
 const handleRunBacktest = async () => {
+    console.log('Starting backtest...')
     await store.runBacktest()
+    console.log('Backtest finished. Error:', store.error)
     if (!store.error) {
+        console.log('Opening results dialog...')
         showResults.value = true
     }
 }
@@ -97,21 +115,21 @@ const onStrategySaved = () => {
                     </div>
                 </div>
             </div>
-            <Button variant="outline" size="sm" @click="$emit('edit-setup')">修改设置</Button>
+            <Button v-if="canEdit" variant="outline" size="sm" @click="$emit('edit-setup')">修改设置</Button>
         </div>
 
         <!-- Triggers List -->
         <div class="space-y-4">
             <div class="flex items-center justify-between">
                 <h2 class="text-lg font-semibold text-slate-900">我的策略触发器</h2>
-                <Button @click="showTriggerBuilder = true">
+                <Button v-if="canEdit" @click="showTriggerBuilder = true">
                     <span class="mr-2">+</span> 添加新触发器
                 </Button>
             </div>
 
             <div v-if="triggers.length === 0"
                 class="text-center py-12 bg-slate-50 rounded-lg border border-dashed border-slate-300">
-                <p class="text-slate-500">暂无触发器，请点击上方按钮添加。</p>
+                <p class="text-slate-500">暂无触发器{{ canEdit ? '，请点击上方按钮添加。' : '。' }}</p>
             </div>
 
             <div v-else class="space-y-3">
@@ -125,7 +143,7 @@ const onStrategySaved = () => {
                             </div>
                             <span class="text-slate-700 font-medium">{{ formatTrigger(trigger) }}</span>
                         </div>
-                        <Button variant="ghost" size="icon" class="text-slate-400 hover:text-red-600"
+                        <Button v-if="canEdit" variant="ghost" size="icon" class="text-slate-400 hover:text-red-600"
                             @click="removeTrigger(index)">
                             <i class="fa-solid fa-trash"></i>
                         </Button>
@@ -137,8 +155,8 @@ const onStrategySaved = () => {
         <!-- Bottom Action -->
         <div class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 flex justify-center z-20">
             <div class="max-w-7xl w-full flex justify-end px-4 sm:px-6 lg:px-8 gap-4">
-                <Button variant="outline" size="lg" class="w-full sm:w-auto" :disabled="triggers.length === 0"
-                    @click="showSaveDialog = true">
+                <Button v-if="canEdit" variant="outline" size="lg" class="w-full sm:w-auto"
+                    :disabled="triggers.length === 0" @click="showSaveDialog = true">
                     保存策略
                 </Button>
                 <Button size="lg" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white"
@@ -153,5 +171,12 @@ const onStrategySaved = () => {
         <TriggerBuilderDialog v-model:open="showTriggerBuilder" />
         <ResultsReportDialog v-model:open="showResults" />
         <SaveStrategyDialog v-model:open="showSaveDialog" @saved="onStrategySaved" />
+
+        <!-- Loading Overlay -->
+        <Transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0"
+            enter-to-class="opacity-100" leave-active-class="transition duration-150 ease-in"
+            leave-from-class="opacity-100" leave-to-class="opacity-0">
+            <StockLoading v-if="store.isLoading" fullscreen text="正在回测策略表现..." />
+        </Transition>
     </div>
 </template>

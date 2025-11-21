@@ -40,14 +40,15 @@ const ETF_OPTIONS = [
 
 const etfSymbol = ref('QQQ')
 const startDate = ref('2020-01-01')
-const endDate = ref('2024-12-31')
+const today = new Date().toISOString().split('T')[0]
+const endDate = ref(today)
 const initialCapital = ref(10000)
 
 watch(() => props.open, (isOpen) => {
     if (isOpen && store.config.etfSymbol) {
         etfSymbol.value = store.config.etfSymbol
         startDate.value = store.config.startDate || '2020-01-01'
-        endDate.value = store.config.endDate || '2024-12-31'
+        endDate.value = store.config.endDate || today
         initialCapital.value = store.config.initialCapital || 10000
     }
 })

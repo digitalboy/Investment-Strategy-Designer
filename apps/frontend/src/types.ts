@@ -32,6 +32,12 @@ export interface StrategySummaryDTO {
         likes: number;
         clones: number;
     };
+    author?: {
+        email: string;
+        displayName?: string;
+        photoUrl?: string;
+    };
+    triggerCount?: number;
 }
 
 export interface CommentEntity {
@@ -76,12 +82,7 @@ export interface TriggerAction {
     };
 }
 
-export interface StrategySummaryDTO {
-    id: string;
-    name: string;
-    description?: string;
-    updatedAt: string;
-}
+
 
 export interface CreateStrategyDTO {
     name: string;
