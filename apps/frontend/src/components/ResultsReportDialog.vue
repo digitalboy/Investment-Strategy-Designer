@@ -246,26 +246,28 @@ const chartOptions = {
 <template>
     <Dialog :open="open" @update:open="$emit('update:open', $event)">
         <DialogContent class="sm:max-w-7xl h-[90vh] flex flex-col p-0 gap-0 overflow-hidden">
-            <DialogHeader class="px-4 py-3 border-b shrink-0">
-                <DialogTitle>
+            <DialogHeader
+                class="px-6 py-4 bg-linear-to-r from-indigo-600 via-blue-600 to-violet-600 text-white shrink-0">
+                <DialogTitle class="text-lg font-bold">
                     {{ resultTitle }} · {{ currentSymbol }} · 回测报告
                 </DialogTitle>
-                <DialogDescription class="text-xs mt-1">
+                <DialogDescription class="text-xs mt-1 text-indigo-100">
                     查看策略的历史回测表现、收益率对比及详细交易数据。
                 </DialogDescription>
             </DialogHeader>
 
             <div v-if="result && result.performance && result.performance.strategy"
-                class="flex-1 flex flex-col p-3 min-h-0 overflow-y-auto">
+                class="flex-1 flex flex-col p-4 min-h-0 overflow-y-auto bg-linear-to-br from-slate-50 via-blue-50/30 to-indigo-50/40">
                 <!-- KPI Cards -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3 shrink-0">
                     <!-- Strategy Card -->
-                    <Card class="border-indigo-200 bg-indigo-50/50 shadow-sm py-1 px-1 gap-0">
-                        <CardHeader class="px-3 pt-2 pb-0 border-b border-indigo-100">
+                    <Card
+                        class="border-indigo-300/50 bg-linear-to-br from-white via-indigo-50/70 to-blue-100/60 shadow-lg shadow-indigo-500/20 py-1 px-1 gap-0">
+                        <CardHeader class="px-3 pt-2 pb-0 border-b border-indigo-200/60">
                             <CardTitle class="text-sm font-semibold text-indigo-700 flex items-center justify-between">
                                 <span>我的策略</span>
                                 <span
-                                    class="text-[10px] font-normal text-indigo-600 bg-indigo-100 px-1.5 py-0.5 rounded-full">
+                                    class="text-[10px] font-normal text-white bg-linear-to-r from-indigo-600 to-blue-600 px-2 py-0.5 rounded-full shadow-md">
                                     {{ result.metadata.symbol }}
                                 </span>
                             </CardTitle>
@@ -296,7 +298,8 @@ const chartOptions = {
                             </div>
 
                             <!-- Stats Row -->
-                            <div class="grid grid-cols-4 gap-2 text-[10px] pt-2 border-t border-indigo-200/50">
+                            <div
+                                class="grid grid-cols-4 gap-2 text-[10px] pt-2 border-t border-indigo-200/60 bg-indigo-50/30 -mx-3 px-3 -mb-3 pb-3 rounded-b-lg">
                                 <div>
                                     <span class="text-slate-500 block">交易次数</span>
                                     <span class="font-medium text-slate-900">{{
@@ -306,9 +309,9 @@ const chartOptions = {
                                     <span class="text-slate-500 block">买/卖</span>
                                     <span class="font-medium">
                                         <span class="text-green-600">{{ result.performance.strategy.tradeStats.buyCount
-                                            }}</span> /
+                                        }}</span> /
                                         <span class="text-red-600">{{ result.performance.strategy.tradeStats.sellCount
-                                            }}</span>
+                                        }}</span>
                                     </span>
                                 </div>
                                 <div>
@@ -326,8 +329,9 @@ const chartOptions = {
                     </Card>
 
                     <!-- Benchmark Card -->
-                    <Card class="shadow-sm px-1 py-1 gap-0">
-                        <CardHeader class="px-3 py-2 border-b border-slate-100">
+                    <Card
+                        class="border-slate-300/50 bg-linear-to-br from-white via-slate-50/70 to-gray-100/50 shadow-lg shadow-slate-500/10 px-1 py-1 gap-0">
+                        <CardHeader class="px-3 py-2 border-b border-slate-200/60">
                             <CardTitle class="text-sm font-semibold text-slate-700">基准：买入并持有</CardTitle>
                         </CardHeader>
                         <CardContent class="p-3">
@@ -356,7 +360,8 @@ const chartOptions = {
                             </div>
 
                             <!-- Stats Row -->
-                            <div class="grid grid-cols-4 gap-2 text-[10px] pt-2 border-t border-slate-100">
+                            <div
+                                class="grid grid-cols-4 gap-2 text-[10px] pt-2 border-t border-slate-200/60 bg-slate-50/40 -mx-3 px-3 -mb-3 pb-3 rounded-b-lg">
                                 <div>
                                     <span class="text-slate-500 block">交易次数</span>
                                     <span class="font-medium text-slate-900">1</span>
@@ -378,11 +383,13 @@ const chartOptions = {
                 </div>
 
                 <!-- Chart -->
-                <div class="flex-1 min-h-[300px] w-full bg-white p-4 rounded-lg border border-slate-200 relative">
+                <div
+                    class="flex-1 min-h-[300px] w-full bg-white/90 backdrop-blur-sm p-4 rounded-xl border border-indigo-200/40 shadow-lg shadow-indigo-500/10 relative">
                     <Line :data="chartData" :options="chartOptions" />
                 </div>
             </div>
-            <div v-else class="flex-1 flex items-center justify-center flex-col gap-2">
+            <div v-else
+                class="flex-1 flex items-center justify-center flex-col gap-2 bg-linear-to-br from-slate-50 via-blue-50/30 to-indigo-50/40">
                 <p class="text-lg font-medium text-slate-900">暂无数据</p>
                 <p class="text-sm text-slate-500">请运行回测以查看结果</p>
                 <p v-if="result && (!result.performance || !result.performance.strategy)"
@@ -391,8 +398,9 @@ const chartOptions = {
                 </p>
             </div>
 
-            <div class="p-4 border-t bg-slate-50 flex justify-end shrink-0">
-                <Button @click="$emit('update:open', false)">关闭报告</Button>
+            <div class="p-4 border-t border-indigo-200/30 bg-white/90 backdrop-blur-md flex justify-end shrink-0">
+                <Button @click="$emit('update:open', false)"
+                    class="bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-md shadow-indigo-500/30 transition-all">关闭报告</Button>
             </div>
         </DialogContent>
     </Dialog>

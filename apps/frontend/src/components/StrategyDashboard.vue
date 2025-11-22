@@ -271,43 +271,42 @@ const handleDelete = async () => {
     <div class="space-y-6 pb-36 animate-fade-in">
         <!-- Header Section -->
         <section
-            class="rounded-3xl border border-slate-800 bg-linear-to-r from-[#0f1d34] via-[#101a2c] to-[#0c1727] px-6 py-5 shadow-xl sticky top-4 z-20">
+            class="rounded-3xl border border-indigo-300/40 bg-linear-to-r from-indigo-600 via-blue-600 to-violet-600 px-6 py-5 shadow-2xl shadow-indigo-500/20 sticky top-4 z-20">
             <div class="max-w-7xl mx-auto">
                 <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
                     <!-- Left: Title & Meta -->
                     <div class="space-y-3">
-                        <div class="flex items-center gap-2 text-slate-400">
+                        <div class="flex items-center gap-2 text-indigo-100">
                             <Button variant="ghost" size="icon"
-                                class="h-8 w-8 -ml-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-full"
+                                class="h-8 w-8 -ml-2 text-indigo-100 hover:text-white hover:bg-white/20 rounded-full transition-all"
                                 @click="$emit('back')">
                                 <ArrowLeft class="h-4 w-4" />
                             </Button>
-                            <span class="text-xs font-medium uppercase tracking-wider text-slate-400">策略回测工作台</span>
+                            <span class="text-xs font-medium uppercase tracking-wider text-indigo-100">策略回测工作台</span>
                         </div>
 
                         <div class="flex items-center gap-3">
                             <h1 class="text-2xl font-bold text-white tracking-tight">{{ strategyTitle }}</h1>
                             <Badge variant="outline"
-                                class="font-mono text-indigo-300 bg-indigo-500/20 border-indigo-500/30 px-2.5 py-0.5">
+                                class="font-mono text-white bg-white/20 border-white/30 px-3 py-0.5 rounded-lg shadow-sm backdrop-blur-sm">
                                 {{ config.etfSymbol || '未选标的' }}
                             </Badge>
                         </div>
 
-                        <div class="flex flex-wrap items-center gap-x-8 gap-y-2 text-sm text-slate-400">
+                        <div class="flex flex-wrap items-center gap-x-8 gap-y-2 text-sm">
                             <div class="flex items-center gap-2 group cursor-help" title="回测时间范围">
-                                <Calendar
-                                    class="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition-colors" />
-                                <span class="font-medium group-hover:text-slate-200 transition-colors">{{
+                                <Calendar class="h-4 w-4 text-indigo-100 group-hover:text-white transition-colors" />
+                                <span class="font-medium text-white/90 group-hover:text-white transition-colors">{{
                                     investingHorizon }}</span>
                             </div>
                             <div class="flex items-center gap-2 group cursor-help" title="初始本金">
-                                <Wallet class="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition-colors" />
-                                <span class="font-medium group-hover:text-slate-200 transition-colors">{{
+                                <Wallet class="h-4 w-4 text-indigo-100 group-hover:text-white transition-colors" />
+                                <span class="font-medium text-white/90 group-hover:text-white transition-colors">{{
                                     formatCurrency(config.initialCapital) }}</span>
                             </div>
                             <div class="flex items-center gap-2 group cursor-help" title="触发器数量">
-                                <Layers class="h-4 w-4 text-slate-500 group-hover:text-indigo-400 transition-colors" />
-                                <span class="font-medium group-hover:text-slate-200 transition-colors">{{
+                                <Layers class="h-4 w-4 text-indigo-100 group-hover:text-white transition-colors" />
+                                <span class="font-medium text-white/90 group-hover:text-white transition-colors">{{
                                     triggers.length }} 个触发器</span>
                             </div>
                         </div>
@@ -316,17 +315,17 @@ const handleDelete = async () => {
                     <!-- Right: Status & Actions -->
                     <div class="flex items-center gap-4 pt-2">
                         <div class="text-right hidden md:block">
-                            <div class="text-[10px] uppercase tracking-wider text-slate-500 mb-1 font-semibold">当前状态
+                            <div class="text-[10px] uppercase tracking-wider text-indigo-100 mb-1 font-semibold">当前状态
                             </div>
                             <Badge :class="['px-2.5 py-0.5', statusBadge.classes]">{{ statusBadge.label }}</Badge>
                         </div>
 
-                        <div class="h-8 w-px bg-slate-700 mx-2 hidden md:block" v-if="canAdjustSetup"></div>
+                        <div class="h-8 w-px bg-white/20 mx-2 hidden md:block" v-if="canAdjustSetup"></div>
 
                         <Button v-if="canAdjustSetup" variant="outline"
-                            class="border-slate-600 bg-transparent text-slate-300 hover:bg-white/5 hover:text-white hover:border-slate-500"
+                            class="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:border-white/40 transition-all backdrop-blur-sm"
                             @click="$emit('edit-setup')">
-                            <Settings class="h-4 w-4 mr-2 text-slate-400" />
+                            <Settings class="h-4 w-4 mr-2" />
                             设置
                         </Button>
                     </div>
@@ -335,7 +334,8 @@ const handleDelete = async () => {
         </section>
 
         <div class="flex flex-col gap-6 xl:flex-row">
-            <Card class="border-slate-200 shadow-sm flex-1">
+            <Card
+                class="border-slate-200/50 shadow-xl shadow-slate-200/50 flex-1 bg-linear-to-br from-white via-blue-50/60 to-indigo-100/50 backdrop-blur-sm">
                 <CardHeader class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <CardTitle>触发器面板</CardTitle>
@@ -353,11 +353,11 @@ const handleDelete = async () => {
                     </div>
                     <ol v-else class="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
                         <li v-for="summary in triggerSummaries" :key="summary.id"
-                            class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm h-full">
+                            class="rounded-2xl border border-indigo-200/40 bg-linear-to-br from-white via-indigo-50/50 to-blue-100/40 p-4 shadow-lg shadow-indigo-200/30 hover:shadow-xl hover:shadow-indigo-300/40 hover:-translate-y-1 transition-all duration-300 h-full">
                             <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between h-full">
                                 <div class="flex items-start gap-3">
                                     <span
-                                        class="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-600 text-white font-semibold">
+                                        class="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-indigo-600 to-blue-600 text-white font-semibold shadow-lg shadow-indigo-500/30">
                                         {{ summary.order }}
                                     </span>
                                     <div class="space-y-3">
@@ -380,11 +380,13 @@ const handleDelete = async () => {
                                     </div>
                                 </div>
                                 <div v-if="canEdit" class="flex gap-2 self-start">
-                                    <Button variant="ghost" size="icon" class="text-slate-400 hover:text-indigo-600"
+                                    <Button variant="ghost" size="icon"
+                                        class="text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all"
                                         @click="editTrigger(summary.order - 1)">
                                         <Pencil class="h-4 w-4" />
                                     </Button>
-                                    <Button variant="ghost" size="icon" class="text-slate-400 hover:text-red-600"
+                                    <Button variant="ghost" size="icon"
+                                        class="text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all"
                                         @click="removeTrigger(summary.order - 1)">
                                         <Trash2 class="h-4 w-4" />
                                     </Button>
@@ -395,21 +397,23 @@ const handleDelete = async () => {
                 </CardContent>
             </Card>
 
-            <Card class="border-slate-200 shadow-sm xl:w-96 self-start">
+            <Card
+                class="border-slate-200/50 shadow-xl shadow-slate-200/50 xl:w-96 self-start bg-linear-to-br from-white via-violet-50/55 to-purple-100/45 backdrop-blur-sm">
                 <CardHeader class="pb-4">
                     <CardTitle class="text-base">执行指南</CardTitle>
                 </CardHeader>
                 <CardContent class="flex flex-col gap-4 text-sm text-slate-600">
-                    <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                    <div
+                        class="rounded-2xl border border-indigo-100 bg-linear-to-br from-indigo-50/50 to-blue-50/30 p-4">
                         <div class="flex items-center gap-2 mb-2">
-                            <Activity class="h-4 w-4 text-indigo-500" />
-                            <span class="font-medium text-slate-900">当前状态</span>
+                            <Activity class="h-4 w-4 text-indigo-600" />
+                            <span class="font-semibold text-slate-900">当前状态</span>
                         </div>
-                        <p class="text-xs text-slate-500 leading-relaxed">{{ statusBadge?.description || '暂无异常' }}</p>
+                        <p class="text-xs text-slate-600 leading-relaxed">{{ statusBadge?.description || '暂无异常' }}</p>
                     </div>
 
-                    <div class="rounded-2xl border border-slate-100 bg-white p-4 space-y-2">
-                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">提示</p>
+                    <div class="rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-sm p-4 space-y-2">
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">提示</p>
                         <ul class="space-y-2">
                             <li class="flex gap-2 text-xs text-slate-600">
                                 <span class="text-indigo-500">•</span>
@@ -430,15 +434,17 @@ const handleDelete = async () => {
                         </ul>
                     </div>
 
-                    <div v-if="backtestResult" class="rounded-2xl border border-green-200 bg-green-50 p-4">
-                        <p class="text-xs font-semibold text-green-700 mb-1">回测完成</p>
-                        <p class="text-xs text-green-600">已有回测结果，可重新运行以刷新表现。</p>
+                    <div v-if="backtestResult"
+                        class="rounded-2xl border border-emerald-200 bg-linear-to-br from-emerald-50 to-green-50/50 p-4">
+                        <p class="text-xs font-bold text-emerald-700 mb-1">✓ 回测完成</p>
+                        <p class="text-xs text-emerald-600">已有回测结果，可重新运行以刷新表现。</p>
                     </div>
                 </CardContent>
             </Card>
         </div>
 
-        <div class="sticky bottom-0 left-0 right-0 border-t border-slate-200 bg-white/95 p-4 backdrop-blur">
+        <div
+            class="sticky bottom-0 left-0 right-0 border-t border-slate-200 bg-white/90 p-4 backdrop-blur-md shadow-lg shadow-slate-900/5">
             <div class="mx-auto flex max-w-6xl flex-col gap-3 lg:flex-row lg:items-center lg:justify-center">
                 <AlertDialog v-if="canDelete" v-model:open="showDeleteDialog">
                     <AlertDialogTrigger asChild>
@@ -472,7 +478,8 @@ const handleDelete = async () => {
                     @click="showSaveDialog = true">
                     {{ currentStrategyMetadata?.isOwner ? '另存为新策略' : '保存策略' }}
                 </Button>
-                <Button size="lg" class="w-full sm:w-auto bg-indigo-600 text-white hover:bg-indigo-700"
+                <Button size="lg"
+                    class="w-full sm:w-auto bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg shadow-indigo-500/30 transition-all"
                     :disabled="runDisabled" :title="runDisabledReason" @click="handleRunBacktest">
                     <span v-if="isLoading">运行中...</span>
                     <span v-else>运行回测</span>
