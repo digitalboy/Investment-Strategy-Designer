@@ -61,12 +61,59 @@ const handleViewStrategy = async (strategyId: string) => {
       </div>
       <div
         class="absolute bottom-0 left-0 w-screen h-[80vh] bg-linear-to-tr from-violet-200/30 via-purple-200/20 to-transparent rounded-full blur-3xl transform -translate-x-1/4 translate-y-1/4 animate-pulse-slower">
-      </div>  
-
-      <!-- 网格背景 -->
-      <div
-        class="absolute inset-0 bg-[linear-gradient(to_right,#8882_1px,transparent_1px),linear-gradient(to_bottom,#8882_1px,transparent_1px)] bg-size-[4rem_4rem] mask-[radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)]">
       </div>
+
+      <!-- 透视网格背景 -->
+      <div
+        class="absolute inset-x-[-20%] bottom-[-10%] top-[10%] origin-[50%_0%] -skew-y-6 bg-[linear-gradient(to_right,rgba(148,163,184,0.35)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.22)_1px,transparent_1px)] bg-size-[4rem_4rem] mask-[radial-gradient(ellipse_90%_70%_at_50%_10%,#000_70%,transparent_110%)]">
+      </div>
+
+      <!-- 增长走势折线：从左到右贯穿全屏，分段向上 -->
+      <svg
+        class="absolute left-0 right-0 w-screen bottom-0 h-[260px] text-indigo-400/80 drop-shadow-[0_0_18px_rgba(129,140,248,0.55)]"
+        viewBox="0 0 1440 400" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <!-- 折线下方柔和渐变填充 -->
+          <linearGradient id="trend-fill" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0%" stop-color="rgba(129,140,248,0.06)" />
+            <stop offset="35%" stop-color="rgba(56,189,248,0.10)" />
+            <stop offset="70%" stop-color="rgba(52,211,153,0.16)" />
+            <stop offset="100%" stop-color="rgba(52,211,153,0.0)" />
+          </linearGradient>
+          <!-- 折线描边渐变：由冷到暖，象征收益增强 -->
+          <linearGradient id="trend-stroke" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stop-color="rgba(129,140,248,0.65)" />
+            <stop offset="40%" stop-color="rgba(56,189,248,0.9)" />
+            <stop offset="100%" stop-color="rgba(52,211,153,1)" />
+          </linearGradient>
+        </defs>
+
+        <!-- 填充区域：由多段折线围成的“收益面积” -->
+        <path d="M0 320
+             L 160 310
+             L 300 290
+             L 420 265
+             L 560 250
+             L 680 225
+             L 820 205
+             L 960 185
+             L 1110 155
+             L 1280 125
+             L 1440 95
+             L 1440 400
+             L 0 400 Z" fill="url(#trend-fill)" />
+
+        <!-- 走势主折线 -->
+        <polyline points="0,320 160,310 300,290 420,265 560,250 680,225 820,205 960,185 1110,155 1280,125 1440,95"
+          fill="none" stroke="url(#trend-stroke)" stroke-width="3" stroke-linecap="round" class="animate-trend-line" />
+
+        <!-- 关键节点高亮 -->
+        <circle cx="160" cy="310" r="4" class="fill-sky-300/90" />
+        <circle cx="420" cy="265" r="4" class="fill-sky-300/90" />
+        <circle cx="680" cy="225" r="4" class="fill-sky-300/90" />
+        <circle cx="960" cy="185" r="4" class="fill-emerald-300/90" />
+        <circle cx="1280" cy="125" r="4" class="fill-emerald-300/90" />
+      </svg>
     </div>
 
     <!-- 导航栏 -->
@@ -189,5 +236,26 @@ const handleViewStrategy = async (strategyId: string) => {
 
 .animate-shimmer {
   animation: shimmer 8s ease-in-out infinite;
+}
+
+@keyframes trend-line-dash {
+  0% {
+    stroke-dasharray: 180 520;
+    stroke-dashoffset: 260;
+  }
+
+  50% {
+    stroke-dasharray: 260 440;
+    stroke-dashoffset: 120;
+  }
+
+  100% {
+    stroke-dasharray: 260 440;
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-trend-line {
+  animation: trend-line-dash 5.5s ease-in-out infinite;
 }
 </style>
