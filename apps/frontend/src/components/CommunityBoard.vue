@@ -223,7 +223,7 @@ const getEtfTicker = (strategy: Partial<StrategySummaryDTO> & { symbol?: string;
                 <div class="flex justify-between items-center text-white">
                     <div class="flex items-center gap-2">
                         <Trophy class="h-6 w-6 text-yellow-300" />
-                        <h2 class="text-2xl font-bold tracking-tight">社区精选榜单</h2>
+                        <h2 class="text-2xl font-bold tracking-tight">精选榜单</h2>
                     </div>
                     <div class="flex gap-2 bg-white/10 p-1 rounded-lg backdrop-blur-sm">
                         <button v-for="sort in ['recent', 'popular', 'return']" :key="sort"

@@ -49,28 +49,145 @@ const handleViewStrategy = async (strategyId: string) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 font-sans text-slate-900">
-    <Navbar @navigate-home="handleNavigateHome" />
-    <main class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 pb-24">
-      <!-- Editor View -->
-      <template v-if="showEditor">
-        <StrategyDashboard @edit-setup="editSetup" @back="exitEditor" />
-      </template>
+  <div class="min-h-screen font-sans text-slate-900 relative">
+    <!-- 动态背景装饰 - 固定全屏覆盖 -->
+    <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+      <!-- 基础渐变背景 -->
+      <div class="absolute inset-0 bg-linear-to-br from-slate-50 via-blue-50/30 to-indigo-50/40"></div>
 
-      <!-- Main View -->
-      <template v-else>
-        <!-- Not Logged In: Welcome + Community -->
-        <div v-if="!authStore.isAuthenticated" class="space-y-12">
-          <WelcomeState @start-create="startCreate" />
-          <CommunityBoard @create-strategy="startCreate" @view-strategy="handleViewStrategy" />
+      <!-- 主渐变光晕 -->
+      <div
+        class="absolute top-0 right-0 w-[120vw] h-screen bg-linear-to-br from-indigo-200/40 via-blue-200/30 to-transparent rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3 animate-pulse-slow">
+      </div>
+      <div
+        class="absolute bottom-0 left-0 w-screen h-[80vh] bg-linear-to-tr from-violet-200/30 via-purple-200/20 to-transparent rounded-full blur-3xl transform -translate-x-1/4 translate-y-1/4 animate-pulse-slower">
+      </div>  
+
+      <!-- 网格背景 -->
+      <div
+        class="absolute inset-0 bg-[linear-gradient(to_right,#8882_1px,transparent_1px),linear-gradient(to_bottom,#8882_1px,transparent_1px)] bg-size-[4rem_4rem] mask-[radial-gradient(ellipse_80%_50%_at_50%_0%,#000_70%,transparent_110%)]">
+      </div>
+    </div>
+
+    <!-- 导航栏 -->
+    <Navbar @navigate-home="handleNavigateHome" class="relative z-30" />
+
+    <!-- 主要内容区域 -->
+    <main class="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 pb-24">
+      <!-- 视图过渡容器 -->
+      <Transition mode="out-in" enter-active-class="transition-all duration-500 ease-out"
+        enter-from-class="opacity-0 scale-95 translate-y-8" enter-to-class="opacity-100 scale-100 translate-y-0"
+        leave-active-class="transition-all duration-300 ease-in" leave-from-class="opacity-100 scale-100"
+        leave-to-class="opacity-0 scale-95">
+        <!-- 编辑器视图 -->
+        <div v-if="showEditor" key="editor-view" class="animate-fade-in">
+          <StrategyDashboard @edit-setup="editSetup" @back="exitEditor" />
         </div>
 
-        <!-- Logged In: Community (My Strategies + Public) -->
-        <div v-else>
-          <CommunityBoard @create-strategy="startCreate" @view-strategy="handleViewStrategy" />
+        <!-- 主视图 -->
+        <div v-else key="main-view" class="animate-fade-in">
+          <!-- 未登录：欢迎页 + 社区 -->
+          <div v-if="!authStore.isAuthenticated" class="space-y-16">
+            <WelcomeState @start-create="startCreate" />
+
+            <!-- 分隔装饰 -->
+            <div class="relative py-8">
+              <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                <div class="w-full border-t border-gradient-to-r from-transparent via-indigo-200 to-transparent"></div>
+              </div>
+              <div class="relative flex justify-center">
+                <span
+                  class="bg-linear-to-r from-slate-50 via-blue-50/50 to-slate-50 px-6 text-sm font-medium text-slate-500 tracking-wider uppercase">
+                  精选策略
+                </span>
+              </div>
+            </div>
+
+            <CommunityBoard @create-strategy="startCreate" @view-strategy="handleViewStrategy" />
+          </div>
+
+          <!-- 已登录：社区面板（我的策略 + 公开策略） -->
+          <div v-else class="space-y-8">
+            <!-- 欢迎横幅 -->
+            <div
+              class="relative overflow-hidden rounded-3xl bg-linear-to-r from-indigo-600 via-blue-600 to-violet-600 px-8 py-12 shadow-2xl shadow-indigo-500/20">
+              <div
+                class="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,.05)_50%,transparent_75%,transparent_100%)] bg-size-[250%_250%] animate-shimmer">
+              </div>
+              <div class="relative">
+                <h2 class="text-3xl font-bold text-white mb-3 tracking-tight">
+                  欢迎回来，策略大师 👋
+                </h2>
+                <p class="text-indigo-100 text-lg max-w-2xl">
+                  继续优化您的投资策略，或探索社区中的创新想法
+                </p>
+              </div>
+            </div>
+
+            <CommunityBoard @create-strategy="startCreate" @view-strategy="handleViewStrategy" />
+          </div>
         </div>
-      </template>
+      </Transition>
     </main>
+
+    <!-- 设置向导对话框 -->
     <SetupWizardDialog v-model:open="showSetupWizard" @completed="onSetupCompleted" />
+
+    <!-- 底部装饰线 -->
+    <div
+      class="fixed bottom-0 left-0 right-0 h-1 bg-linear-to-r from-indigo-500 via-blue-500 to-violet-500 opacity-80 z-50">
+    </div>
   </div>
 </template>
+
+<style scoped>
+@keyframes pulse-slow {
+
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: translate(33%, -33%) scale(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: translate(33%, -33%) scale(1.05);
+  }
+}
+
+@keyframes pulse-slower {
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: translate(-25%, 25%) scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: translate(-25%, 25%) scale(1.08);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -250% 0;
+  }
+
+  100% {
+    background-position: 250% 0;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 8s ease-in-out infinite;
+}
+
+.animate-pulse-slower {
+  animation: pulse-slower 10s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 8s ease-in-out infinite;
+}
+</style>
