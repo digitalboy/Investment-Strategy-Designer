@@ -43,6 +43,11 @@ export const useStrategyStore = defineStore('strategy', () => {
         config.value.triggers.splice(index, 1)
     }
 
+    const updateTrigger = (index: number, trigger: Trigger) => {
+        if (index < 0 || index >= config.value.triggers.length) return
+        config.value.triggers[index] = trigger
+    }
+
     const runBacktest = async () => {
         isLoading.value = true
         error.value = null
@@ -201,6 +206,37 @@ export const useStrategyStore = defineStore('strategy', () => {
             )
         } catch (e: any) {
             error.value = e.message || 'Failed to update strategy'
+            console.error(e)
+            throw e
+        } finally {
+            isLoading.value = false
+        }
+    }
+
+    const deleteStrategy = async (id: string) => {
+        isLoading.value = true
+        error.value = null
+        const authStore = useAuthStore()
+
+        const token = await authStore.getFreshToken()
+
+        if (!token) {
+            error.value = 'User must be logged in to delete strategy'
+            isLoading.value = false
+            throw new Error('User must be logged in to delete strategy')
+        }
+
+        try {
+            await axios.delete(
+                `${API_BASE_URL}/strategies/${id}`,
+                { headers: { 'Authorization': `Bearer ${token}` } }
+            )
+
+            if (currentStrategyMetadata.value?.id === id) {
+                reset()
+            }
+        } catch (e: any) {
+            error.value = e.message || 'Failed to delete strategy'
             console.error(e)
             throw e
         } finally {
@@ -381,9 +417,11 @@ export const useStrategyStore = defineStore('strategy', () => {
         setConfig,
         addTrigger,
         removeTrigger,
+        updateTrigger,
         runBacktest,
         saveStrategy,
         updateStrategy,
+        deleteStrategy,
         fetchPublicStrategies,
         fetchUserStrategies,
         toggleLike,

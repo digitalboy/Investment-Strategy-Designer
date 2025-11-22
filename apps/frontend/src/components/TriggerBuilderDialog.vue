@@ -34,6 +34,7 @@ import {
 
 const props = defineProps<{
     open: boolean
+    editingIndex?: number | null
 }>()
 
 const emit = defineEmits(['update:open'])
@@ -96,6 +97,13 @@ const getConditionConfig = (key: TriggerOptionKey) => conditionMap[key]
 const selectedConditionKey = ref<TriggerOptionKey>('drawdownFromPeak')
 const conditionType = ref<TriggerCondition['type']>(getConditionConfig(selectedConditionKey.value).type)
 const conditionParams = ref<any>({ ...getConditionConfig(selectedConditionKey.value).defaults })
+
+const isEditing = computed(() => typeof props.editingIndex === 'number' && props.editingIndex >= 0)
+const editingTrigger = computed(() => {
+    if (!isEditing.value) return null
+    const index = props.editingIndex as number
+    return store.config.triggers[index] ?? null
+})
 
 const stepItems = [
     { step: 1, title: '如果 (IF)...', description: '选择你想捕捉的行情' },
@@ -228,6 +236,41 @@ const resetConditionState = (key: TriggerOptionKey) => {
     conditionParams.value = { ...config.defaults }
 }
 
+const getConditionKeyFromTrigger = (condition: TriggerCondition): TriggerOptionKey => {
+    switch (condition.type) {
+        case 'drawdownFromPeak':
+            return 'drawdownFromPeak'
+        case 'newLow':
+            return 'newLow'
+        case 'newHigh':
+            return 'newHigh'
+        case 'priceStreak':
+            return condition.params?.direction === 'up' ? 'priceStreak_up' : 'priceStreak_down'
+        case 'periodReturn':
+            return condition.params?.direction === 'down' ? 'periodReturn_down' : 'periodReturn_up'
+        case 'rsi':
+            return 'rsi'
+        case 'maCross':
+            return 'maCross'
+        default:
+            return 'drawdownFromPeak'
+    }
+}
+
+const applyTriggerToForm = (trigger: Trigger) => {
+    if (!trigger) return
+    const key = getConditionKeyFromTrigger(trigger.condition)
+    selectedConditionKey.value = key
+    conditionType.value = trigger.condition.type
+    conditionParams.value = { ...trigger.condition.params }
+    actionType.value = trigger.action.type
+    actionValueType.value = trigger.action.value.type
+    actionAmount.value = Number(trigger.action.value.amount)
+    enableCooldown.value = !!trigger.cooldown
+    cooldownDays.value = trigger.cooldown?.days ?? 5
+    activeStep.value = 1
+}
+
 const resetForm = () => {
     selectedConditionKey.value = 'drawdownFromPeak'
     resetConditionState('drawdownFromPeak')
@@ -241,7 +284,17 @@ const resetForm = () => {
 
 watch(() => props.open, isOpen => {
     if (isOpen) {
-        resetForm()
+        if (isEditing.value && editingTrigger.value) {
+            applyTriggerToForm(editingTrigger.value)
+        } else {
+            resetForm()
+        }
+    }
+})
+
+watch(editingTrigger, trigger => {
+    if (props.open && trigger) {
+        applyTriggerToForm(trigger)
     }
 })
 
@@ -362,16 +415,23 @@ const handleSave = () => {
         cooldown: enableCooldown.value ? { days: Number(cooldownDays.value) } : undefined,
     }
 
-    store.addTrigger(trigger)
+    if (isEditing.value && typeof props.editingIndex === 'number') {
+        store.updateTrigger(props.editingIndex, trigger)
+    } else {
+        store.addTrigger(trigger)
+    }
     emit('update:open', false)
 }
+
+const dialogTitle = computed(() => (isEditing.value ? '编辑交易触发器' : '创建交易触发器'))
+const primaryButtonLabel = computed(() => (isEditing.value ? '保存修改' : '添加此规则'))
 </script>
 
 <template>
     <Dialog :open="open" @update:open="emit('update:open', $event)">
         <DialogContent class="w-full max-w-6xl xl:max-w-7xl">
             <DialogHeader>
-                <DialogTitle>创建交易触发器</DialogTitle>
+                <DialogTitle>{{ dialogTitle }}</DialogTitle>
                 <DialogDescription>定义“如果...那么...”规则来执行交易。</DialogDescription>
             </DialogHeader>
 
@@ -431,7 +491,7 @@ const handleSave = () => {
                                                 <RadioGroupItem :value="item.value" class="mt-1 text-indigo-600" />
                                                 <div class="flex flex-col">
                                                     <span class="text-sm font-medium text-slate-900">{{ item.label
-                                                    }}</span>
+                                                        }}</span>
                                                     <span class="text-xs text-slate-500">{{ item.description }}</span>
                                                 </div>
                                             </label>
@@ -660,7 +720,7 @@ const handleSave = () => {
                                 @click="stepper.nextStep()">
                                 下一步
                             </Button>
-                            <span v-else class="text-xs text-slate-500">完成设置后点击下方“添加此规则”</span>
+                            <span v-else class="text-xs text-slate-500">完成设置后点击下方“{{ primaryButtonLabel }}”</span>
                         </div>
                     </div>
 
@@ -676,7 +736,8 @@ const handleSave = () => {
 
             <DialogFooter>
                 <Button variant="outline" @click="emit('update:open', false)">取消</Button>
-                <Button :disabled="activeStep !== stepItems.length" @click="handleSave">添加此规则</Button>
+                <Button :disabled="activeStep !== stepItems.length" @click="handleSave">{{ primaryButtonLabel
+                    }}</Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>

@@ -1,17 +1,28 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useStrategyStore } from '@/stores/strategy'
 import { useAuthStore } from '@/stores/auth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import {
+    AlertDialog,
+    AlertDialogTrigger,
+    AlertDialogContent,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogCancel,
+    AlertDialogAction
+} from '@/components/ui/alert-dialog'
 import TriggerBuilderDialog from './TriggerBuilderDialog.vue'
 import ResultsReportDialog from './ResultsReportDialog.vue'
 import SaveStrategyDialog from './SaveStrategyDialog.vue'
 import StockLoading from './StockLoading.vue'
 import { Badge } from '@/components/ui/badge'
 import type { Trigger } from '@/types'
-import { ArrowLeft, Trash2, Calendar, Wallet, Layers, Settings, Activity } from 'lucide-vue-next'
+import { ArrowLeft, Trash2, Calendar, Wallet, Layers, Settings, Activity, Pencil } from 'lucide-vue-next'
 
 const emit = defineEmits(['edit-setup', 'back'])
 
@@ -29,8 +40,27 @@ const canEdit = computed(() => {
 const showTriggerBuilder = ref(false)
 const showResults = ref(false)
 const showSaveDialog = ref(false)
+const showDeleteDialog = ref(false)
+const editingTriggerIndex = ref<number | null>(null)
+
+const openTriggerBuilder = () => {
+    editingTriggerIndex.value = null
+    showTriggerBuilder.value = true
+}
+
+const editTrigger = (index: number) => {
+    editingTriggerIndex.value = index
+    showTriggerBuilder.value = true
+}
+
+watch(showTriggerBuilder, isOpen => {
+    if (!isOpen) {
+        editingTriggerIndex.value = null
+    }
+})
 
 const canAdjustSetup = computed(() => !currentStrategyMetadata.value)
+const canDelete = computed(() => !!currentStrategyMetadata.value?.isOwner)
 
 const formatCurrency = (value?: number | string) => {
     if (value === undefined || value === null || value === '') return '--'
@@ -220,13 +250,28 @@ const handleUpdate = async () => {
         alert('更新失败，请重试')
     }
 }
+
+const handleDelete = async () => {
+    if (!currentStrategyMetadata.value) return
+
+    try {
+        await store.deleteStrategy(currentStrategyMetadata.value.id)
+        alert('策略已删除')
+        emit('back')
+    } catch (e) {
+        console.error('Failed to delete strategy:', e)
+        alert('删除失败，请稍后重试')
+    } finally {
+        showDeleteDialog.value = false
+    }
+}
 </script>
 
 <template>
     <div class="space-y-6 pb-36 animate-fade-in">
         <!-- Header Section -->
         <section
-            class="bg-linear-to-r from-slate-900 to-slate-800 border-b border-slate-700 px-6 py-5 -mx-6 -mt-6 mb-6 shadow-md sticky top-0 z-20">
+            class="rounded-3xl border border-slate-800 bg-linear-to-r from-[#0f1d34] via-[#101a2c] to-[#0c1727] px-6 py-5 shadow-xl sticky top-4 z-20">
             <div class="max-w-7xl mx-auto">
                 <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
                     <!-- Left: Title & Meta -->
@@ -296,7 +341,7 @@ const handleUpdate = async () => {
                         <CardTitle>触发器面板</CardTitle>
                         <CardDescription>查看触发顺序并快速调整条件、动作与冷却。</CardDescription>
                     </div>
-                    <Button v-if="canEdit" size="sm" class="w-full sm:w-auto" @click="showTriggerBuilder = true">
+                    <Button v-if="canEdit" size="sm" class="w-full sm:w-auto" @click="openTriggerBuilder">
                         添加触发器
                     </Button>
                 </CardHeader>
@@ -304,7 +349,7 @@ const handleUpdate = async () => {
                     <div v-if="triggerSummaries.length === 0"
                         class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
                         <p class="text-slate-500">{{ emptyStateMessage }}</p>
-                        <Button v-if="canEdit" class="mt-4" @click="showTriggerBuilder = true">立即创建</Button>
+                        <Button v-if="canEdit" class="mt-4" @click="openTriggerBuilder">立即创建</Button>
                     </div>
                     <ol v-else class="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
                         <li v-for="summary in triggerSummaries" :key="summary.id"
@@ -334,11 +379,16 @@ const handleUpdate = async () => {
                                         </div>
                                     </div>
                                 </div>
-                                <Button v-if="canEdit" variant="ghost" size="icon"
-                                    class="self-start text-slate-400 hover:text-red-600"
-                                    @click="removeTrigger(summary.order - 1)">
-                                    <Trash2 class="h-4 w-4" />
-                                </Button>
+                                <div v-if="canEdit" class="flex gap-2 self-start">
+                                    <Button variant="ghost" size="icon" class="text-slate-400 hover:text-indigo-600"
+                                        @click="editTrigger(summary.order - 1)">
+                                        <Pencil class="h-4 w-4" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" class="text-slate-400 hover:text-red-600"
+                                        @click="removeTrigger(summary.order - 1)">
+                                        <Trash2 class="h-4 w-4" />
+                                    </Button>
+                                </div>
                             </div>
                         </li>
                     </ol>
@@ -390,6 +440,29 @@ const handleUpdate = async () => {
 
         <div class="sticky bottom-0 left-0 right-0 border-t border-slate-200 bg-white/95 p-4 backdrop-blur">
             <div class="mx-auto flex max-w-6xl flex-col gap-3 lg:flex-row lg:items-center lg:justify-center">
+                <AlertDialog v-if="canDelete" v-model:open="showDeleteDialog">
+                    <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="lg"
+                            class="w-full sm:w-auto border-red-200 text-red-600 hover:bg-red-50" :disabled="isLoading">
+                            删除策略
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>确认删除该策略？</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                删除操作不可撤销，只能删除自己创建的策略。确认后该策略及其回测记录将被清除。
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>取消</AlertDialogCancel>
+                            <AlertDialogAction class="bg-red-600 text-white hover:bg-red-700" :disabled="isLoading"
+                                @click="handleDelete">
+                                确认删除
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
                 <Button v-if="canEdit && currentStrategyMetadata?.isOwner" variant="outline" size="lg"
                     class="w-full sm:w-auto border-indigo-200 text-indigo-700 hover:bg-indigo-50"
                     :disabled="updateDisabled" @click="handleUpdate">
@@ -407,7 +480,7 @@ const handleUpdate = async () => {
             </div>
         </div>
 
-        <TriggerBuilderDialog v-model:open="showTriggerBuilder" />
+        <TriggerBuilderDialog v-model:open="showTriggerBuilder" :editing-index="editingTriggerIndex" />
         <ResultsReportDialog v-model:open="showResults" />
         <SaveStrategyDialog v-model:open="showSaveDialog" @saved="onStrategySaved" />
 
