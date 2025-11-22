@@ -38,11 +38,40 @@ const ETF_OPTIONS = [
     { value: 'IXUS', name: 'iShares Core MSCI Total Intl ETF', desc: '一键配齐“除美外的全球股票”' },
 ]
 
+const formatLocalDate = (date: Date) => {
+    const year = date.getFullYear()
+    const month = `${date.getMonth() + 1}`.padStart(2, '0')
+    const day = `${date.getDate()}`.padStart(2, '0')
+    return `${year}-${month}-${day}`
+}
+
 const etfSymbol = ref('QQQ')
 const startDate = ref('2020-01-01')
-const today = new Date().toISOString().split('T')[0]
+const today = formatLocalDate(new Date())
 const endDate = ref(today)
 const initialCapital = ref(10000)
+const MIN_RANGE_DAYS = 365
+const validationError = ref('')
+
+const validateDateRange = () => {
+    const start = new Date(startDate.value)
+    const end = new Date(endDate.value)
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        validationError.value = '请输入有效的开始和结束日期'
+        return false
+    }
+    if (end < start) {
+        validationError.value = '结束日期必须晚于开始日期'
+        return false
+    }
+    const diffDays = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+    if (diffDays < MIN_RANGE_DAYS) {
+        validationError.value = `回测区间至少 ${MIN_RANGE_DAYS} 天，请调整开始或结束日期`
+        return false
+    }
+    validationError.value = ''
+    return true
+}
 
 watch(() => props.open, (isOpen) => {
     if (isOpen && store.config.etfSymbol) {
@@ -51,11 +80,21 @@ watch(() => props.open, (isOpen) => {
         endDate.value = store.config.endDate || today
         initialCapital.value = store.config.initialCapital || 10000
     }
+    if (isOpen) {
+        validateDateRange()
+    }
+})
+
+watch([startDate, endDate], () => {
+    validateDateRange()
 })
 
 const selectedEtf = computed(() => ETF_OPTIONS.find(e => e.value === etfSymbol.value))
 
 const handleSave = () => {
+    if (!validateDateRange()) {
+        return
+    }
     store.setConfig({
         etfSymbol: etfSymbol.value,
         startDate: startDate.value,
@@ -115,13 +154,16 @@ const handleSave = () => {
                     </Label>
                     <Input id="end-date" type="date" v-model="endDate" class="col-span-3" />
                 </div>
+                <p v-if="validationError" class="text-xs text-rose-500 text-right col-span-4">
+                    {{ validationError }}
+                </p>
                 <div class="grid grid-cols-4 items-center gap-4">
                     <Label for="capital" class="text-right">
                         初始本金
                     </Label>
                     <div class="col-span-3 relative">
-                        <span class="absolute left-3 top-2.5 text-slate-500">$</span>
-                        <Input id="capital" type="number" v-model="initialCapital" class="pl-7" />
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">$</span>
+                        <Input id="capital" type="number" v-model="initialCapital" class="pl-7" disabled />
                     </div>
                 </div>
             </div>

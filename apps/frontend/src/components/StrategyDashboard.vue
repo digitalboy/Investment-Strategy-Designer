@@ -30,6 +30,8 @@ const showTriggerBuilder = ref(false)
 const showResults = ref(false)
 const showSaveDialog = ref(false)
 
+const canAdjustSetup = computed(() => !currentStrategyMetadata.value)
+
 const formatCurrency = (value?: number | string) => {
     if (value === undefined || value === null || value === '') return '--'
     const amount = typeof value === 'number' ? value : Number(value)
@@ -274,9 +276,9 @@ const handleUpdate = async () => {
                             <Badge :class="['px-2.5 py-0.5', statusBadge.classes]">{{ statusBadge.label }}</Badge>
                         </div>
 
-                        <div class="h-8 w-px bg-slate-700 mx-2 hidden md:block"></div>
+                        <div class="h-8 w-px bg-slate-700 mx-2 hidden md:block" v-if="canAdjustSetup"></div>
 
-                        <Button v-if="canEdit" variant="outline"
+                        <Button v-if="canAdjustSetup" variant="outline"
                             class="border-slate-600 bg-transparent text-slate-300 hover:bg-white/5 hover:text-white hover:border-slate-500"
                             @click="$emit('edit-setup')">
                             <Settings class="h-4 w-4 mr-2 text-slate-400" />
@@ -287,8 +289,8 @@ const handleUpdate = async () => {
             </div>
         </section>
 
-        <div class="grid gap-6 lg:grid-cols-[3fr,1fr]">
-            <Card class="border-slate-200 shadow-sm h-fit">
+        <div class="flex flex-col gap-6 xl:flex-row">
+            <Card class="border-slate-200 shadow-sm flex-1">
                 <CardHeader class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <CardTitle>触发器面板</CardTitle>
@@ -304,7 +306,7 @@ const handleUpdate = async () => {
                         <p class="text-slate-500">{{ emptyStateMessage }}</p>
                         <Button v-if="canEdit" class="mt-4" @click="showTriggerBuilder = true">立即创建</Button>
                     </div>
-                    <ol v-else class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                    <ol v-else class="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
                         <li v-for="summary in triggerSummaries" :key="summary.id"
                             class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm h-full">
                             <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between h-full">
@@ -343,12 +345,12 @@ const handleUpdate = async () => {
                 </CardContent>
             </Card>
 
-            <Card class="border-slate-200 shadow-sm h-fit sticky top-24">
-                <CardHeader class="pb-3">
+            <Card class="border-slate-200 shadow-sm xl:w-96 self-start">
+                <CardHeader class="pb-4">
                     <CardTitle class="text-base">执行指南</CardTitle>
                 </CardHeader>
-                <CardContent class="grid gap-4 text-sm text-slate-600">
-                    <div class="rounded-lg border border-slate-100 bg-slate-50 p-3">
+                <CardContent class="flex flex-col gap-4 text-sm text-slate-600">
+                    <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
                         <div class="flex items-center gap-2 mb-2">
                             <Activity class="h-4 w-4 text-indigo-500" />
                             <span class="font-medium text-slate-900">当前状态</span>
@@ -356,7 +358,7 @@ const handleUpdate = async () => {
                         <p class="text-xs text-slate-500 leading-relaxed">{{ statusBadge?.description || '暂无异常' }}</p>
                     </div>
 
-                    <div class="space-y-2">
+                    <div class="rounded-2xl border border-slate-100 bg-white p-4 space-y-2">
                         <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">提示</p>
                         <ul class="space-y-2">
                             <li class="flex gap-2 text-xs text-slate-600">
@@ -378,7 +380,7 @@ const handleUpdate = async () => {
                         </ul>
                     </div>
 
-                    <div v-if="backtestResult" class="rounded-lg border border-green-200 bg-green-50 p-3">
+                    <div v-if="backtestResult" class="rounded-2xl border border-green-200 bg-green-50 p-4">
                         <p class="text-xs font-semibold text-green-700 mb-1">回测完成</p>
                         <p class="text-xs text-green-600">已有回测结果，可重新运行以刷新表现。</p>
                     </div>
@@ -387,7 +389,7 @@ const handleUpdate = async () => {
         </div>
 
         <div class="sticky bottom-0 left-0 right-0 border-t border-slate-200 bg-white/95 p-4 backdrop-blur">
-            <div class="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+            <div class="mx-auto flex max-w-6xl flex-col gap-3 lg:flex-row lg:items-center lg:justify-center">
                 <Button v-if="canEdit && currentStrategyMetadata?.isOwner" variant="outline" size="lg"
                     class="w-full sm:w-auto border-indigo-200 text-indigo-700 hover:bg-indigo-50"
                     :disabled="updateDisabled" @click="handleUpdate">

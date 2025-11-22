@@ -3,6 +3,7 @@ import { ref, watch, computed } from 'vue'
 import { Check, Circle, Dot } from 'lucide-vue-next'
 import { useStrategyStore } from '@/stores/strategy'
 import type { Trigger, TriggerCondition, TriggerAction } from '@/types'
+import { useResizeObserver } from '@vueuse/core'
 import {
     Dialog,
     DialogContent,
@@ -17,12 +18,11 @@ import { Label } from '@/components/ui/label'
 import {
     Select,
     SelectContent,
-    SelectGroup,
     SelectItem,
-    SelectLabel,
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import {
     Stepper,
     StepperDescription,
@@ -44,7 +44,7 @@ const triggerGroups = [
     {
         label: '📉 逢低买入（抄底）',
         items: [
-            { value: 'drawdownFromPeak', label: '价格大跌（高点回撤）', description: '价格自历史高点明显回撤' },
+            { value: 'drawdownFromPeak', label: '高点回撤', description: '价格自历史高点明显回撤' },
             { value: 'newLow', label: '创新低（破底）', description: '跌破过去 N 日最低点' },
             { value: 'priceStreak_down', label: '连续下跌（连阴）', description: '连续多天收盘走低' },
         ],
@@ -107,14 +107,35 @@ type StepKey = typeof stepItems[number]['step']
 
 const activeStep = ref<StepKey>(1)
 
+type ActionValueType = TriggerAction['value']['type']
+
+const FIXED_AMOUNT_DEFAULT = 1000
+const PERCENT_AMOUNT_DEFAULT = 10
+const PERCENT_VALUE_TYPES: ActionValueType[] = ['cashPercent', 'positionPercent', 'totalValuePercent']
+
 const actionType = ref<'buy' | 'sell'>('buy')
-const actionValueType = ref<string>('fixedAmount')
-const actionAmount = ref(1000)
+const actionValueType = ref<ActionValueType>('fixedAmount')
+const actionAmount = ref(FIXED_AMOUNT_DEFAULT)
 
 const enableCooldown = ref(true)
 const cooldownDays = ref(5)
 
-const actionValueOptions = computed(() => {
+const stepOneRef = ref<HTMLElement | null>(null)
+const stepTwoRef = ref<HTMLElement | null>(null)
+const stepThreeRef = ref<HTMLElement | null>(null)
+const firstStepHeight = ref(0)
+
+useResizeObserver(stepOneRef, entries => {
+    const entry = entries[0]
+    if (!entry) return
+    firstStepHeight.value = entry.contentRect.height
+})
+
+const stepPanelMinStyle = computed(() =>
+    firstStepHeight.value ? { minHeight: `${Math.round(firstStepHeight.value)}px` } : undefined
+)
+
+const actionValueOptions = computed<{ value: ActionValueType; label: string }[]>(() => {
     if (actionType.value === 'buy') {
         return [
             { value: 'fixedAmount', label: '固定金额 ($)' },
@@ -130,7 +151,16 @@ const actionValueOptions = computed(() => {
     ]
 })
 
-const actionValueSuffix = computed(() => (actionValueType.value === 'fixedAmount' ? '$' : '%'))
+const isPercentValueType = computed(() => PERCENT_VALUE_TYPES.includes(actionValueType.value))
+
+const actionValueSuffix = computed(() => (isPercentValueType.value ? '%' : '$'))
+
+const actionAmountLimits = computed(() => {
+    if (isPercentValueType.value) {
+        return { min: 1, max: 100, step: 1 }
+    }
+    return { min: 1, max: undefined, step: 100 }
+})
 
 const actionValueHint = computed(() => {
     switch (actionValueType.value) {
@@ -203,7 +233,7 @@ const resetForm = () => {
     resetConditionState('drawdownFromPeak')
     actionType.value = 'buy'
     actionValueType.value = 'fixedAmount'
-    actionAmount.value = 1000
+    actionAmount.value = FIXED_AMOUNT_DEFAULT
     enableCooldown.value = true
     cooldownDays.value = 5
     activeStep.value = 1
@@ -221,9 +251,36 @@ watch(selectedConditionKey, key => {
 
 watch(actionValueOptions, options => {
     if (!options.find(option => option.value === actionValueType.value)) {
-        actionValueType.value = options[0]?.value ?? 'fixedAmount'
+        actionValueType.value = options[0]?.value ?? ('fixedAmount' as ActionValueType)
     }
 }, { immediate: true })
+
+const clampActionAmount = (value: number) => {
+    if (isPercentValueType.value) {
+        return Math.min(Math.max(value || PERCENT_AMOUNT_DEFAULT, 1), 100)
+    }
+    return Math.max(value || FIXED_AMOUNT_DEFAULT, 1)
+}
+
+watch(actionValueType, (next: ActionValueType, previous: ActionValueType | undefined) => {
+    const wasPercent = previous ? PERCENT_VALUE_TYPES.includes(previous) : false
+    const isPercent = PERCENT_VALUE_TYPES.includes(next)
+    if (isPercent && !wasPercent) {
+        actionAmount.value = PERCENT_AMOUNT_DEFAULT
+    } else if (!isPercent && wasPercent) {
+        actionAmount.value = FIXED_AMOUNT_DEFAULT
+    } else {
+        actionAmount.value = clampActionAmount(Number(actionAmount.value))
+    }
+})
+
+watch(actionAmount, value => {
+    const numeric = Number(value)
+    const clamped = clampActionAmount(numeric)
+    if (clamped !== numeric) {
+        actionAmount.value = clamped
+    }
+})
 
 const handleSave = () => {
     let condition: TriggerCondition
@@ -312,14 +369,14 @@ const handleSave = () => {
 
 <template>
     <Dialog :open="open" @update:open="emit('update:open', $event)">
-        <DialogContent class="sm:max-w-5xl w-full">
+        <DialogContent class="w-full max-w-6xl xl:max-w-7xl">
             <DialogHeader>
                 <DialogTitle>创建交易触发器</DialogTitle>
                 <DialogDescription>定义“如果...那么...”规则来执行交易。</DialogDescription>
             </DialogHeader>
 
             <Stepper v-slot="stepper" v-model="activeStep" orientation="vertical" class="w-full">
-                <div class="flex flex-col gap-6 py-2 lg:flex-row">
+                <div class="flex flex-col gap-5 py-2 lg:flex-row">
                     <div class="w-full space-y-4 lg:w-64">
                         <StepperItem v-for="(step, index) in stepItems" :key="step.step" :step="step.step"
                             v-slot="{ state }" class="block">
@@ -349,36 +406,39 @@ const handleSave = () => {
                         </StepperItem>
                     </div>
 
-                    <div class="flex-1 min-w-0 space-y-6">
-                        <section v-show="activeStep === 1"
-                            class="rounded-2xl border border-slate-200 bg-white/80 shadow-sm p-5 space-y-5">
+                    <div class="flex-1 min-w-0 space-y-5">
+                        <section ref="stepOneRef" v-show="activeStep === 1"
+                            class="rounded-2xl border border-slate-200 bg-white/80 shadow-sm p-4 space-y-4">
                             <header class="flex flex-wrap items-center justify-between gap-3">
                                 <h3 class="text-lg font-semibold text-slate-900">如果 (IF)...</h3>
                                 <span class="text-xs text-slate-500">选择你想捕捉的行情</span>
                             </header>
 
-                            <div>
-                                <Select v-model="selectedConditionKey">
-                                    <SelectTrigger class="w-full h-11 text-left">
-                                        <SelectValue placeholder="选择触发场景" />
-                                    </SelectTrigger>
-                                    <SelectContent class="max-h-80">
-                                        <template v-for="group in triggerGroups" :key="group.label">
-                                            <SelectGroup>
-                                                <SelectLabel class="text-xs uppercase tracking-wide text-slate-500">
-                                                    {{ group.label }}
-                                                </SelectLabel>
-                                                <SelectItem v-for="item in group.items" :key="item.value"
-                                                    :value="item.value" class="flex flex-col gap-0.5">
-                                                    <span class="font-medium">{{ item.label }}</span>
-                                                    <span class="text-[11px] text-slate-500">{{ item.description
-                                                        }}</span>
-                                                </SelectItem>
-                                            </SelectGroup>
-                                        </template>
-                                    </SelectContent>
-                                </Select>
-                                <p class="mt-2 text-xs text-slate-500" v-if="selectedTriggerOption">
+                            <div class="space-y-3">
+                                <RadioGroup v-model="selectedConditionKey"
+                                    class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                    <div v-for="group in triggerGroups" :key="group.label"
+                                        class="space-y-3 rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
+                                        <p class="text-xs uppercase tracking-wide text-slate-500">
+                                            {{ group.label }}
+                                        </p>
+                                        <div class="space-y-2">
+                                            <label v-for="item in group.items" :key="item.value"
+                                                class="flex cursor-pointer items-start gap-3 rounded-2xl border px-3 py-2.5 transition hover:border-indigo-300"
+                                                :class="selectedConditionKey === item.value
+                                                    ? 'border-indigo-500 bg-indigo-50/70 shadow-sm'
+                                                    : 'border-slate-200 bg-white'">
+                                                <RadioGroupItem :value="item.value" class="mt-1 text-indigo-600" />
+                                                <div class="flex flex-col">
+                                                    <span class="text-sm font-medium text-slate-900">{{ item.label
+                                                    }}</span>
+                                                    <span class="text-xs text-slate-500">{{ item.description }}</span>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </RadioGroup>
+                                <p class="text-xs text-slate-500" v-if="selectedTriggerOption">
                                     {{ selectedTriggerOption.description }}
                                 </p>
                             </div>
@@ -511,18 +571,19 @@ const handleSave = () => {
                             </div>
                         </section>
 
-                        <section v-show="activeStep === 2"
-                            class="rounded-2xl border border-slate-200 bg-white/80 shadow-sm p-5 space-y-5">
+                        <section ref="stepTwoRef" v-show="activeStep === 2"
+                            class="rounded-2xl border border-slate-200 bg-white/80 shadow-sm p-4 space-y-4"
+                            :style="stepPanelMinStyle">
                             <header class="flex flex-wrap items-center justify-between gap-3">
                                 <h3 class="text-lg font-semibold text-slate-900">那么 (THEN)...</h3>
                                 <span class="text-xs text-slate-500">确定系统如何下单</span>
                             </header>
 
-                            <div class="grid gap-4 lg:grid-cols-2">
-                                <div class="space-y-2">
+                            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                <div class="space-y-2 rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
                                     <Label class="text-xs text-slate-500">操作</Label>
                                     <Select v-model="actionType">
-                                        <SelectTrigger class="h-11">
+                                        <SelectTrigger class="h-10">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -531,10 +592,10 @@ const handleSave = () => {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div class="space-y-2">
+                                <div class="space-y-2 rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
                                     <Label class="text-xs text-slate-500">金额类型</Label>
                                     <Select v-model="actionValueType">
-                                        <SelectTrigger class="h-11">
+                                        <SelectTrigger class="h-10">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -545,21 +606,27 @@ const handleSave = () => {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                            </div>
-
-                            <div class="space-y-2">
-                                <Label class="text-xs text-slate-500">数值</Label>
-                                <div class="relative">
-                                    <Input type="number" v-model="actionAmount" class="h-11" />
-                                    <span class="absolute right-3 top-2.5 text-xs text-slate-500">{{ actionValueSuffix
-                                        }}</span>
+                                <div
+                                    class="space-y-2 rounded-xl border border-slate-100 bg-white p-3 shadow-sm md:col-span-2 xl:col-span-1">
+                                    <Label class="text-xs text-slate-500">数值</Label>
+                                    <div class="relative">
+                                        <Input type="number" v-model="actionAmount" class="h-10 pr-10"
+                                            :min="actionAmountLimits.min" :max="actionAmountLimits.max"
+                                            :step="actionAmountLimits.step" />
+                                        <span class="absolute right-3 top-2.5 text-xs text-slate-500">{{
+                                            actionValueSuffix }}</span>
+                                    </div>
                                 </div>
-                                <p class="text-xs text-slate-500">{{ actionValueHint }}</p>
+                                <div
+                                    class="rounded-xl border border-slate-100 bg-slate-50/80 p-3 text-xs text-slate-500 shadow-sm md:col-span-2 xl:col-span-3">
+                                    {{ actionValueHint }}
+                                </div>
                             </div>
                         </section>
 
-                        <section v-show="activeStep === 3"
-                            class="rounded-2xl border border-slate-200 bg-white/80 shadow-sm p-5 space-y-4">
+                        <section ref="stepThreeRef" v-show="activeStep === 3"
+                            class="rounded-2xl border border-slate-200 bg-white/80 shadow-sm p-4 space-y-4"
+                            :style="stepPanelMinStyle">
                             <header class="flex flex-wrap items-center justify-between gap-3">
                                 <h3 class="text-lg font-semibold text-slate-900">并且 (AND)...冷却期</h3>
                                 <label class="flex items-center gap-2 text-sm text-slate-600">
@@ -568,14 +635,18 @@ const handleSave = () => {
                                 </label>
                             </header>
 
-                            <div class="grid gap-4 max-w-sm"
+                            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3"
                                 :class="{ 'opacity-50 pointer-events-none': !enableCooldown }">
-                                <div class="space-y-2">
+                                <div class="space-y-2 rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
                                     <Label class="text-xs text-slate-500">冷却天数</Label>
                                     <div class="relative">
-                                        <Input type="number" v-model="cooldownDays" class="h-11" />
+                                        <Input type="number" v-model="cooldownDays" class="h-10 pr-10" />
                                         <span class="absolute right-3 top-2.5 text-xs text-slate-500">天</span>
                                     </div>
+                                </div>
+                                <div
+                                    class="rounded-xl border border-slate-100 bg-slate-50/80 p-3 text-xs text-slate-500 shadow-sm md:col-span-1 xl:col-span-2">
+                                    冷却期可避免重复交易。系统将在冷却结束后再次检查触发条件。
                                 </div>
                             </div>
                         </section>
