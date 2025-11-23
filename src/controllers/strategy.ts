@@ -461,9 +461,12 @@ export const strategyController = {
 	getComments: async (c: Context<{ Bindings: Env; Variables: Variables }>) => {
 		try {
 			const { id } = c.req.param();
+			const page = parseInt(c.req.query('page') || '1', 10);
+			const limit = parseInt(c.req.query('limit') || '20', 10);
+
 			const dbService = new DatabaseService(c.env.etf_strategy_db);
 
-			const comments = await dbService.getComments(id);
+			const comments = await dbService.getComments(id, page, limit);
 			return c.json(comments);
 		} catch (error) {
 			console.error('Get comments error:', error);

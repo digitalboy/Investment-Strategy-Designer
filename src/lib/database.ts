@@ -218,15 +218,36 @@ export class DatabaseService {
 		return comment;
 	}
 
-	async getComments(strategyId: string): Promise<(CommentEntity & { user_email: string; user_name?: string; user_photo?: string })[]> {
+	async getComments(strategyId: string, page: number = 1, limit: number = 20): Promise<(CommentEntity & { user_email: string; user_name?: string; user_photo?: string })[]> {
+		const offset = (page - 1) * limit;
+
 		const query = `
-      SELECT c.*, u.email as user_email, u.display_name as user_name, u.photo_url as user_photo
-      FROM comments c
-      LEFT JOIN users u ON c.user_id = u.id
-      WHERE c.strategy_id = ?
-      ORDER BY c.created_at DESC
+      WITH RECURSIVE comment_tree AS (
+        -- Base case: Select paginated roots
+        SELECT id, strategy_id, parent_id, user_id, content, created_at
+        FROM comments
+        WHERE strategy_id = ? AND parent_id IS NULL
+        ORDER BY created_at DESC
+        LIMIT ? OFFSET ?
+
+        UNION ALL
+
+        -- Recursive step: Select children of selected nodes
+        SELECT c.id, c.strategy_id, c.parent_id, c.user_id, c.content, c.created_at
+        FROM comments c
+        INNER JOIN comment_tree ct ON c.parent_id = ct.id
+      )
+      SELECT tc.*, u.email as user_email, u.display_name as user_name, u.photo_url as user_photo
+      FROM comment_tree tc
+      LEFT JOIN users u ON tc.user_id = u.id
+      ORDER BY tc.created_at DESC
     `;
-		const comments = await this.db.prepare(query).bind(strategyId).all<CommentEntity & { user_email: string; user_name?: string; user_photo?: string }>();
+
+		const comments = await this.db
+			.prepare(query)
+			.bind(strategyId, limit, offset)
+			.all<CommentEntity & { user_email: string; user_name?: string; user_photo?: string }>();
+
 		return comments.results;
 	}
 }
