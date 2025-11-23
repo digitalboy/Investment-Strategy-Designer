@@ -86,9 +86,9 @@ const formatPercent = (value?: number) => {
 }
 
 const getRankColor = (index: number) => {
-    if (index === 0) return 'bg-yellow-400 text-yellow-900' // Gold
-    if (index === 1) return 'bg-slate-300 text-slate-900'   // Silver
-    if (index === 2) return 'bg-amber-600 text-amber-100'   // Bronze
+    if (index === 0) return 'bg-gradient-to-br from-yellow-400 via-yellow-500 to-amber-600 text-white shadow-yellow-500/50' // Gold
+    if (index === 1) return 'bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 text-white shadow-slate-400/50'   // Silver
+    if (index === 2) return 'bg-gradient-to-br from-amber-600 via-orange-600 to-orange-700 text-white shadow-orange-600/50'   // Bronze
     return 'bg-slate-100 text-slate-600'
 }
 
@@ -267,7 +267,7 @@ const getEtfTicker = (strategy: Partial<StrategySummaryDTO> & { symbol?: string;
                     class="group relative flex flex-col bg-linear-to-br from-white via-violet-50/65 to-purple-100/55 backdrop-blur-sm border border-slate-200/50 shadow-lg shadow-slate-200/50 hover:shadow-xl hover:shadow-indigo-200/30 hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer rounded-2xl"
                     @click="emit('view-strategy', strategy.id)"> <!-- Rank Badge -->
                     <div
-                        :class="['absolute top-0 right-0 w-14 h-14 flex items-center justify-center rounded-bl-2xl font-bold text-base shadow-lg z-10 transition-transform group-hover:scale-110', getRankColor(index)]">
+                        :class="['absolute top-0 right-0 w-11 h-11 flex items-center justify-center rounded-bl-2xl font-bold text-sm shadow-lg z-10 transition-transform group-hover:scale-110', getRankColor(index)]">
                         #{{ index + 1 }}
                     </div>
 

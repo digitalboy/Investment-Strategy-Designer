@@ -154,7 +154,29 @@ export const useStrategyStore = defineStore('strategy', () => {
         }
     }
 
-    const updateStrategy = async (id: string, name?: string, description?: string, isPublic?: boolean) => {
+    interface UpdateStrategyOptions {
+        id: string | { id: string }
+        name?: string
+        isPublic?: boolean
+        withConfig?: boolean
+        skipBacktest?: boolean
+    }
+
+    const resolveStrategyId = (identifier: UpdateStrategyOptions['id']): string => {
+        if (typeof identifier === 'string') {
+            return identifier
+        }
+        if (identifier && typeof identifier === 'object' && typeof identifier.id === 'string') {
+            return identifier.id
+        }
+        throw new Error('Invalid strategy identifier')
+    }
+
+    const updateStrategy = async (options: UpdateStrategyOptions) => {
+        console.log('updateStrategy called with options:', options)
+        const { name, isPublic, withConfig = true, skipBacktest = false } = options
+        const id = resolveStrategyId(options.id)
+        console.log('Resolved strategy ID:', id, 'Type:', typeof id)
         isLoading.value = true
         error.value = null
         const authStore = useAuthStore()
@@ -168,8 +190,8 @@ export const useStrategyStore = defineStore('strategy', () => {
         }
 
         try {
-            // Ensure we have backtest results before saving to include performance metrics
-            if (!backtestResult.value) {
+            // Ensure we have backtest results before saving to include performance metrics when not skipped
+            if (!skipBacktest && !backtestResult.value) {
                 console.log('No backtest result found, running auto-backtest before updating...')
                 await runBacktest()
                 // Restore loading state as runBacktest sets it to false
@@ -184,13 +206,22 @@ export const useStrategyStore = defineStore('strategy', () => {
                 'Authorization': `Bearer ${token}`
             }
 
-            const payload: any = {
-                config: config.value,
+            const payload: Record<string, unknown> = {}
+
+            if (withConfig) {
+                payload.config = {
+                    ...config.value,
+                    triggers: [...config.value.triggers]
+                }
             }
 
-            if (name) payload.name = name
-            if (description !== undefined) payload.description = description
-            if (isPublic !== undefined) payload.isPublic = isPublic
+            if (typeof name === 'string') {
+                payload.name = name
+            }
+
+            if (typeof isPublic === 'boolean') {
+                payload.isPublic = isPublic
+            }
 
             // Attach performance metrics if available from the latest backtest
             if (backtestResult.value?.performance?.strategy) {
@@ -199,11 +230,28 @@ export const useStrategyStore = defineStore('strategy', () => {
                 payload.maxDrawdown = backtestResult.value.performance.strategy.maxDrawdown
             }
 
-            await axios.put(
+            console.log('Final update payload:', JSON.stringify(payload, null, 2))
+            console.log('Strategy ID for URL:', id, typeof id)
+
+            const response = await axios.put(
                 `${API_BASE_URL}/strategies/${id}`,
                 payload,
                 { headers }
             )
+
+            const resolvedName = response.data?.name ?? (typeof name === 'string' ? name : undefined)
+
+            if (resolvedName) {
+                currentStrategyName.value = resolvedName
+            }
+
+            if (currentStrategyMetadata.value) {
+                currentStrategyMetadata.value = {
+                    ...currentStrategyMetadata.value,
+                    name: resolvedName || currentStrategyMetadata.value.name,
+                    isPublic: typeof isPublic === 'boolean' ? isPublic : currentStrategyMetadata.value.isPublic
+                }
+            }
         } catch (e: any) {
             error.value = e.message || 'Failed to update strategy'
             console.error(e)
