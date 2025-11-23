@@ -53,22 +53,38 @@ const handleLike = async (id: string) => {
 
 const openComments = async (id: string) => {
     selectedStrategyId.value = id
+    showCommentsDialog.value = true
     
-    // Find strategy info to display in dialog header
-    const strategy = publicStrategies.value.find(s => s.id === id) || userStrategies.value.find(s => s.id === id)
-    if (strategy) {
+    // 1. Try to show info from cache first
+    const cachedStrategy = publicStrategies.value.find(s => s.id === id) || userStrategies.value.find(s => s.id === id)
+    if (cachedStrategy) {
         currentStrategyInfo.value = {
-            name: strategy.name,
+            name: cachedStrategy.name,
             author: {
-                name: strategy.author?.displayName || strategy.author?.email?.split('@')[0],
-                photo: strategy.author?.photoUrl
+                name: cachedStrategy.author?.displayName || cachedStrategy.author?.email?.split('@')[0],
+                photo: cachedStrategy.author?.photoUrl
             }
         }
     } else {
         currentStrategyInfo.value = null
     }
 
-    showCommentsDialog.value = true
+    // 2. Fetch fresh strategy details (to get latest author info)
+    try {
+        const freshStrategy = await strategyStore.loadStrategy(id)
+        if (freshStrategy && freshStrategy.author) {
+             currentStrategyInfo.value = {
+                name: freshStrategy.name,
+                author: {
+                    name: freshStrategy.author.displayName || freshStrategy.author.email?.split('@')[0],
+                    photo: freshStrategy.author.photoUrl
+                }
+            }
+        }
+    } catch (e) {
+        console.error('Failed to load strategy details', e)
+    }
+
     await strategyStore.fetchComments(id)
 }
 
