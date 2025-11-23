@@ -12,7 +12,7 @@ const emit = defineEmits(['create-strategy', 'view-strategy'])
 
 const strategyStore = useStrategyStore()
 const authStore = useAuthStore()
-const { publicStrategies, userStrategies, isLoading, currentStrategyComments, hasMoreComments } = storeToRefs(strategyStore)
+const { publicStrategies, userStrategies, isLoading, currentStrategyComments, hasMoreComments, commentsLoading } = storeToRefs(strategyStore)
 
 const sortBy = ref<'recent' | 'popular' | 'return'>('return')
 const showCommentsDialog = ref(false)
@@ -54,7 +54,7 @@ const handleLike = async (id: string) => {
 const openComments = async (strategy: any) => {
     selectedStrategyId.value = strategy.id
     showCommentsDialog.value = true
-    
+
     // Set info immediately from the passed object
     currentStrategyInfo.value = {
         name: strategy.name,
@@ -68,7 +68,7 @@ const openComments = async (strategy: any) => {
     try {
         const freshStrategy = await strategyStore.loadStrategy(strategy.id)
         if (freshStrategy && freshStrategy.author) {
-             currentStrategyInfo.value = {
+            currentStrategyInfo.value = {
                 name: freshStrategy.name,
                 author: {
                     name: freshStrategy.author.displayName || freshStrategy.author.email?.split('@')[0],
@@ -96,6 +96,7 @@ const handleAddComment = async (content: string, parentId?: string) => {
 
 const handleLoadMoreComments = async () => {
     if (!selectedStrategyId.value) return
+    console.log('📥 handleLoadMoreComments called for strategy:', selectedStrategyId.value)
     await strategyStore.loadMoreComments(selectedStrategyId.value)
 }
 </script>
@@ -139,13 +140,8 @@ const handleLoadMoreComments = async () => {
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- User Strategies -->
-                <StrategyCard 
-                    v-for="strategy in userStrategies" 
-                    :key="strategy.id" 
-                    :strategy="strategy"
-                    :manage-mode="true"
-                    @click="emit('view-strategy', strategy.id)"
-                />
+                <StrategyCard v-for="strategy in userStrategies" :key="strategy.id" :strategy="strategy"
+                    :manage-mode="true" @click="emit('view-strategy', strategy.id)" />
             </div>
         </div>
 
@@ -192,30 +188,16 @@ const handleLoadMoreComments = async () => {
             </div>
 
             <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <StrategyCard 
-                    v-for="(strategy, index) in publicStrategies" 
-                    :key="strategy.id" 
-                    :strategy="strategy"
-                    :rank="index"
-                    @click="emit('view-strategy', strategy.id)"
-                    @like="handleLike(strategy.id)"
-                    @comment="openComments(strategy)"
-                />
+                <StrategyCard v-for="(strategy, index) in publicStrategies" :key="strategy.id" :strategy="strategy"
+                    :rank="index" @click="emit('view-strategy', strategy.id)" @like="handleLike(strategy.id)"
+                    @comment="openComments(strategy)" />
             </div>
 
             <!-- Comments Dialog -->
-            <CommentsDialog 
-                :open="showCommentsDialog" 
-                @update:open="showCommentsDialog = $event"
-                :comments="currentStrategyComments" 
-                :has-more="hasMoreComments"
-                :strategy-name="currentStrategyInfo?.name"
-                :author="currentStrategyInfo?.author"
-                title="评论区" 
-                description="查看和发表关于此策略的评论。"
-                @add-comment="handleAddComment" 
-                @load-more="handleLoadMoreComments"
-            />
+            <CommentsDialog :open="showCommentsDialog" @update:open="showCommentsDialog = $event"
+                :comments="currentStrategyComments" :has-more="hasMoreComments" :loading="commentsLoading"
+                :strategy-name="currentStrategyInfo?.name" :author="currentStrategyInfo?.author" title="评论区"
+                description="查看和发表关于此策略的评论。" @add-comment="handleAddComment" @load-more="handleLoadMoreComments" />
         </div>
     </div>
 

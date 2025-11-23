@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { MessageSquare } from 'lucide-vue-next'
 import CommentItem, { type Comment } from '@/components/CommentItem.vue'
 
@@ -28,6 +29,7 @@ const emit = defineEmits<{
 
 const newComment = ref('')
 const loadMoreTrigger = ref<HTMLElement | null>(null)
+const scrollContainer = ref<HTMLElement | null>(null)
 let observer: IntersectionObserver | null = null
 
 // Handle top-level comment
@@ -45,20 +47,24 @@ const handleReply = (parentId: string, content: string) => {
 
 const setupObserver = () => {
     if (observer) observer.disconnect()
-    
+
     observer = new IntersectionObserver((entries) => {
         const target = entries[0]
-        if (target.isIntersecting && props.hasMore && !props.loading) {
+        if (target?.isIntersecting && props.hasMore && !props.loading) {
+            console.log('🔄 Triggering load-more, hasMore:', props.hasMore, 'loading:', props.loading)
             emit('load-more')
         }
     }, {
-        root: null, // viewport
-        rootMargin: '100px', // load before reaching bottom
+        root: scrollContainer.value, // Use the scroll container as root
+        rootMargin: '100px',
         threshold: 0.1
     })
 
     if (loadMoreTrigger.value) {
+        console.log('✅ Observer setup, watching element')
         observer.observe(loadMoreTrigger.value)
+    } else {
+        console.log('⚠️ loadMoreTrigger element not found')
     }
 }
 
@@ -76,6 +82,18 @@ watch(() => props.open, (isOpen) => {
     if (isOpen) {
         setTimeout(setupObserver, 100) // wait for render
     }
+})
+
+// Watch for comments changes to re-setup observer when content is loaded
+watch(() => props.comments.length, () => {
+    if (props.open) {
+        setTimeout(setupObserver, 100)
+    }
+})
+
+// Also watch for loading state changes
+watch(() => props.loading, (isLoading) => {
+    console.log('💡 Loading state changed:', isLoading, 'hasMore:', props.hasMore)
 })
 
 // Also watch for loading/hasMore state changes to ensure we trigger again if needed?
@@ -120,7 +138,7 @@ const commentTree = computed(() => {
             }
         })
     }
-    
+
     // Process roots
     sortReplies(roots)
     // Roots are typically Newest First (default from backend usually)
@@ -149,7 +167,8 @@ const commentTree = computed(() => {
                                 </AvatarFallback>
                             </Avatar>
                             <div class="flex flex-col">
-                                <span class="text-sm font-medium text-slate-700 leading-none">{{ author.name || '匿名用户' }}</span>
+                                <span class="text-sm font-medium text-slate-700 leading-none">{{ author.name || '匿名用户'
+                                    }}</span>
                                 <span class="text-xs text-slate-400 mt-0.5">策略作者</span>
                             </div>
                         </div>
@@ -160,10 +179,8 @@ const commentTree = computed(() => {
                 </div>
             </DialogHeader>
 
-            <div
-                class="grow overflow-y-auto py-4 space-y-4 min-h-[200px] bg-linear-to-br from-slate-50/30 via-blue-50/20 to-indigo-50/30 -mx-6 px-6"
-                ref="scrollContainer"
-            >
+            <div class="grow overflow-y-auto py-4 space-y-4 min-h-[200px] bg-linear-to-br from-slate-50/30 via-blue-50/20 to-indigo-50/30 -mx-6 px-6"
+                ref="scrollContainer">
                 <!-- Initial Loading State -->
                 <div v-if="loading && comments.length === 0" class="text-center text-slate-400 py-12">
                     <div class="flex flex-col items-center gap-3">
@@ -186,16 +203,13 @@ const commentTree = computed(() => {
 
                 <!-- Comments Tree -->
                 <div v-else class="space-y-4">
-                    <CommentItem 
-                        v-for="comment in commentTree" 
-                        :key="comment.id" 
-                        :comment="comment" 
-                        @reply="handleReply"
-                    />
-                    
+                    <CommentItem v-for="comment in commentTree" :key="comment.id" :comment="comment"
+                        @reply="handleReply" />
+
                     <!-- Sentinel for infinite scroll -->
                     <div ref="loadMoreTrigger" class="h-10 flex justify-center items-center mt-2">
-                        <div v-if="loading" class="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600"></div>
+                        <div v-if="loading" class="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600">
+                        </div>
                     </div>
                 </div>
             </div>
