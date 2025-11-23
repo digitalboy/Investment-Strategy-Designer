@@ -12,11 +12,13 @@ const props = defineProps<{
     title?: string
     description?: string
     loading?: boolean
+    hasMore?: boolean
 }>()
 
 const emit = defineEmits<{
     'update:open': [value: boolean]
     'add-comment': [content: string, parentId?: string]
+    'load-more': []
 }>()
 
 const newComment = ref('')
@@ -122,6 +124,12 @@ const commentTree = computed(() => {
                         :comment="comment" 
                         @reply="handleReply"
                     />
+                    
+                    <div v-if="hasMore" class="pt-2 text-center">
+                        <Button variant="ghost" size="sm" @click="$emit('load-more')" class="text-indigo-600 hover:text-indigo-800">
+                            加载更多评论
+                        </Button>
+                    </div>
                 </div>
             </div>
 

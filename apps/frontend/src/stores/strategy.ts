@@ -24,6 +24,9 @@ export const useStrategyStore = defineStore('strategy', () => {
     const publicStrategies = ref<StrategySummaryDTO[]>([])
     const userStrategies = ref<StrategySummaryDTO[]>([])
     const currentStrategyComments = ref<CommentEntity[]>([])
+    const commentsPage = ref(1)
+    const commentsLimit = ref(20)
+    const hasMoreComments = ref(true)
 
     // Metadata for the currently loaded strategy (if any)
     const currentStrategyMetadata = ref<{ id: string; userId: string; isPublic: boolean; isOwner: boolean; name?: string } | null>(null)
@@ -349,11 +352,47 @@ export const useStrategyStore = defineStore('strategy', () => {
     }
 
     const fetchComments = async (strategyId: string) => {
+        commentsPage.value = 1
+        hasMoreComments.value = true
+        currentStrategyComments.value = []
+        
         try {
-            const response = await axios.get(`${API_BASE_URL}/strategies/${strategyId}/comments`)
+            const response = await axios.get(`${API_BASE_URL}/strategies/${strategyId}/comments`, {
+                params: { page: 1, limit: commentsLimit.value }
+            })
             currentStrategyComments.value = response.data
+            
+            // If we got fewer comments than limit, it means we reached the end
+            // Note: This is an approximation because the response includes replies.
+            // However, since we paginate on roots, checking result count vs limit isn't 100% accurate 
+            // for "has more roots", but if we got 0 results, we definitely have no more.
+            // A better way would be if backend returned metadata. 
+            // For now, if result is empty, stop.
+            if (response.data.length === 0) {
+                hasMoreComments.value = false
+            }
         } catch (e) {
             console.error('Failed to fetch comments', e)
+        }
+    }
+
+    const loadMoreComments = async (strategyId: string) => {
+        if (!hasMoreComments.value) return
+
+        const nextPage = commentsPage.value + 1
+        try {
+            const response = await axios.get(`${API_BASE_URL}/strategies/${strategyId}/comments`, {
+                params: { page: nextPage, limit: commentsLimit.value }
+            })
+            
+            if (response.data.length === 0) {
+                hasMoreComments.value = false
+            } else {
+                currentStrategyComments.value.push(...response.data)
+                commentsPage.value = nextPage
+            }
+        } catch (e) {
+            console.error('Failed to load more comments', e)
         }
     }
 
@@ -460,6 +499,8 @@ export const useStrategyStore = defineStore('strategy', () => {
         publicStrategies,
         userStrategies,
         currentStrategyComments,
+        commentsPage,
+        hasMoreComments,
         currentStrategyMetadata,
         currentStrategyName,
         setConfig,
@@ -474,6 +515,7 @@ export const useStrategyStore = defineStore('strategy', () => {
         fetchUserStrategies,
         toggleLike,
         fetchComments,
+        loadMoreComments,
         loadStrategy,
         addComment,
         reset

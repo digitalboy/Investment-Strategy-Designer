@@ -12,7 +12,7 @@ const emit = defineEmits(['create-strategy', 'view-strategy'])
 
 const strategyStore = useStrategyStore()
 const authStore = useAuthStore()
-const { publicStrategies, userStrategies, isLoading, currentStrategyComments } = storeToRefs(strategyStore)
+const { publicStrategies, userStrategies, isLoading, currentStrategyComments, hasMoreComments } = storeToRefs(strategyStore)
 
 const sortBy = ref<'recent' | 'popular' | 'return'>('return')
 const showCommentsDialog = ref(false)
@@ -65,6 +65,11 @@ const handleAddComment = async (content: string, parentId?: string) => {
     } catch (error) {
         console.error('Failed to add comment', error)
     }
+}
+
+const handleLoadMoreComments = async () => {
+    if (!selectedStrategyId.value) return
+    await strategyStore.loadMoreComments(selectedStrategyId.value)
 }
 </script>
 
@@ -172,9 +177,16 @@ const handleAddComment = async (content: string, parentId?: string) => {
             </div>
 
             <!-- Comments Dialog -->
-            <CommentsDialog :open="showCommentsDialog" @update:open="showCommentsDialog = $event"
-                :comments="currentStrategyComments" title="评论区" description="查看和发表关于此策略的评论。"
-                @add-comment="handleAddComment" />
+            <CommentsDialog 
+                :open="showCommentsDialog" 
+                @update:open="showCommentsDialog = $event"
+                :comments="currentStrategyComments" 
+                :has-more="hasMoreComments"
+                title="评论区" 
+                description="查看和发表关于此策略的评论。"
+                @add-comment="handleAddComment" 
+                @load-more="handleLoadMoreComments"
+            />
         </div>
     </div>
 
