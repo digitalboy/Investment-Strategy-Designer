@@ -216,5 +216,113 @@
     "emailInvalid": "Please enter a valid email address",
     "passwordMinLength": "Password must be at least 8 characters long",
     "passwordsNotMatch": "Passwords do not match"
+  },
+  "triggerActionForm": {
+    "then": "Then (THEN)...",
+    "description": "Determine how the system places orders",
+    "action": "Action",
+    "buy": "Buy",
+    "sell": "Sell",
+    "amountType": "Amount Type",
+    "fixedAmount": "Fixed Amount ($)",
+    "cashPercent": "Cash Percentage (%)",
+    "totalValuePercent": "Total Value Target Position (%)",
+    "positionPercent": "Position Percentage (%)",
+    "value": "Value",
+    "hints": {
+      "cashPercent": "Use a percentage of the account's current available cash for orders",
+      "positionPercent": "Sell a certain percentage of the current position",
+      "totalValuePercent": "Adjust the position to a specified percentage of the account's total assets",
+      "default": "Enter the amount or percentage for this transaction"
+    }
+  },
+  "triggerConditionForm": {
+    "if": "If (IF)...",
+    "description": "Choose the market conditions you want to capture",
+    "groups": {
+      "buyLow": "📉 Buy Low (Bottom Fishing)",
+      "trendFollowing": "🚀 Trend Following (Momentum)",
+      "technicalIndicators": "📊 Technical Indicators"
+    },
+    "conditions": {
+      "drawdownFromPeak": {
+        "label": "Drawdown from Peak",
+        "description": "Price has significantly pulled back from historical high"
+      },
+      "newLow": {
+        "label": "New Low (Breakdown)",
+        "description": "Breaks below the lowest point in the past N days"
+      },
+      "priceStreak_down": {
+        "label": "Consecutive Declines (Bearish)",
+        "description": "Multiple consecutive days of closing lower"
+      },
+      "newHigh": {
+        "label": "New High (Breakout)",
+        "description": "Breaks above the highest price in the past N days"
+      },
+      "priceStreak_up": {
+        "label": "Consecutive Gains (Bullish)",
+        "description": "Multiple consecutive days of closing higher"
+      },
+      "periodReturn_up": {
+        "label": "Recent Strength (Sharp Rise)",
+        "description": "Excessive short-term gains"
+      },
+      "periodReturn_down": {
+        "label": "Recent Weakness (Sharp Fall)",
+        "description": "Excessive short-term losses"
+      },
+      "rsi": {
+        "label": "RSI Overbought/Oversold",
+        "description": "Classic momentum indicator"
+      },
+      "maCross": {
+        "label": "Moving Average Crossover",
+        "description": "Short-term MA crosses long-term MA"
+      }
+    },
+    "descriptions": {
+      "drawdownFromPeak": "When the price falls more than {percentage}% from the highest point in the past {days} days.",
+      "newHigh": "When the price breaks above the highest price in the past {days} days.",
+      "newLow": "When the price breaks below the lowest price in the past {days} days.",
+      "priceStreak": {
+        "prefix": "When the price closes",
+        "direction": {
+          "up": "📈 higher",
+          "down": "📉 lower"
+        },
+        "for": "for",
+        "consecutive": "consecutive",
+        "units": {
+          "day": "trading days",
+          "week": "weeks"
+        }
+      },
+      "periodReturn": {
+        "prefix": "When the price has",
+        "direction": {
+          "up": "risen",
+          "down": "fallen"
+        },
+        "moreThan": "more than {percentage}% in the past {days} days."
+      },
+      "rsi": "When RSI({period}) is {operator} {threshold}.",
+      "maCross": "When the price {direction} the {period}-day moving average."
+    },
+    "operators": {
+      "above": "above",
+      "below": "below"
+    },
+    "directions": {
+      "above": "crosses above",
+      "below": "crosses below",
+      "up": "up",
+      "down": "down"
+    },
+    "units": {
+      "day": "trading day",
+      "week": "week"
+    }
   }
 }

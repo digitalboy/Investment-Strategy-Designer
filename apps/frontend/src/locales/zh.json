@@ -216,5 +216,113 @@
     "emailInvalid": "请输入有效的邮箱地址",
     "passwordMinLength": "密码长度至少为8位",
     "passwordsNotMatch": "两次输入的密码不一致"
+  },
+  "triggerActionForm": {
+    "then": "那么 (THEN)...",
+    "description": "确定系统如何下单",
+    "action": "操作",
+    "buy": "买入",
+    "sell": "卖出",
+    "amountType": "金额类型",
+    "fixedAmount": "固定金额 ($)",
+    "cashPercent": "可用现金百分比 (%)",
+    "totalValuePercent": "总资产目标仓位 (%)",
+    "positionPercent": "持仓百分比 (%)",
+    "value": "数值",
+    "hints": {
+      "cashPercent": "使用账户当前可用现金的百分比进行下单",
+      "positionPercent": "卖出当前持仓的一定百分比",
+      "totalValuePercent": "调整仓位，使其占账户总资产的指定百分比",
+      "default": "输入本次交易的金额或百分比"
+    }
+  },
+  "triggerConditionForm": {
+    "if": "如果 (IF)...",
+    "description": "选择你想捕捉的行情",
+    "groups": {
+      "buyLow": "📉 逢低买入（抄底）",
+      "trendFollowing": "🚀 趋势跟随（追涨）",
+      "technicalIndicators": "📊 技术指标"
+    },
+    "conditions": {
+      "drawdownFromPeak": {
+        "label": "高点回撤",
+        "description": "价格自历史高点明显回撤"
+      },
+      "newLow": {
+        "label": "创新低（破底）",
+        "description": "跌破过去 N 日最低点"
+      },
+      "priceStreak_down": {
+        "label": "连续下跌（连阴）",
+        "description": "连续多天收盘走低"
+      },
+      "newHigh": {
+        "label": "创新高（突破）",
+        "description": "突破过去 N 日最高价"
+      },
+      "priceStreak_up": {
+        "label": "连续上涨（连阳）",
+        "description": "连续多天收盘走高"
+      },
+      "periodReturn_up": {
+        "label": "近期强势（急涨）",
+        "description": "短期涨幅过大"
+      },
+      "periodReturn_down": {
+        "label": "近期大跌幅",
+        "description": "短期跌幅过大"
+      },
+      "rsi": {
+        "label": "RSI 超买/超卖",
+        "description": "经典动量指标"
+      },
+      "maCross": {
+        "label": "均线交叉",
+        "description": "短期均线与长期均线交叉"
+      }
+    },
+    "descriptions": {
+      "drawdownFromPeak": "当价格从过去 {days} 天的最高点，下跌超过 {percentage}% 时。",
+      "newHigh": "当价格突破过去 {days} 天的最高价时。",
+      "newLow": "当价格跌破过去 {days} 天的最低价时。",
+      "priceStreak": {
+        "prefix": "当价格连续",
+        "direction": {
+          "up": "📈 上涨",
+          "down": "📉 下跌"
+        },
+        "for": "",
+        "consecutive": "个",
+        "units": {
+          "day": "交易日",
+          "week": "周"
+        }
+      },
+      "periodReturn": {
+        "prefix": "当价格在过去 {days} 天内累计",
+        "direction": {
+          "up": "上涨",
+          "down": "下跌"
+        },
+        "moreThan": "超过 {percentage}% 时。"
+      },
+      "rsi": "当 RSI({period}) {operator} {threshold} 时。",
+      "maCross": "当价格 {direction} {period} 日均线时。"
+    },
+    "operators": {
+      "above": "高于",
+      "below": "低于"
+    },
+    "directions": {
+      "above": "向上穿越",
+      "below": "向下穿越",
+      "up": "上涨",
+      "down": "下跌"
+    },
+    "units": {
+      "day": "交易日",
+      "week": "周"
+    }
   }
 }

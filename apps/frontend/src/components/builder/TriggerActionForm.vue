@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -10,6 +11,8 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import type { TriggerAction } from '@/types'
+
+const { t } = useI18n()
 
 type ActionValueType = TriggerAction['value']['type']
 
@@ -47,16 +50,16 @@ const PERCENT_AMOUNT_DEFAULT = 10
 const actionValueOptions = computed<{ value: ActionValueType; label: string }[]>(() => {
     if (localActionType.value === 'buy') {
         return [
-            { value: 'fixedAmount', label: '固定金额 ($)' },
-            { value: 'cashPercent', label: '可用现金百分比 (%)' },
-            { value: 'totalValuePercent', label: '总资产目标仓位 (%)' },
+            { value: 'fixedAmount', label: t('triggerActionForm.fixedAmount') },
+            { value: 'cashPercent', label: t('triggerActionForm.cashPercent') },
+            { value: 'totalValuePercent', label: t('triggerActionForm.totalValuePercent') },
         ]
     }
 
     return [
-        { value: 'fixedAmount', label: '固定金额 ($)' },
-        { value: 'positionPercent', label: '持仓百分比 (%)' },
-        { value: 'totalValuePercent', label: '总资产目标仓位 (%)' },
+        { value: 'fixedAmount', label: t('triggerActionForm.fixedAmount') },
+        { value: 'positionPercent', label: t('triggerActionForm.positionPercent') },
+        { value: 'totalValuePercent', label: t('triggerActionForm.totalValuePercent') },
     ]
 })
 
@@ -73,13 +76,13 @@ const actionAmountLimits = computed(() => {
 const actionValueHint = computed(() => {
     switch (localValueType.value) {
         case 'cashPercent':
-            return '使用账户当前可用现金的百分比进行下单'
+            return t('triggerActionForm.hints.cashPercent')
         case 'positionPercent':
-            return '卖出当前持仓的一定百分比'
+            return t('triggerActionForm.hints.positionPercent')
         case 'totalValuePercent':
-            return '调整仓位，使其占账户总资产的指定百分比'
+            return t('triggerActionForm.hints.totalValuePercent')
         default:
-            return '输入本次交易的金额或百分比'
+            return t('triggerActionForm.hints.default')
     }
 })
 
@@ -105,7 +108,7 @@ const clampActionAmount = (value: number) => {
 watch(localValueType, (next: ActionValueType, previous: ActionValueType | undefined) => {
     const wasPercent = previous ? PERCENT_VALUE_TYPES.includes(previous) : false
     const isPercent = PERCENT_VALUE_TYPES.includes(next)
-    
+
     // Only update if changing between percent and fixed/other modes
     if (isPercent && !wasPercent) {
         localAmount.value = PERCENT_AMOUNT_DEFAULT
@@ -131,25 +134,25 @@ watch(localAmount, value => {
 <template>
     <section class="rounded-2xl border border-slate-200 bg-white/80 shadow-sm p-4 space-y-4">
         <header class="flex flex-wrap items-center justify-between gap-3">
-            <h3 class="text-lg font-semibold text-slate-900">那么 (THEN)...</h3>
-            <span class="text-xs text-slate-500">确定系统如何下单</span>
+            <h3 class="text-lg font-semibold text-slate-900">{{ t('triggerActionForm.then') }}</h3>
+            <span class="text-xs text-slate-500">{{ t('triggerActionForm.description') }}</span>
         </header>
 
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <div class="space-y-2 rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
-                <Label class="text-xs text-slate-500">操作</Label>
+                <Label class="text-xs text-slate-500">{{ t('triggerActionForm.action') }}</Label>
                 <Select v-model="localActionType">
                     <SelectTrigger class="h-10">
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="buy">买入</SelectItem>
-                        <SelectItem value="sell">卖出</SelectItem>
+                        <SelectItem value="buy">{{ t('triggerActionForm.buy') }}</SelectItem>
+                        <SelectItem value="sell">{{ t('triggerActionForm.sell') }}</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
             <div class="space-y-2 rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
-                <Label class="text-xs text-slate-500">金额类型</Label>
+                <Label class="text-xs text-slate-500">{{ t('triggerActionForm.amountType') }}</Label>
                 <Select v-model="localValueType">
                     <SelectTrigger class="h-10">
                         <SelectValue />
@@ -161,8 +164,9 @@ watch(localAmount, value => {
                     </SelectContent>
                 </Select>
             </div>
-            <div class="space-y-2 rounded-xl border border-slate-100 bg-white p-3 shadow-sm md:col-span-2 xl:col-span-1">
-                <Label class="text-xs text-slate-500">数值</Label>
+            <div
+                class="space-y-2 rounded-xl border border-slate-100 bg-white p-3 shadow-sm md:col-span-2 xl:col-span-1">
+                <Label class="text-xs text-slate-500">{{ t('triggerActionForm.value') }}</Label>
                 <div class="relative">
                     <Input type="number" v-model="localAmount" class="h-10 pr-10" :min="actionAmountLimits.min"
                         :max="actionAmountLimits.max" :step="actionAmountLimits.step" />
