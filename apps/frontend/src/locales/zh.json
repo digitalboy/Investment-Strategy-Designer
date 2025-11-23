@@ -26,7 +26,11 @@
     "above": "高于",
     "below": "低于",
     "day": "天",
-    "week": "周"
+    "week": "周",
+    "today": "今天",
+    "yesterday": "昨天",
+    "daysAgo": "{count}天前",
+    "dateFormat": "yyyy年MM月dd日 HH:mm"
   },
   "dashboard": {
     "strategyMaster": "策略大师",
@@ -111,6 +115,48 @@
     "portfolio": "投资组合",
     "riskManagement": "风险管理",
     "unnamedStrategy": "未命名策略",
+    "header": {
+      "workspaceTitle": "策略回测工作台",
+      "enterStrategyName": "输入策略名称",
+      "noSymbolSelected": "未选标的",
+      "timeRangeNotSet": "时间范围未设定",
+      "backtestingTimeRange": "回测时间范围",
+      "initialCapital": "初始本金",
+      "triggerCount": "触发器数量",
+      "triggers": "个触发器",
+      "public": "公开",
+      "private": "私有",
+      "settings": "设置"
+    },
+    "executionGuide": {
+      "title": "执行指南",
+      "currentStatus": "当前状态",
+      "noIssues": "暂无异常",
+      "tips": "提示",
+      "executionTiming": "交易将在信号触发后的次日开盘时执行。",
+      "conditionActionPair": "保证至少一个条件与动作配对。",
+      "confirmParameters": "确认时间范围、本金与标的是否准确。",
+      "reuseStrategy": "保存后可在社区或个人空间复用策略。",
+      "backtestCompleted": "✓ 回测完成",
+      "backtestResultsAvailable": "已有回测结果，可重新运行以刷新表现。"
+    },
+    "backtestChart": {
+      "myStrategy": "我的策略",
+      "buyAndHold": "买入并持有",
+      "etfPrice": "ETF 价格",
+      "buy": "买入",
+      "sell": "卖出"
+    },
+    "triggerList": {
+      "title": "触发器面板",
+      "description": "查看触发顺序并快速调整条件、动作与冷却。",
+      "addTrigger": "添加触发器",
+      "createNow": "立即创建",
+      "condition": "条件",
+      "action": "动作",
+      "cooldown": "冷却",
+      "noCooldown": "无冷却"
+    },
     "status": {
       "needsAttention": "需要关注",
       "backtesting": "回测中",
@@ -259,7 +305,12 @@
     "endDate": "结束日期",
     "initialCapital": "初始本金",
     "selectETF": "选择 ETF",
-    "startDesigningStrategy": "开始设计策略"
+    "startDesigningStrategy": "开始设计策略",
+    "validation": {
+      "invalidDates": "请输入有效的开始和结束日期",
+      "endBeforeStart": "结束日期必须晚于开始日期",
+      "minRange": "回测区间至少 {days} 天，请调整开始或结束日期"
+    }
   },
   "reports": {
     "title": "报告",

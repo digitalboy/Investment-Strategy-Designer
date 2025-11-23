@@ -4,10 +4,11 @@ import { ref, computed } from 'vue'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { formatDate } from '@/lib/utils'
+import { useDateFormatter } from '@/lib/useDateFormatter'
 import { MessageSquare, CornerDownRight } from 'lucide-vue-next'
 
 const { t } = useI18n({ useScope: 'global' })
+const { formatDate } = useDateFormatter()
 
 export interface Comment {
     id: string

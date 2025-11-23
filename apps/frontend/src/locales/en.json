@@ -26,7 +26,11 @@
     "above": "above",
     "below": "below",
     "day": "day",
-    "week": "week"
+    "week": "week",
+    "today": "today",
+    "yesterday": "yesterday",
+    "daysAgo": "{count} days ago",
+    "dateFormat": "MMM dd, yyyy 'at' HH:mm"
   },
   "dashboard": {
     "strategyMaster": "Strategy Master",
@@ -111,6 +115,48 @@
     "portfolio": "Portfolio",
     "riskManagement": "Risk Management",
     "unnamedStrategy": "Unnamed Strategy",
+    "header": {
+      "workspaceTitle": "Strategy Backtesting Workspace",
+      "enterStrategyName": "Enter strategy name",
+      "noSymbolSelected": "No symbol selected",
+      "timeRangeNotSet": "Time range not set",
+      "backtestingTimeRange": "Backtesting time range",
+      "initialCapital": "Initial capital",
+      "triggerCount": "Number of triggers",
+      "triggers": "triggers",
+      "public": "Public",
+      "private": "Private",
+      "settings": "Settings"
+    },
+    "executionGuide": {
+      "title": "Execution Guide",
+      "currentStatus": "Current Status",
+      "noIssues": "No issues at the moment",
+      "tips": "Tips",
+      "executionTiming": "Trades will be executed at market open the next trading day after signal triggers.",
+      "conditionActionPair": "Ensure at least one condition and action pair exists.",
+      "confirmParameters": "Confirm that time range, capital, and symbol are set correctly.",
+      "reuseStrategy": "After saving, the strategy can be reused in community or personal space.",
+      "backtestCompleted": "✓ Backtest Completed",
+      "backtestResultsAvailable": "Backtest results are available, you can re-run to refresh performance."
+    },
+    "backtestChart": {
+      "myStrategy": "My Strategy",
+      "buyAndHold": "Buy and Hold",
+      "etfPrice": "ETF Price",
+      "buy": "Buy",
+      "sell": "Sell"
+    },
+    "triggerList": {
+      "title": "Trigger Panel",
+      "description": "View trigger sequence and quickly adjust conditions, actions, and cooldown.",
+      "addTrigger": "Add Trigger",
+      "createNow": "Create Now",
+      "condition": "Condition",
+      "action": "Action",
+      "cooldown": "Cooldown",
+      "noCooldown": "No cooldown"
+    },
     "status": {
       "needsAttention": "Needs Attention",
       "backtesting": "Backtesting",

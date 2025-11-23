@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -22,6 +23,8 @@ const emit = defineEmits<{
     'update-name': [name: string]
     'update-visibility': [isPublic: boolean]
 }>()
+
+const { t } = useI18n()
 
 const editableName = ref('')
 const isEditingName = ref(false)
@@ -49,7 +52,7 @@ const formatCurrency = (value?: number | string) => {
 }
 
 const investingHorizon = computed(() => {
-    if (!props.config.startDate || !props.config.endDate) return '时间范围未设定'
+    if (!props.config.startDate || !props.config.endDate) return t('strategy.header.timeRangeNotSet')
     return `${props.config.startDate} → ${props.config.endDate}`
 })
 
@@ -83,7 +86,8 @@ const finishEditingName = () => {
                             @click="emit('back')">
                             <ArrowLeft class="h-4 w-4" />
                         </Button>
-                        <span class="text-xs font-medium uppercase tracking-wider text-indigo-100">策略回测工作台</span>
+                        <span class="text-xs font-medium uppercase tracking-wider text-indigo-100">{{
+                            t('strategy.header.workspaceTitle') }}</span>
                     </div>
 
                     <div class="flex items-center gap-3 flex-wrap">
@@ -97,32 +101,35 @@ const finishEditingName = () => {
                                 </Button>
                             </div>
                             <Input v-else ref="nameInputRef" v-model="editableName" :disabled="isLoading"
-                                placeholder="输入策略名称"
+                                :placeholder="t('strategy.header.enterStrategyName')"
                                 class="text-2xl font-bold h-10 bg-white/20 border-white/30 text-white placeholder:text-white/50"
                                 @blur="finishEditingName" @keydown.enter="finishEditingName"
                                 @keydown.esc="isEditingName = false" />
                         </div>
                         <Badge variant="outline"
                             class="font-mono text-white bg-white/20 border-white/30 px-3 py-0.5 rounded-lg shadow-sm backdrop-blur-sm">
-                            {{ config.etfSymbol || '未选标的' }}
+                            {{ config.etfSymbol || t('strategy.header.noSymbolSelected') }}
                         </Badge>
                     </div>
 
                     <div class="flex flex-wrap items-center gap-x-8 gap-y-2 text-sm">
-                        <div class="flex items-center gap-2 group cursor-help" title="回测时间范围">
+                        <div class="flex items-center gap-2 group cursor-help"
+                            :title="t('strategy.header.backtestingTimeRange')">
                             <Calendar class="h-4 w-4 text-indigo-100 group-hover:text-white transition-colors" />
                             <span class="font-medium text-white/90 group-hover:text-white transition-colors">{{
                                 investingHorizon }}</span>
                         </div>
-                        <div class="flex items-center gap-2 group cursor-help" title="初始本金">
+                        <div class="flex items-center gap-2 group cursor-help"
+                            :title="t('strategy.header.initialCapital')">
                             <Wallet class="h-4 w-4 text-indigo-100 group-hover:text-white transition-colors" />
                             <span class="font-medium text-white/90 group-hover:text-white transition-colors">{{
                                 formatCurrency(config.initialCapital) }}</span>
                         </div>
-                        <div class="flex items-center gap-2 group cursor-help" title="触发器数量">
+                        <div class="flex items-center gap-2 group cursor-help"
+                            :title="t('strategy.header.triggerCount')">
                             <Layers class="h-4 w-4 text-indigo-100 group-hover:text-white transition-colors" />
                             <span class="font-medium text-white/90 group-hover:text-white transition-colors">{{
-                                triggerCount }} 个触发器</span>
+                                triggerCount }} {{ t('strategy.header.triggers') }}</span>
                         </div>
                     </div>
                 </div>
@@ -143,8 +150,9 @@ const finishEditingName = () => {
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                             </svg>
-                            <span class="text-xs font-medium text-white/90">{{ isPublicChecked ? '公开' : '私有'
-                            }}</span>
+                            <span class="text-xs font-medium text-white/90">{{ isPublicChecked ?
+                                t('strategy.header.public') : t('strategy.header.private')
+                                }}</span>
                         </div>
                         <Switch v-model="isPublicChecked" :disabled="isLoading"
                             class="data-[state=checked]:bg-white/60 data-[state=unchecked]:bg-white/20 border-0" />
@@ -156,7 +164,7 @@ const finishEditingName = () => {
                         class="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:border-white/40 transition-all backdrop-blur-sm"
                         @click="emit('edit-setup')">
                         <Settings class="h-4 w-4 mr-2" />
-                        设置
+                        {{ t('strategy.header.settings') }}
                     </Button>
                 </div>
             </div>

@@ -59,16 +59,16 @@ const validateDateRange = () => {
     const start = new Date(startDate.value)
     const end = new Date(endDate.value)
     if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-        validationError.value = '请输入有效的开始和结束日期'
+        validationError.value = t('setupWizard.validation.invalidDates')
         return false
     }
     if (end < start) {
-        validationError.value = '结束日期必须晚于开始日期'
+        validationError.value = t('setupWizard.validation.endBeforeStart')
         return false
     }
     const diffDays = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
     if (diffDays < MIN_RANGE_DAYS) {
-        validationError.value = `回测区间至少 ${MIN_RANGE_DAYS} 天，请调整开始或结束日期`
+        validationError.value = t('setupWizard.validation.minRange', { days: MIN_RANGE_DAYS })
         return false
     }
     validationError.value = ''

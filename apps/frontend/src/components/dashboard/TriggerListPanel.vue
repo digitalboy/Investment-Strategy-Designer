@@ -2,6 +2,9 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Pencil, Trash2 } from 'lucide-vue-next'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const { triggerSummaries, canEdit, emptyStateMessage } = defineProps<{
     triggerSummaries: Array<{
@@ -27,18 +30,19 @@ const emit = defineEmits<{
         class="border-slate-200/50 shadow-xl shadow-slate-200/50 flex-1 bg-linear-to-br from-white via-blue-50/60 to-indigo-100/50 backdrop-blur-sm">
         <CardHeader class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <CardTitle>触发器面板</CardTitle>
-                <CardDescription>查看触发顺序并快速调整条件、动作与冷却。</CardDescription>
+                <CardTitle>{{ t('strategy.triggerList.title') }}</CardTitle>
+                <CardDescription>{{ t('strategy.triggerList.description') }}</CardDescription>
             </div>
             <Button v-if="canEdit" size="sm" class="w-full sm:w-auto" @click="emit('open-builder')">
-                添加触发器
+                {{ t('strategy.triggerList.addTrigger') }}
             </Button>
         </CardHeader>
         <CardContent>
             <div v-if="triggerSummaries.length === 0"
                 class="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
                 <p class="text-slate-500">{{ emptyStateMessage }}</p>
-                <Button v-if="canEdit" class="mt-4" @click="emit('open-builder')">立即创建</Button>
+                <Button v-if="canEdit" class="mt-4" @click="emit('open-builder')">{{ t('strategy.triggerList.createNow')
+                    }}</Button>
             </div>
             <ol v-else class="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
                 <li v-for="(summary, index) in triggerSummaries" :key="summary.id"
@@ -51,18 +55,22 @@ const emit = defineEmits<{
                             </span>
                             <div class="space-y-3">
                                 <div>
-                                    <p class="text-xs uppercase tracking-wide text-slate-400">条件</p>
+                                    <p class="text-xs uppercase tracking-wide text-slate-400">{{
+                                        t('strategy.triggerList.condition') }}</p>
                                     <p class="text-sm font-semibold text-slate-900 mt-1">{{ summary.condition }}
                                     </p>
                                 </div>
                                 <div class="grid gap-3 sm:grid-cols-2">
                                     <div>
-                                        <p class="text-xs uppercase tracking-wide text-slate-400">动作</p>
+                                        <p class="text-xs uppercase tracking-wide text-slate-400">{{
+                                            t('strategy.triggerList.action') }}</p>
                                         <p class="text-sm text-slate-800 mt-1">{{ summary.action }}</p>
                                     </div>
                                     <div>
-                                        <p class="text-xs uppercase tracking-wide text-slate-400">冷却</p>
-                                        <p class="text-sm text-slate-800 mt-1">{{ summary.cooldown || '无冷却' }}
+                                        <p class="text-xs uppercase tracking-wide text-slate-400">{{
+                                            t('strategy.triggerList.cooldown') }}</p>
+                                        <p class="text-sm text-slate-800 mt-1">{{ summary.cooldown ||
+                                            t('strategy.triggerList.noCooldown') }}
                                         </p>
                                     </div>
                                 </div>

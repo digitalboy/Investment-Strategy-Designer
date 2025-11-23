@@ -5,9 +5,10 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Heart, MessageSquare } from 'lucide-vue-next'
 import type { StrategySummaryDTO } from '@/types'
-import { formatDate } from '@/lib/utils'
+import { useDateFormatter } from '@/lib/useDateFormatter'
 
 const { t } = useI18n({ useScope: 'global' })
+const { formatDate } = useDateFormatter()
 const { strategy, rank, showAuthor, manageMode } = withDefaults(defineProps<{
     strategy: StrategySummaryDTO
     rank?: number

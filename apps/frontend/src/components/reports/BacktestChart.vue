@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Line } from 'vue-chartjs'
 import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement } from 'chart.js'
 import type { BacktestResultDTO } from '@/types'
+
+const { t } = useI18n()
 
 ChartJS.register(Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement)
 
@@ -69,7 +72,7 @@ const chartData = computed(() => {
         labels: props.result.charts.dates,
         datasets: [
             {
-                label: '我的策略',
+                label: t('strategy.backtestChart.myStrategy'),
                 backgroundColor: '#4f46e5',
                 borderColor: '#4f46e5',
                 borderWidth: 1.0,
@@ -80,7 +83,7 @@ const chartData = computed(() => {
                 order: 2
             },
             {
-                label: '买入并持有',
+                label: t('strategy.backtestChart.buyAndHold'),
                 backgroundColor: '#94a3b8',
                 borderColor: '#94a3b8',
                 borderWidth: 1.5,
@@ -91,7 +94,7 @@ const chartData = computed(() => {
                 order: 3
             },
             {
-                label: 'ETF 价格',
+                label: t('strategy.backtestChart.etfPrice'),
                 backgroundColor: '#f59e0b',
                 borderColor: '#f59e0b',
                 borderWidth: 1.0,
@@ -103,7 +106,7 @@ const chartData = computed(() => {
                 order: 4
             },
             {
-                label: '买入',
+                label: t('strategy.backtestChart.buy'),
                 data: buyPoints,
                 backgroundColor: '#16a34a',
                 borderColor: '#16a34a',
@@ -115,7 +118,7 @@ const chartData = computed(() => {
                 order: 1
             },
             {
-                label: '卖出',
+                label: t('strategy.backtestChart.sell'),
                 data: sellPoints,
                 backgroundColor: '#dc2626',
                 borderColor: '#dc2626',
@@ -210,7 +213,8 @@ const chartOptions = {
 </script>
 
 <template>
-    <div class="flex-1 min-h-[300px] w-full bg-white/90 backdrop-blur-sm p-4 rounded-xl border border-indigo-200/40 shadow-lg shadow-indigo-500/10 relative">
+    <div
+        class="flex-1 min-h-[300px] w-full bg-white/90 backdrop-blur-sm p-4 rounded-xl border border-indigo-200/40 shadow-lg shadow-indigo-500/10 relative">
         <Line :data="chartData" :options="chartOptions" />
     </div>
 </template>
