@@ -13,6 +13,11 @@ const props = defineProps<{
     description?: string
     loading?: boolean
     hasMore?: boolean
+    strategyName?: string
+    author?: {
+        name?: string
+        photo?: string
+    }
 }>()
 
 const emit = defineEmits<{
@@ -130,13 +135,29 @@ const commentTree = computed(() => {
         <DialogContent
             class="sm:max-w-[600px] max-h-[80vh] flex flex-col rounded-2xl border-indigo-200/40 shadow-2xl shadow-indigo-500/20 bg-white">
             <DialogHeader class="pb-4 border-b border-indigo-100">
-                <DialogTitle
-                    class="text-xl font-bold bg-linear-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
-                    {{ title || '评论区' }}
-                </DialogTitle>
-                <DialogDescription class="text-slate-500">
-                    {{ description || '查看和发表评论。' }}
-                </DialogDescription>
+                <div class="flex items-start gap-4">
+                    <div class="grow">
+                        <DialogTitle
+                            class="text-xl font-bold bg-linear-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
+                            {{ strategyName || title || '评论区' }}
+                        </DialogTitle>
+                        <div v-if="author" class="flex items-center gap-2 mt-1.5">
+                            <Avatar class="h-5 w-5 border border-indigo-100">
+                                <AvatarImage v-if="author.photo" :src="author.photo" :alt="author.name" />
+                                <AvatarFallback class="text-[10px] bg-indigo-50 text-indigo-600">
+                                    {{ (author.name || 'U').charAt(0).toUpperCase() }}
+                                </AvatarFallback>
+                            </Avatar>
+                            <span class="text-sm text-slate-500">
+                                <span class="font-medium text-slate-700">{{ author.name || '匿名用户' }}</span>
+                                的策略
+                            </span>
+                        </div>
+                        <DialogDescription v-else class="text-slate-500 mt-1">
+                            {{ description || '查看和发表评论。' }}
+                        </DialogDescription>
+                    </div>
+                </div>
             </DialogHeader>
 
             <div

@@ -17,6 +17,7 @@ const { publicStrategies, userStrategies, isLoading, currentStrategyComments, ha
 const sortBy = ref<'recent' | 'popular' | 'return'>('return')
 const showCommentsDialog = ref(false)
 const selectedStrategyId = ref<string | null>(null)
+const currentStrategyInfo = ref<{ name: string, author: { name?: string, photo?: string } } | null>(null)
 
 onMounted(() => {
     loadStrategies()
@@ -52,6 +53,21 @@ const handleLike = async (id: string) => {
 
 const openComments = async (id: string) => {
     selectedStrategyId.value = id
+    
+    // Find strategy info to display in dialog header
+    const strategy = publicStrategies.value.find(s => s.id === id) || userStrategies.value.find(s => s.id === id)
+    if (strategy) {
+        currentStrategyInfo.value = {
+            name: strategy.name,
+            author: {
+                name: strategy.author?.displayName || strategy.author?.email?.split('@')[0],
+                photo: strategy.author?.photoUrl
+            }
+        }
+    } else {
+        currentStrategyInfo.value = null
+    }
+
     showCommentsDialog.value = true
     await strategyStore.fetchComments(id)
 }
@@ -182,6 +198,8 @@ const handleLoadMoreComments = async () => {
                 @update:open="showCommentsDialog = $event"
                 :comments="currentStrategyComments" 
                 :has-more="hasMoreComments"
+                :strategy-name="currentStrategyInfo?.name"
+                :author="currentStrategyInfo?.author"
                 title="评论区" 
                 description="查看和发表关于此策略的评论。"
                 @add-comment="handleAddComment" 
