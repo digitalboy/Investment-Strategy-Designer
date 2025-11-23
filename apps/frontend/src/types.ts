@@ -55,6 +55,8 @@ export interface CommentEntity {
     content: string;
     created_at: string;
     user_email?: string; // Optional, joined from users table
+    user_name?: string;
+    user_photo?: string;
 }
 
 export interface StrategyConfig {

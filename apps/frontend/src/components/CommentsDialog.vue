@@ -3,13 +3,15 @@ import { ref, computed } from 'vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { MessageSquare } from 'lucide-vue-next'
 import { formatDate } from '@/lib/utils'
 
 export interface Comment {
     id: string
     user_email?: string
+    user_name?: string
+    user_photo?: string
     content: string
     created_at: string
 }
@@ -75,16 +77,17 @@ const handleAddComment = () => {
                 <!-- Comments List -->
                 <div v-else v-for="comment in comments" :key="comment.id" class="flex gap-3">
                     <Avatar class="h-9 w-9 border-2 border-indigo-200/50 shadow-sm">
+                        <AvatarImage v-if="comment.user_photo" :src="comment.user_photo" :alt="comment.user_name || comment.user_email" />
                         <AvatarFallback
                             class="bg-linear-to-br from-indigo-500 to-blue-500 text-white font-bold text-sm">
-                            {{ comment.user_email?.charAt(0).toUpperCase() || 'U' }}
+                            {{ (comment.user_name || comment.user_email || 'U').charAt(0).toUpperCase() }}
                         </AvatarFallback>
                     </Avatar>
                     <div
                         class="bg-linear-to-br from-white via-blue-50/40 to-indigo-50/30 p-3.5 rounded-xl grow border border-indigo-200/40 shadow-sm hover:shadow-md hover:shadow-indigo-500/10 transition-all">
                         <div class="flex justify-between items-center mb-1.5">
                             <span class="text-xs font-semibold text-slate-700">
-                                {{ comment.user_email || '匿名用户' }}
+                                {{ comment.user_name || comment.user_email || '匿名用户' }}
                             </span>
                             <span class="text-xs text-slate-400">{{ formatDate(comment.created_at) }}</span>
                         </div>
