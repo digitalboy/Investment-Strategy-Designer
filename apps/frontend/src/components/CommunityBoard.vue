@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import CommentsDialog from '@/components/CommentsDialog.vue'
 import { Plus, Trophy, Heart, MessageSquare, RefreshCw } from 'lucide-vue-next'
 import type { StrategySummaryDTO } from '@/types'
+import { formatDate } from '@/lib/utils'
 
 const emit = defineEmits(['create-strategy', 'view-strategy'])
 
@@ -67,17 +68,6 @@ const handleAddComment = async (content: string) => {
     } catch (error) {
         console.error('Failed to add comment', error)
     }
-}
-
-const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffTime = Math.abs(now.getTime() - date.getTime())
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-    if (diffDays < 1) return '刚刚更新'
-    if (diffDays < 7) return `${diffDays}天前更新`
-    return date.toLocaleDateString()
 }
 
 const formatPercent = (value?: number) => {

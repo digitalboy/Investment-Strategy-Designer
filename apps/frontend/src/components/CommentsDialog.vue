@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { MessageSquare } from 'lucide-vue-next'
+import { formatDate } from '@/lib/utils'
 
 export interface Comment {
     id: string
@@ -32,17 +33,6 @@ const handleAddComment = () => {
     if (!newComment.value.trim()) return
     emit('add-comment', newComment.value)
     newComment.value = ''
-}
-
-const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffTime = Math.abs(now.getTime() - date.getTime())
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-    if (diffDays < 1) return '刚刚更新'
-    if (diffDays < 7) return `${diffDays}天前更新`
-    return date.toLocaleDateString()
 }
 </script>
 
