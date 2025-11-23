@@ -51,27 +51,22 @@ const handleLike = async (id: string) => {
     }
 }
 
-const openComments = async (id: string) => {
-    selectedStrategyId.value = id
+const openComments = async (strategy: any) => {
+    selectedStrategyId.value = strategy.id
     showCommentsDialog.value = true
     
-    // 1. Try to show info from cache first
-    const cachedStrategy = publicStrategies.value.find(s => s.id === id) || userStrategies.value.find(s => s.id === id)
-    if (cachedStrategy) {
-        currentStrategyInfo.value = {
-            name: cachedStrategy.name,
-            author: {
-                name: cachedStrategy.author?.displayName || cachedStrategy.author?.email?.split('@')[0],
-                photo: cachedStrategy.author?.photoUrl
-            }
+    // Set info immediately from the passed object
+    currentStrategyInfo.value = {
+        name: strategy.name,
+        author: {
+            name: strategy.author?.displayName || strategy.author?.email?.split('@')[0],
+            photo: strategy.author?.photoUrl
         }
-    } else {
-        currentStrategyInfo.value = null
     }
 
-    // 2. Fetch fresh strategy details (to get latest author info)
+    // Fetch fresh details in background
     try {
-        const freshStrategy = await strategyStore.loadStrategy(id)
+        const freshStrategy = await strategyStore.loadStrategy(strategy.id)
         if (freshStrategy && freshStrategy.author) {
              currentStrategyInfo.value = {
                 name: freshStrategy.name,
@@ -85,7 +80,7 @@ const openComments = async (id: string) => {
         console.error('Failed to load strategy details', e)
     }
 
-    await strategyStore.fetchComments(id)
+    await strategyStore.fetchComments(strategy.id)
 }
 
 // Handle adding a comment, including replies (optional parentId)
@@ -204,7 +199,7 @@ const handleLoadMoreComments = async () => {
                     :rank="index"
                     @click="emit('view-strategy', strategy.id)"
                     @like="handleLike(strategy.id)"
-                    @comment="openComments(strategy.id)"
+                    @comment="openComments(strategy)"
                 />
             </div>
 
