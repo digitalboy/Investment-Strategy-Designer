@@ -120,7 +120,7 @@ const getEtfTicker = (strategy: Partial<StrategySummaryDTO> & { symbol?: string;
                     <div>
                         <h2
                             class="text-2xl font-bold tracking-tight bg-linear-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                            我的策略库</h2>
+                            我的策略</h2>
                         <p class="text-sm text-slate-500 mt-0.5">管理和优化您的投资策略</p>
                     </div>
                 </div>
@@ -224,7 +224,7 @@ const getEtfTicker = (strategy: Partial<StrategySummaryDTO> & { symbol?: string;
                     <div>
                         <h2
                             class="text-2xl font-bold tracking-tight bg-linear-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                            社区精选榜单</h2>
+                            精选榜单</h2>
                         <p class="text-sm text-slate-500 mt-0.5">发现顶尖量化策略</p>
                     </div>
                 </div>

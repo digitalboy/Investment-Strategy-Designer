@@ -42,9 +42,7 @@ const handleLogout = () => {
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
-                    <Button variant="ghost" class="text-sm text-slate-500 hover:text-slate-900 transition-colors">
-                        文档
-                    </Button>
+                    
 
                     <div v-if="authStore.isLoading" class="h-8 w-8 rounded-full bg-slate-200 animate-pulse"></div>
 
