@@ -16,14 +16,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import {
     Stepper,
     StepperDescription,
     StepperItem,
@@ -31,6 +23,16 @@ import {
     StepperTitle,
     StepperTrigger,
 } from '@/components/ui/stepper'
+
+import TriggerConditionForm from './builder/TriggerConditionForm.vue'
+import TriggerActionForm from './builder/TriggerActionForm.vue'
+import TriggerPreviewPanel from './builder/TriggerPreviewPanel.vue'
+import { 
+    getConditionConfig, 
+    getConditionKeyFromTrigger, 
+    type TriggerOptionKey, 
+    baseConditionDefaults // Used for resets
+} from './builder/constants'
 
 const props = defineProps<{
     open: boolean
@@ -40,59 +42,6 @@ const props = defineProps<{
 const emit = defineEmits(['update:open'])
 
 const store = useStrategyStore()
-
-const triggerGroups = [
-    {
-        label: '📉 逢低买入（抄底）',
-        items: [
-            { value: 'drawdownFromPeak', label: '高点回撤', description: '价格自历史高点明显回撤' },
-            { value: 'newLow', label: '创新低（破底）', description: '跌破过去 N 日最低点' },
-            { value: 'priceStreak_down', label: '连续下跌（连阴）', description: '连续多天收盘走低' },
-        ],
-    },
-    {
-        label: '🚀 趋势跟随（追涨）',
-        items: [
-            { value: 'newHigh', label: '创新高（突破）', description: '突破过去 N 日最高价' },
-            { value: 'priceStreak_up', label: '连续上涨（连阳）', description: '连续多天收盘走高' },
-            { value: 'periodReturn_up', label: '近期强势（急涨）', description: '短期涨幅过大' },
-        ],
-    },
-    {
-        label: '📊 技术指标',
-        items: [
-            { value: 'periodReturn_down', label: '近期大跌幅', description: '短期跌幅过大' },
-            { value: 'rsi', label: 'RSI 超买/超卖', description: '经典动量指标' },
-            { value: 'maCross', label: '均线交叉', description: '短期均线与长期均线交叉' },
-        ],
-    },
-]
-
-const baseConditionDefaults = {
-    drawdownFromPeak: { days: 60, percentage: 15 },
-    priceStreak: { direction: 'down', count: 3, unit: 'day' },
-    rsi: { period: 14, threshold: 30, operator: 'below' },
-    newHigh: { days: 60 },
-    newLow: { days: 60 },
-    periodReturn: { days: 30, percentage: 10, direction: 'up' },
-    maCross: { period: 20, direction: 'above' },
-}
-
-const conditionMap = {
-    drawdownFromPeak: { type: 'drawdownFromPeak', defaults: baseConditionDefaults.drawdownFromPeak },
-    newLow: { type: 'newLow', defaults: baseConditionDefaults.newLow },
-    newHigh: { type: 'newHigh', defaults: baseConditionDefaults.newHigh },
-    priceStreak_down: { type: 'priceStreak', defaults: { ...baseConditionDefaults.priceStreak, direction: 'down' } },
-    priceStreak_up: { type: 'priceStreak', defaults: { ...baseConditionDefaults.priceStreak, direction: 'up' } },
-    periodReturn_up: { type: 'periodReturn', defaults: { ...baseConditionDefaults.periodReturn, direction: 'up' } },
-    periodReturn_down: { type: 'periodReturn', defaults: { ...baseConditionDefaults.periodReturn, direction: 'down' } },
-    rsi: { type: 'rsi', defaults: baseConditionDefaults.rsi },
-    maCross: { type: 'maCross', defaults: baseConditionDefaults.maCross },
-} as const
-
-type TriggerOptionKey = keyof typeof conditionMap
-
-const getConditionConfig = (key: TriggerOptionKey) => conditionMap[key]
 
 const selectedConditionKey = ref<TriggerOptionKey>('drawdownFromPeak')
 const conditionType = ref<TriggerCondition['type']>(getConditionConfig(selectedConditionKey.value).type)
@@ -118,8 +67,6 @@ const activeStep = ref<StepKey>(1)
 type ActionValueType = TriggerAction['value']['type']
 
 const FIXED_AMOUNT_DEFAULT = 1000
-const PERCENT_AMOUNT_DEFAULT = 10
-const PERCENT_VALUE_TYPES: ActionValueType[] = ['cashPercent', 'positionPercent', 'totalValuePercent']
 
 const actionType = ref<'buy' | 'sell'>('buy')
 const actionValueType = ref<ActionValueType>('fixedAmount')
@@ -142,49 +89,6 @@ useResizeObserver(stepOneRef, entries => {
 const stepPanelMinStyle = computed(() =>
     firstStepHeight.value ? { minHeight: `${Math.round(firstStepHeight.value)}px` } : undefined
 )
-
-const actionValueOptions = computed<{ value: ActionValueType; label: string }[]>(() => {
-    if (actionType.value === 'buy') {
-        return [
-            { value: 'fixedAmount', label: '固定金额 ($)' },
-            { value: 'cashPercent', label: '可用现金百分比 (%)' },
-            { value: 'totalValuePercent', label: '总资产目标仓位 (%)' },
-        ]
-    }
-
-    return [
-        { value: 'fixedAmount', label: '固定金额 ($)' },
-        { value: 'positionPercent', label: '持仓百分比 (%)' },
-        { value: 'totalValuePercent', label: '总资产目标仓位 (%)' },
-    ]
-})
-
-const isPercentValueType = computed(() => PERCENT_VALUE_TYPES.includes(actionValueType.value))
-
-const actionValueSuffix = computed(() => (isPercentValueType.value ? '%' : '$'))
-
-const actionAmountLimits = computed(() => {
-    if (isPercentValueType.value) {
-        return { min: 1, max: 100, step: 1 }
-    }
-    return { min: 1, max: undefined, step: 100 }
-})
-
-const actionValueHint = computed(() => {
-    switch (actionValueType.value) {
-        case 'cashPercent':
-            return '使用账户当前可用现金的百分比进行下单'
-        case 'positionPercent':
-            return '卖出当前持仓的一定百分比'
-        case 'totalValuePercent':
-            return '调整仓位，使其占账户总资产的指定百分比'
-        default:
-            return '输入本次交易的金额或百分比'
-    }
-})
-
-const flatTriggerOptions = triggerGroups.flatMap(group => group.items)
-const selectedTriggerOption = computed(() => flatTriggerOptions.find(item => item.value === selectedConditionKey.value))
 
 const conditionSummary = computed(() => {
     const params = conditionParams.value
@@ -236,27 +140,6 @@ const resetConditionState = (key: TriggerOptionKey) => {
     conditionParams.value = { ...config.defaults }
 }
 
-const getConditionKeyFromTrigger = (condition: TriggerCondition): TriggerOptionKey => {
-    switch (condition.type) {
-        case 'drawdownFromPeak':
-            return 'drawdownFromPeak'
-        case 'newLow':
-            return 'newLow'
-        case 'newHigh':
-            return 'newHigh'
-        case 'priceStreak':
-            return condition.params?.direction === 'up' ? 'priceStreak_up' : 'priceStreak_down'
-        case 'periodReturn':
-            return condition.params?.direction === 'down' ? 'periodReturn_down' : 'periodReturn_up'
-        case 'rsi':
-            return 'rsi'
-        case 'maCross':
-            return 'maCross'
-        default:
-            return 'drawdownFromPeak'
-    }
-}
-
 const applyTriggerToForm = (trigger: Trigger) => {
     if (!trigger) return
     const key = getConditionKeyFromTrigger(trigger.condition)
@@ -300,39 +183,6 @@ watch(editingTrigger, trigger => {
 
 watch(selectedConditionKey, key => {
     resetConditionState(key)
-})
-
-watch(actionValueOptions, options => {
-    if (!options.find(option => option.value === actionValueType.value)) {
-        actionValueType.value = options[0]?.value ?? ('fixedAmount' as ActionValueType)
-    }
-}, { immediate: true })
-
-const clampActionAmount = (value: number) => {
-    if (isPercentValueType.value) {
-        return Math.min(Math.max(value || PERCENT_AMOUNT_DEFAULT, 1), 100)
-    }
-    return Math.max(value || FIXED_AMOUNT_DEFAULT, 1)
-}
-
-watch(actionValueType, (next: ActionValueType, previous: ActionValueType | undefined) => {
-    const wasPercent = previous ? PERCENT_VALUE_TYPES.includes(previous) : false
-    const isPercent = PERCENT_VALUE_TYPES.includes(next)
-    if (isPercent && !wasPercent) {
-        actionAmount.value = PERCENT_AMOUNT_DEFAULT
-    } else if (!isPercent && wasPercent) {
-        actionAmount.value = FIXED_AMOUNT_DEFAULT
-    } else {
-        actionAmount.value = clampActionAmount(Number(actionAmount.value))
-    }
-})
-
-watch(actionAmount, value => {
-    const numeric = Number(value)
-    const clamped = clampActionAmount(numeric)
-    if (clamped !== numeric) {
-        actionAmount.value = clamped
-    }
 })
 
 const handleSave = () => {
@@ -467,223 +317,25 @@ const primaryButtonLabel = computed(() => (isEditing.value ? '保存修改' : '�
                     </div>
 
                     <div class="flex-1 min-w-0 space-y-5">
-                        <section ref="stepOneRef" v-show="activeStep === 1"
-                            class="rounded-2xl border border-slate-200 bg-white/80 shadow-sm p-4 space-y-4">
-                            <header class="flex flex-wrap items-center justify-between gap-3">
-                                <h3 class="text-lg font-semibold text-slate-900">如果 (IF)...</h3>
-                                <span class="text-xs text-slate-500">选择你想捕捉的行情</span>
-                            </header>
+                        <!-- Step 1: Condition -->
+                        <div ref="stepOneRef" v-show="activeStep === 1">
+                            <TriggerConditionForm 
+                                v-model:selectedKey="selectedConditionKey"
+                                :conditionType="conditionType"
+                                :params="conditionParams"
+                            />
+                        </div>
 
-                            <div class="space-y-3">
-                                <RadioGroup v-model="selectedConditionKey"
-                                    class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                                    <div v-for="group in triggerGroups" :key="group.label"
-                                        class="space-y-3 rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
-                                        <p class="text-xs uppercase tracking-wide text-slate-500">
-                                            {{ group.label }}
-                                        </p>
-                                        <div class="space-y-2">
-                                            <label v-for="item in group.items" :key="item.value"
-                                                class="flex cursor-pointer items-start gap-3 rounded-2xl border px-3 py-2.5 transition hover:border-indigo-300"
-                                                :class="selectedConditionKey === item.value
-                                                    ? 'border-indigo-500 bg-indigo-50/70 shadow-sm'
-                                                    : 'border-slate-200 bg-white'">
-                                                <RadioGroupItem :value="item.value" class="mt-1 text-indigo-600" />
-                                                <div class="flex flex-col">
-                                                    <span class="text-sm font-medium text-slate-900">{{ item.label
-                                                        }}</span>
-                                                    <span class="text-xs text-slate-500">{{ item.description }}</span>
-                                                </div>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </RadioGroup>
-                                <p class="text-xs text-slate-500" v-if="selectedTriggerOption">
-                                    {{ selectedTriggerOption.description }}
-                                </p>
-                            </div>
+                        <!-- Step 2: Action -->
+                        <div ref="stepTwoRef" v-show="activeStep === 2" :style="stepPanelMinStyle">
+                            <TriggerActionForm
+                                v-model:actionType="actionType"
+                                v-model:valueType="actionValueType"
+                                v-model:amount="actionAmount"
+                            />
+                        </div>
 
-                            <div
-                                class="rounded-xl bg-slate-50 border border-slate-100 p-4 text-sm text-slate-700 space-y-2">
-                                <template v-if="conditionType === 'drawdownFromPeak'">
-                                    <p class="flex flex-wrap items-center gap-2 leading-7">
-                                        当价格从过去
-                                        <Input type="number" v-model="conditionParams.days"
-                                            class="w-16 h-8 text-center bg-white border border-slate-200" />
-                                        天的最高点，下跌超过
-                                        <Input type="number" v-model="conditionParams.percentage"
-                                            class="w-16 h-8 text-center bg-white border border-slate-200" />
-                                        % 时。
-                                    </p>
-                                </template>
-
-                                <template v-else-if="conditionType === 'newHigh'">
-                                    <p class="leading-7">
-                                        当价格突破过去
-                                        <Input type="number" v-model="conditionParams.days"
-                                            class="w-16 h-8 mx-2 text-center bg-white border border-slate-200" />
-                                        天的最高价时。
-                                    </p>
-                                </template>
-
-                                <template v-else-if="conditionType === 'newLow'">
-                                    <p class="leading-7">
-                                        当价格跌破过去
-                                        <Input type="number" v-model="conditionParams.days"
-                                            class="w-16 h-8 mx-2 text-center bg-white border border-slate-200" />
-                                        天的最低价时。
-                                    </p>
-                                </template>
-
-                                <template v-else-if="conditionType === 'priceStreak'">
-                                    <div class="space-y-2">
-                                        <p class="flex flex-wrap items-center gap-2">
-                                            当价格连续
-                                            <Input type="number" v-model="conditionParams.count"
-                                                class="w-16 h-8 text-center bg-white border border-slate-200" />
-                                            个
-                                            <Select v-model="conditionParams.unit" class="w-24">
-                                                <SelectTrigger class="h-8 text-xs">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="day">交易日</SelectItem>
-                                                    <SelectItem value="week">周</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </p>
-                                        <p class="flex flex-wrap items-center gap-2">
-                                            收盘
-                                            <Select v-model="conditionParams.direction" class="w-28">
-                                                <SelectTrigger class="h-8 text-xs">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="up">📈 上涨</SelectItem>
-                                                    <SelectItem value="down">📉 下跌</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            时。
-                                        </p>
-                                    </div>
-                                </template>
-
-                                <template v-else-if="conditionType === 'periodReturn'">
-                                    <p class="leading-7 flex flex-wrap items-center gap-2">
-                                        当价格在过去
-                                        <Input type="number" v-model="conditionParams.days"
-                                            class="w-16 h-8 text-center bg-white border border-slate-200" />
-                                        天内累计
-                                        <Select v-model="conditionParams.direction" class="w-28">
-                                            <SelectTrigger class="h-8 text-xs">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="up">上涨</SelectItem>
-                                                <SelectItem value="down">下跌</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        超过
-                                        <Input type="number" v-model="conditionParams.percentage"
-                                            class="w-16 h-8 text-center bg-white border border-slate-200" />
-                                        % 时。
-                                    </p>
-                                </template>
-
-                                <template v-else-if="conditionType === 'rsi'">
-                                    <p class="leading-7 flex flex-wrap items-center gap-2">
-                                        当 RSI(
-                                        <Input type="number" v-model="conditionParams.period"
-                                            class="w-16 h-8 text-center bg-white border border-slate-200" />
-                                        )
-                                        <Select v-model="conditionParams.operator" class="w-28">
-                                            <SelectTrigger class="h-8 text-xs">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="above">高于</SelectItem>
-                                                <SelectItem value="below">低于</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <Input type="number" v-model="conditionParams.threshold"
-                                            class="w-16 h-8 text-center bg-white border border-slate-200" />
-                                        时。
-                                    </p>
-                                </template>
-
-                                <template v-else-if="conditionType === 'maCross'">
-                                    <p class="leading-7 flex flex-wrap items-center gap-2">
-                                        当价格
-                                        <Select v-model="conditionParams.direction" class="w-32">
-                                            <SelectTrigger class="h-8 text-xs">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="above">向上穿越</SelectItem>
-                                                <SelectItem value="below">向下穿越</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <Input type="number" v-model="conditionParams.period"
-                                            class="w-16 h-8 text-center bg-white border border-slate-200" />
-                                        日均线时。
-                                    </p>
-                                </template>
-                            </div>
-                        </section>
-
-                        <section ref="stepTwoRef" v-show="activeStep === 2"
-                            class="rounded-2xl border border-slate-200 bg-white/80 shadow-sm p-4 space-y-4"
-                            :style="stepPanelMinStyle">
-                            <header class="flex flex-wrap items-center justify-between gap-3">
-                                <h3 class="text-lg font-semibold text-slate-900">那么 (THEN)...</h3>
-                                <span class="text-xs text-slate-500">确定系统如何下单</span>
-                            </header>
-
-                            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                                <div class="space-y-2 rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
-                                    <Label class="text-xs text-slate-500">操作</Label>
-                                    <Select v-model="actionType">
-                                        <SelectTrigger class="h-10">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="buy">买入</SelectItem>
-                                            <SelectItem value="sell">卖出</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div class="space-y-2 rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
-                                    <Label class="text-xs text-slate-500">金额类型</Label>
-                                    <Select v-model="actionValueType">
-                                        <SelectTrigger class="h-10">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem v-for="option in actionValueOptions" :key="option.value"
-                                                :value="option.value">
-                                                {{ option.label }}
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div
-                                    class="space-y-2 rounded-xl border border-slate-100 bg-white p-3 shadow-sm md:col-span-2 xl:col-span-1">
-                                    <Label class="text-xs text-slate-500">数值</Label>
-                                    <div class="relative">
-                                        <Input type="number" v-model="actionAmount" class="h-10 pr-10"
-                                            :min="actionAmountLimits.min" :max="actionAmountLimits.max"
-                                            :step="actionAmountLimits.step" />
-                                        <span class="absolute right-3 top-2.5 text-xs text-slate-500">{{
-                                            actionValueSuffix }}</span>
-                                    </div>
-                                </div>
-                                <div
-                                    class="rounded-xl border border-slate-100 bg-slate-50/80 p-3 text-xs text-slate-500 shadow-sm md:col-span-2 xl:col-span-3">
-                                    {{ actionValueHint }}
-                                </div>
-                            </div>
-                        </section>
-
+                        <!-- Step 3: Cooldown -->
                         <section ref="stepThreeRef" v-show="activeStep === 3"
                             class="rounded-2xl border border-slate-200 bg-white/80 shadow-sm p-4 space-y-4"
                             :style="stepPanelMinStyle">
@@ -724,13 +376,11 @@ const primaryButtonLabel = computed(() => (isEditing.value ? '保存修改' : '�
                         </div>
                     </div>
 
-                    <aside
-                        class="h-fit w-full rounded-2xl border border-indigo-100 bg-linear-to-br from-indigo-50 to-white p-5 lg:sticky lg:top-4 lg:w-72">
-                        <p class="text-xs font-semibold tracking-wide text-indigo-600">💡 策略预览</p>
-                        <p class="mt-2 text-sm leading-6 text-indigo-900">
-                            {{ conditionSummary }}，系统将 {{ actionSummary }}。{{ cooldownSummary }}。
-                        </p>
-                    </aside>
+                    <TriggerPreviewPanel 
+                        :conditionSummary="conditionSummary"
+                        :actionSummary="actionSummary"
+                        :cooldownSummary="cooldownSummary"
+                    />
                 </div>
             </Stepper>
 

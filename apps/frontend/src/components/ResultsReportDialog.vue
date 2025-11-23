@@ -9,11 +9,8 @@ import {
     DialogDescription,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Line } from 'vue-chartjs'
-import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement } from 'chart.js'
-
-ChartJS.register(Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement)
+import PerformanceMetricCard from './reports/PerformanceMetricCard.vue'
+import BacktestChart from './reports/BacktestChart.vue'
 
 const props = defineProps<{
     open: boolean
@@ -33,214 +30,6 @@ const store = useStrategyStore()
 const result = computed(() => store.backtestResult)
 const resultTitle = computed(() => store.currentStrategyName || store.currentStrategyMetadata?.name || '策略')
 const currentSymbol = computed(() => result.value?.metadata?.symbol || store.config.etfSymbol || '标的')
-
-const chartData = computed(() => {
-    console.log('Computing chart data. Result:', result.value)
-    if (!result.value) return { labels: [], datasets: [] }
-
-    // 处理交易点数据
-    const trades = result.value.trades || [];
-    const dates = result.value.charts.dates || []
-    const strategyEquity = result.value.charts.strategyEquity || []
-
-    const toNumber = (value: unknown): number | undefined => {
-        const parsed = Number(value)
-        return Number.isFinite(parsed) ? parsed : undefined
-    }
-
-    const equityPairs: [string, number][] = []
-    dates.forEach((date, idx) => {
-        const numericValue = toNumber(strategyEquity[idx])
-        if (numericValue !== undefined) {
-            equityPairs.push([date, numericValue])
-        }
-    })
-
-    const equityMap = new Map<string, number>(equityPairs)
-    const numericEquity = equityPairs.map(([, value]) => value)
-    const equityRange = numericEquity.length ? Math.max(...numericEquity) - Math.min(...numericEquity) : 0
-    const fallbackBase = numericEquity.length ? numericEquity[numericEquity.length - 1]! : 1
-    const markerOffset = algebraicOffset(equityRange, fallbackBase)
-
-    function algebraicOffset(range: number, base: number) {
-        if (range > 0) {
-            return Math.max(range * 0.02, 1)
-        }
-        return Math.max(base * 0.02, 1)
-    }
-
-    const mapTradePoint = (trade: any, direction: 'buy' | 'sell') => {
-        const resolvedBase = equityMap.get(trade.date)
-        const baseValue = resolvedBase === undefined ? fallbackBase : resolvedBase
-        const offset = direction === 'buy' ? markerOffset : -markerOffset
-        return {
-            x: trade.date,
-            y: baseValue + offset,
-            price: trade.price,
-            amount: trade.quantity * trade.price,
-            quantity: trade.quantity,
-            reason: trade.reason
-        }
-    }
-
-    const buyPoints = trades
-        .filter(t => t.action === 'buy')
-        .map(t => mapTradePoint(t, 'buy')) as any[];
-
-    const sellPoints = trades
-        .filter(t => t.action === 'sell')
-        .map(t => mapTradePoint(t, 'sell')) as any[];
-
-    return {
-        labels: result.value.charts.dates,
-        datasets: [
-            {
-                label: '我的策略',
-                backgroundColor: '#4f46e5',
-                borderColor: '#4f46e5',
-                borderWidth: 1.0,
-                data: result.value.charts.strategyEquity,
-                tension: 0.1,
-                pointRadius: 0,
-                yAxisID: 'y',
-                order: 2
-            },
-            {
-                label: '买入并持有',
-                backgroundColor: '#94a3b8',
-                borderColor: '#94a3b8',
-                borderWidth: 1.5,
-                data: result.value.charts.benchmarkEquity,
-                tension: 0.1,
-                pointRadius: 0,
-                yAxisID: 'y',
-                order: 3
-            },
-            {
-                label: 'ETF 价格',
-                backgroundColor: '#f59e0b',
-                borderColor: '#f59e0b',
-                borderWidth: 1.0,
-                data: result.value.charts.underlyingPrice || [],
-                tension: 0.1,
-                pointRadius: 0,
-                yAxisID: 'y1',
-                hidden: true, // 默认隐藏，避免视觉混乱
-                order: 4
-            },
-            {
-                label: '买入',
-                data: buyPoints,
-                backgroundColor: '#16a34a', // green-600
-                borderColor: '#16a34a',
-                pointStyle: 'triangle',
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                showLine: false,
-                yAxisID: 'y',
-                order: 1
-            },
-            {
-                label: '卖出',
-                data: sellPoints,
-                backgroundColor: '#dc2626', // red-600
-                borderColor: '#dc2626',
-                pointStyle: 'triangle',
-                rotation: 180, // 倒三角
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                showLine: false,
-                yAxisID: 'y',
-                order: 1
-            }
-        ]
-    }
-})
-
-const formatNumber = (num: number | null | undefined, decimals = 2) => {
-    if (num === null || num === undefined || isNaN(num)) return '-'
-    return num.toFixed(decimals)
-}
-
-const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: {
-        mode: 'index' as const,
-        intersect: false,
-    },
-    plugins: {
-        legend: {
-            position: 'top' as const,
-        },
-        tooltip: {
-            callbacks: {
-                label: function (context: any) {
-                    const label = context.dataset.label || '';
-                    const raw = context.raw;
-
-                    // 自定义买卖点的 Tooltip
-                    if (label === '买入' || label === '卖出') {
-                        const amount = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(raw.amount);
-                        const qty = raw.quantity.toFixed(2);
-                        return `${label}: ${amount} (${qty} 份额 @ $${raw.price?.toFixed(2) ?? '—'})`;
-                    }
-
-                    // 默认 Tooltip
-                    let valueLabel = label;
-                    if (valueLabel) {
-                        valueLabel += ': ';
-                    }
-                    if (context.parsed.y !== null) {
-                        valueLabel += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
-                    }
-                    return valueLabel;
-                },
-                afterBody: function (context: any) {
-                    // 如果是买卖点，显示交易原因
-                    const point = context[0];
-                    if ((point.dataset.label === '买入' || point.dataset.label === '卖出') && point.raw.reason) {
-                        return `原因: ${point.raw.reason}`;
-                    }
-                    return '';
-                }
-            }
-        }
-    },
-    scales: {
-        y: {
-            type: 'linear' as const,
-            display: true,
-            position: 'left' as const,
-            title: {
-                display: true,
-                text: '账户净值 ($)'
-            },
-            ticks: {
-                callback: function (value: any) {
-                    return '$' + value;
-                }
-            }
-        },
-        y1: {
-            type: 'linear' as const,
-            display: true,
-            position: 'right' as const,
-            title: {
-                display: true,
-                text: 'ETF 价格 ($)'
-            },
-            grid: {
-                drawOnChartArea: false, // 避免网格线重叠
-            },
-            ticks: {
-                callback: function (value: any) {
-                    return '$' + value;
-                }
-            }
-        }
-    }
-}
 </script>
 
 <template>
@@ -261,132 +50,23 @@ const chartOptions = {
                 <!-- KPI Cards -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3 shrink-0">
                     <!-- Strategy Card -->
-                    <Card
-                        class="border-indigo-300/50 bg-linear-to-br from-white via-indigo-50/70 to-blue-100/60 shadow-lg shadow-indigo-500/20 py-1 px-1 gap-0">
-                        <CardHeader class="px-3 pt-2 pb-0 border-b border-indigo-200/60">
-                            <CardTitle class="text-sm font-semibold text-indigo-700 flex items-center justify-between">
-                                <span>我的策略</span>
-                                <span
-                                    class="text-[10px] font-normal text-white bg-linear-to-r from-indigo-600 to-blue-600 px-2 py-0.5 rounded-full shadow-md">
-                                    {{ result.metadata.symbol }}
-                                </span>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent class="p-3">
-                            <!-- Metrics Row -->
-                            <div class="grid grid-cols-4 gap-2 mb-2">
-                                <div>
-                                    <p class="text-[10px] text-slate-500 mb-0.5">总回报率</p>
-                                    <p class="text-base font-bold text-slate-900">{{
-                                        formatNumber(result.performance.strategy.totalReturn) }}%</p>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] text-slate-500 mb-0.5">年化回报</p>
-                                    <p class="text-base font-bold text-slate-900">{{
-                                        formatNumber(result.performance.strategy.annualizedReturn) }}%</p>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] text-slate-500 mb-0.5">最大回撤</p>
-                                    <p class="text-base font-bold text-red-600">{{
-                                        formatNumber(result.performance.strategy.maxDrawdown) }}%</p>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] text-slate-500 mb-0.5">夏普比率</p>
-                                    <p class="text-base font-bold text-slate-900">{{
-                                        formatNumber(result.performance.strategy.sharpeRatio) }}</p>
-                                </div>
-                            </div>
-
-                            <!-- Stats Row -->
-                            <div
-                                class="grid grid-cols-4 gap-2 text-[10px] pt-2 border-t border-indigo-200/60 bg-indigo-50/30 -mx-3 px-3 -mb-3 pb-3 rounded-b-lg">
-                                <div>
-                                    <span class="text-slate-500 block">交易次数</span>
-                                    <span class="font-medium text-slate-900">{{
-                                        result.performance.strategy.tradeStats.totalTrades }}</span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-500 block">买/卖</span>
-                                    <span class="font-medium">
-                                        <span class="text-green-600">{{ result.performance.strategy.tradeStats.buyCount
-                                        }}</span> /
-                                        <span class="text-red-600">{{ result.performance.strategy.tradeStats.sellCount
-                                        }}</span>
-                                    </span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-500 block">总投入</span>
-                                    <span class="font-medium text-slate-900">${{
-                                        formatNumber(result.performance.strategy.tradeStats.totalInvested, 0) }}</span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-500 block">总回款</span>
-                                    <span class="font-medium text-slate-900">${{
-                                        formatNumber(result.performance.strategy.tradeStats.totalProceeds, 0) }}</span>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <PerformanceMetricCard 
+                        title="我的策略"
+                        :metrics="result.performance.strategy"
+                        variant="strategy"
+                        :symbol="result.metadata.symbol"
+                    />
 
                     <!-- Benchmark Card -->
-                    <Card
-                        class="border-slate-300/50 bg-linear-to-br from-white via-slate-50/70 to-gray-100/50 shadow-lg shadow-slate-500/10 px-1 py-1 gap-0">
-                        <CardHeader class="px-3 py-2 border-b border-slate-200/60">
-                            <CardTitle class="text-sm font-semibold text-slate-700">基准：买入并持有</CardTitle>
-                        </CardHeader>
-                        <CardContent class="p-3">
-                            <!-- Metrics Row -->
-                            <div class="grid grid-cols-4 gap-2 mb-2">
-                                <div>
-                                    <p class="text-[10px] text-slate-500 mb-0.5">总回报率</p>
-                                    <p class="text-base font-bold text-slate-900">{{
-                                        formatNumber(result.performance.benchmark.totalReturn) }}%</p>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] text-slate-500 mb-0.5">年化回报</p>
-                                    <p class="text-base font-bold text-slate-900">{{
-                                        formatNumber(result.performance.benchmark.annualizedReturn) }}%</p>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] text-slate-500 mb-0.5">最大回撤</p>
-                                    <p class="text-base font-bold text-red-600">{{
-                                        formatNumber(result.performance.benchmark.maxDrawdown) }}%</p>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] text-slate-500 mb-0.5">夏普比率</p>
-                                    <p class="text-base font-bold text-slate-900">{{
-                                        formatNumber(result.performance.benchmark.sharpeRatio) }}</p>
-                                </div>
-                            </div>
-
-                            <!-- Stats Row -->
-                            <div
-                                class="grid grid-cols-4 gap-2 text-[10px] pt-2 border-t border-slate-200/60 bg-slate-50/40 -mx-3 px-3 -mb-3 pb-3 rounded-b-lg">
-                                <div>
-                                    <span class="text-slate-500 block">交易次数</span>
-                                    <span class="font-medium text-slate-900">1</span>
-                                </div>
-                                <div>
-                                    <span class="text-slate-500 block">买/卖</span>
-                                    <span class="font-medium">
-                                        <span class="text-green-600">1</span> /
-                                        <span class="text-slate-400">0</span>
-                                    </span>
-                                </div>
-                                <div class="col-span-2">
-                                    <span class="text-slate-500 block">策略说明</span>
-                                    <span class="font-medium text-slate-900">期初全仓买入持有至今</span>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <PerformanceMetricCard 
+                        title="基准：买入并持有"
+                        :metrics="result.performance.benchmark"
+                        variant="benchmark"
+                    />
                 </div>
 
                 <!-- Chart -->
-                <div
-                    class="flex-1 min-h-[300px] w-full bg-white/90 backdrop-blur-sm p-4 rounded-xl border border-indigo-200/40 shadow-lg shadow-indigo-500/10 relative">
-                    <Line :data="chartData" :options="chartOptions" />
-                </div>
+                <BacktestChart :result="result" />
             </div>
             <div v-else
                 class="flex-1 flex items-center justify-center flex-col gap-2 bg-linear-to-br from-slate-50 via-blue-50/30 to-indigo-50/40">
