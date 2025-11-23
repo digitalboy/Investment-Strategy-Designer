@@ -56,11 +56,11 @@ const openComments = async (id: string) => {
     await strategyStore.fetchComments(id)
 }
 
-const handleAddComment = async (content: string) => {
+const handleAddComment = async (content: string, parentId?: string) => {
     if (!selectedStrategyId.value) return
 
     try {
-        await strategyStore.addComment(selectedStrategyId.value, content)
+        await strategyStore.addComment(selectedStrategyId.value, content, parentId)
     } catch (error) {
         console.error('Failed to add comment', error)
     }

@@ -419,7 +419,7 @@ export const useStrategyStore = defineStore('strategy', () => {
         }
     }
 
-    const addComment = async (strategyId: string, content: string) => {
+    const addComment = async (strategyId: string, content: string, parentId?: string) => {
         const authStore = useAuthStore()
         const token = await authStore.getFreshToken()
 
@@ -428,7 +428,7 @@ export const useStrategyStore = defineStore('strategy', () => {
         try {
             const response = await axios.post(
                 `${API_BASE_URL}/strategies/${strategyId}/comments`,
-                { content },
+                { content, parentId },
                 { headers: { 'Authorization': `Bearer ${token}` } }
             )
             currentStrategyComments.value.unshift(response.data)

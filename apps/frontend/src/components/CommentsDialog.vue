@@ -3,18 +3,8 @@ import { ref, computed } from 'vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { MessageSquare } from 'lucide-vue-next'
-import { formatDate } from '@/lib/utils'
-
-export interface Comment {
-    id: string
-    user_email?: string
-    user_name?: string
-    user_photo?: string
-    content: string
-    created_at: string
-}
+import CommentItem, { type Comment } from '@/components/CommentItem.vue'
 
 const props = defineProps<{
     open: boolean
@@ -26,7 +16,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     'update:open': [value: boolean]
-    'add-comment': [content: string]
+    'add-comment': [content: string, parentId?: string]
 }>()
 
 const newComment = ref('')
@@ -36,12 +26,55 @@ const handleAddComment = () => {
     emit('add-comment', newComment.value)
     newComment.value = ''
 }
+
+const handleReply = (parentId: string, content: string) => {
+    emit('add-comment', content, parentId)
+}
+
+const commentTree = computed(() => {
+    const map = new Map<string, Comment>()
+    const roots: Comment[] = []
+
+    // Deep copy and initialize map
+    props.comments.forEach(c => {
+        map.set(c.id, { ...c, replies: [] })
+    })
+
+    // Build tree
+    props.comments.forEach(c => {
+        const comment = map.get(c.id)!
+        if (c.parent_id && map.has(c.parent_id)) {
+            map.get(c.parent_id)!.replies!.push(comment)
+        } else {
+            roots.push(comment)
+        }
+    })
+
+    // Sort by date (newest first for roots, oldest first for replies typically, but let's keep newest first for consistency or oldest first for conversation flow? 
+    // Usually root comments are Newest First. Replies are Oldest First (chronological).
+    // Let's stick to the order provided by backend for now (which is DESC), but maybe we want ASC for replies?
+    // Backend returns DESC.
+    // Roots: DESC (Newest first).
+    // Replies: If we want chronological conversation, we should reverse them.
+    // Let's reverse replies to be chronological (Oldest top).
+    const sortReplies = (nodes: Comment[]) => {
+        nodes.forEach(node => {
+            if (node.replies && node.replies.length > 0) {
+                node.replies.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+                sortReplies(node.replies)
+            }
+        })
+    }
+    
+    sortReplies(roots)
+    return roots
+})
 </script>
 
 <template>
     <Dialog :open="open" @update:open="$emit('update:open', $event)">
         <DialogContent
-            class="sm:max-w-[500px] max-h-[80vh] flex flex-col rounded-2xl border-indigo-200/40 shadow-2xl shadow-indigo-500/20 bg-white">
+            class="sm:max-w-[600px] max-h-[80vh] flex flex-col rounded-2xl border-indigo-200/40 shadow-2xl shadow-indigo-500/20 bg-white">
             <DialogHeader class="pb-4 border-b border-indigo-100">
                 <DialogTitle
                     class="text-xl font-bold bg-linear-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
@@ -74,25 +107,14 @@ const handleAddComment = () => {
                     </div>
                 </div>
 
-                <!-- Comments List -->
-                <div v-else v-for="comment in comments" :key="comment.id" class="flex gap-3">
-                    <Avatar class="h-9 w-9 border-2 border-indigo-200/50 shadow-sm">
-                        <AvatarImage v-if="comment.user_photo" :src="comment.user_photo" :alt="comment.user_name || comment.user_email" />
-                        <AvatarFallback
-                            class="bg-linear-to-br from-indigo-500 to-blue-500 text-white font-bold text-sm">
-                            {{ (comment.user_name || comment.user_email || 'U').charAt(0).toUpperCase() }}
-                        </AvatarFallback>
-                    </Avatar>
-                    <div
-                        class="bg-linear-to-br from-white via-blue-50/40 to-indigo-50/30 p-3.5 rounded-xl grow border border-indigo-200/40 shadow-sm hover:shadow-md hover:shadow-indigo-500/10 transition-all">
-                        <div class="flex justify-between items-center mb-1.5">
-                            <span class="text-xs font-semibold text-slate-700">
-                                {{ comment.user_name || comment.user_email || '匿名用户' }}
-                            </span>
-                            <span class="text-xs text-slate-400">{{ formatDate(comment.created_at) }}</span>
-                        </div>
-                        <p class="text-sm text-slate-800 leading-relaxed">{{ comment.content }}</p>
-                    </div>
+                <!-- Comments Tree -->
+                <div v-else class="space-y-4">
+                    <CommentItem 
+                        v-for="comment in commentTree" 
+                        :key="comment.id" 
+                        :comment="comment" 
+                        @reply="handleReply"
+                    />
                 </div>
             </div>
 
