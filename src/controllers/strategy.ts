@@ -474,7 +474,7 @@ export const strategyController = {
 	addComment: async (c: Context<{ Bindings: Env; Variables: Variables }>) => {
 		try {
 			const { id } = c.req.param();
-			const { content } = await c.req.json();
+			const { content, parentId } = await c.req.json();
 			const firebaseUid = c.get('firebaseUid');
 
 			if (!firebaseUid) {
@@ -508,7 +508,7 @@ export const strategyController = {
 				}
 			}
 
-			const comment = await dbService.addComment(user.id, id, content);
+			const comment = await dbService.addComment(user.id, id, content, parentId);
 			return c.json(comment, 201);
 		} catch (error) {
 			console.error('Add comment error:', error);

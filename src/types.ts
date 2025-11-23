@@ -36,6 +36,7 @@ export interface StrategyEntity {
 export interface CommentEntity {
 	id: string;
 	strategy_id: string;
+	parent_id?: string | null;
 	user_id: string;
 	content: string;
 	created_at: string;

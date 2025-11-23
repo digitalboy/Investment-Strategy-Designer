@@ -188,16 +188,16 @@ export class DatabaseService {
 		}
 	}
 
-	async addComment(userId: string, strategyId: string, content: string): Promise<CommentEntity & { user_email: string; user_name?: string; user_photo?: string }> {
+	async addComment(userId: string, strategyId: string, content: string, parentId?: string): Promise<CommentEntity & { user_email: string; user_name?: string; user_photo?: string }> {
 		const id = crypto.randomUUID();
 		const now = new Date().toISOString();
 
 		// 使用批量操作：插入评论并增加计数
 		await this.db.batch([
 			this.db.prepare(`
-        INSERT INTO comments (id, strategy_id, user_id, content, created_at)
-        VALUES (?, ?, ?, ?, ?)
-      `).bind(id, strategyId, userId, content, now),
+        INSERT INTO comments (id, strategy_id, parent_id, user_id, content, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `).bind(id, strategyId, parentId || null, userId, content, now),
 			this.db.prepare('UPDATE strategies SET comment_count = comment_count + 1 WHERE id = ?').bind(strategyId)
 		]);
 
