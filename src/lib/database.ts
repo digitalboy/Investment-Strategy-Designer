@@ -222,13 +222,19 @@ export class DatabaseService {
 		const offset = (page - 1) * limit;
 
 		const query = `
-      WITH RECURSIVE comment_tree AS (
-        -- Base case: Select paginated roots
-        SELECT id, strategy_id, parent_id, user_id, content, created_at
+      WITH RECURSIVE 
+      paginated_roots AS (
+        SELECT id
         FROM comments
         WHERE strategy_id = ? AND parent_id IS NULL
         ORDER BY created_at DESC
         LIMIT ? OFFSET ?
+      ),
+      comment_tree AS (
+        -- Base case: Select full details of paginated roots
+        SELECT c.id, c.strategy_id, c.parent_id, c.user_id, c.content, c.created_at
+        FROM comments c
+        INNER JOIN paginated_roots pr ON c.id = pr.id
 
         UNION ALL
 
