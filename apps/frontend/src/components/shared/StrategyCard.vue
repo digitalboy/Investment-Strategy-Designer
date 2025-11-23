@@ -66,7 +66,8 @@ const getRankColor = (index: number) => {
                         <Badge
                             :class="strategy.isPublic ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-600 border-slate-200'"
                             class="rounded-lg px-2 py-0.5 font-medium text-[10px] border">
-                            {{ strategy.isPublic ? t('community.strategyCard.public') : t('community.strategyCard.draft') }}
+                            {{ strategy.isPublic ? t('community.strategyCard.public') :
+                                t('community.strategyCard.draft') }}
                         </Badge>
                         <span class="text-[10px] text-slate-400">{{ formatDate(strategy.updatedAt) }}</span>
                     </div>
@@ -77,7 +78,7 @@ const getRankColor = (index: number) => {
                             <AvatarFallback
                                 class="text-[10px] bg-linear-to-br from-indigo-50 to-blue-50 text-indigo-600 font-bold">
                                 {{ (strategy.author?.displayName || strategy.author?.email ||
-                                'U').charAt(0).toUpperCase() }}
+                                    'U').charAt(0).toUpperCase() }}
                             </AvatarFallback>
                         </Avatar>
                         <span class="text-xs text-slate-600 truncate max-w-[120px] font-medium">
