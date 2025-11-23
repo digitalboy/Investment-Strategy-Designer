@@ -215,7 +215,13 @@ export const strategyController = {
 			const dbService = new DatabaseService(c.env.etf_strategy_db);
 
 			// Get the specific strategy
-			const strategy = await dbService.getStrategyById(id);
+			const query = `
+				SELECT s.*, u.email as author_email, u.display_name as author_name, u.photo_url as author_photo
+				FROM strategies s
+				LEFT JOIN users u ON s.user_id = u.id
+				WHERE s.id = ?
+			`;
+			const strategy = await dbService['db'].prepare(query).bind(id).first<StrategyEntity & { author_email: string; author_name?: string; author_photo?: string } | null>();
 
 			if (!strategy) {
 				return c.json({
@@ -262,6 +268,11 @@ export const strategyController = {
 					views: strategy.view_count,
 					likes: strategy.like_count,
 					clones: strategy.clone_count
+				},
+				author: {
+					email: strategy.author_email || 'Unknown',
+					displayName: strategy.author_name,
+					photoUrl: strategy.author_photo
 				},
 				returnRate: strategy.return_rate,
 				maxDrawdown: strategy.max_drawdown,
