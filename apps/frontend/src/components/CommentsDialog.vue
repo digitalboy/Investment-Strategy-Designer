@@ -21,13 +21,18 @@ const emit = defineEmits<{
 
 const newComment = ref('')
 
+// Handle top-level comment
 const handleAddComment = () => {
     if (!newComment.value.trim()) return
+    // Only content is needed for top-level
     emit('add-comment', newComment.value)
     newComment.value = ''
 }
 
+// Handle reply from CommentItem
+// parentId comes first from CommentItem event, content second
 const handleReply = (parentId: string, content: string) => {
+    // Emit up with content first, then parentId
     emit('add-comment', content, parentId)
 }
 
@@ -35,8 +40,10 @@ const commentTree = computed(() => {
     const map = new Map<string, Comment>()
     const roots: Comment[] = []
 
-    // Deep copy and initialize map
+    // Deep copy and initialize map to avoid mutating props directly
+    // and prepare for tree building
     props.comments.forEach(c => {
+        // Ensure replies array exists
         map.set(c.id, { ...c, replies: [] })
     })
 
@@ -50,23 +57,23 @@ const commentTree = computed(() => {
         }
     })
 
-    // Sort by date (newest first for roots, oldest first for replies typically, but let's keep newest first for consistency or oldest first for conversation flow? 
-    // Usually root comments are Newest First. Replies are Oldest First (chronological).
-    // Let's stick to the order provided by backend for now (which is DESC), but maybe we want ASC for replies?
-    // Backend returns DESC.
-    // Roots: DESC (Newest first).
-    // Replies: If we want chronological conversation, we should reverse them.
-    // Let's reverse replies to be chronological (Oldest top).
+    // Sort recursive function
     const sortReplies = (nodes: Comment[]) => {
         nodes.forEach(node => {
             if (node.replies && node.replies.length > 0) {
+                // Chronological order for replies (oldest first)
                 node.replies.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
                 sortReplies(node.replies)
             }
         })
     }
     
+    // Process roots
     sortReplies(roots)
+    // Roots are typically Newest First (default from backend usually)
+    // If we want to ensure it:
+    roots.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+
     return roots
 })
 </script>

@@ -56,6 +56,7 @@ const openComments = async (id: string) => {
     await strategyStore.fetchComments(id)
 }
 
+// Handle adding a comment, including replies (optional parentId)
 const handleAddComment = async (content: string, parentId?: string) => {
     if (!selectedStrategyId.value) return
 

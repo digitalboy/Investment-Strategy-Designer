@@ -37,9 +37,15 @@ const toggleReply = () => {
 
 const submitReply = () => {
     if (!replyContent.value.trim()) return
+    // Emit event with (parentId, content)
     emit('reply', props.comment.id, replyContent.value)
     isReplying.value = false
     replyContent.value = ''
+}
+
+// Handle recursive reply events
+const onRecursiveReply = (parentId: string, content: string) => {
+    emit('reply', parentId, content)
 }
 </script>
 
@@ -66,7 +72,7 @@ const submitReply = () => {
                 <div class="mt-2 flex items-center gap-2">
                     <button 
                         @click="toggleReply"
-                        class="text-xs font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors"
+                        class="text-xs font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors cursor-pointer"
                     >
                         <MessageSquare class="h-3 w-3" />
                         {{ isReplying ? '取消' : '回复' }}
@@ -96,7 +102,7 @@ const submitReply = () => {
                     :key="reply.id" 
                     :comment="reply" 
                     :depth="currentDepth + 1"
-                    @reply="(pid, c) => $emit('reply', pid, c)"
+                    @reply="onRecursiveReply"
                 />
             </div>
         </div>
