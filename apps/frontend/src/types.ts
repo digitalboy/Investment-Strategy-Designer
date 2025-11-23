@@ -39,6 +39,7 @@ export interface StrategySummaryDTO {
     };
     returnRate?: number;
     maxDrawdown?: number;
+    tags?: string[];
     author?: {
         email: string;
         displayName?: string;

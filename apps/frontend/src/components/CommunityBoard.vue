@@ -178,17 +178,10 @@ const getEtfTicker = (strategy: Partial<StrategySummaryDTO> & { symbol?: string;
 
                                 <!-- Tags -->
                                 <div class="flex flex-wrap gap-1.5 pt-1">
-                                    <Badge variant="secondary"
+                                    <Badge v-for="tag in (strategy.tags || []).slice(0, 3)" :key="tag"
+                                        variant="secondary"
                                         class="bg-blue-50 text-blue-600 border border-blue-100 font-normal text-[10px] px-2 py-0.5 rounded-md">
-                                        Momentum
-                                    </Badge>
-                                    <Badge variant="secondary"
-                                        class="bg-violet-50 text-violet-600 border border-violet-100 font-normal text-[10px] px-2 py-0.5 rounded-md">
-                                        RSI
-                                    </Badge>
-                                    <Badge variant="secondary"
-                                        class="bg-cyan-50 text-cyan-600 border border-cyan-100 font-normal text-[10px] px-2 py-0.5 rounded-md">
-                                        Mean Reversion
+                                        {{ tag }}
                                     </Badge>
                                 </div>
                             </div>
@@ -311,17 +304,10 @@ const getEtfTicker = (strategy: Partial<StrategySummaryDTO> & { symbol?: string;
 
                                 <!-- Tags -->
                                 <div class="flex flex-wrap gap-1.5 pt-1">
-                                    <Badge variant="secondary"
+                                    <Badge v-for="tag in (strategy.tags || []).slice(0, 3)" :key="tag"
+                                        variant="secondary"
                                         class="bg-blue-50 text-blue-600 border border-blue-100 font-normal text-[10px] px-2 py-0.5 rounded-md">
-                                        Momentum
-                                    </Badge>
-                                    <Badge variant="secondary"
-                                        class="bg-violet-50 text-violet-600 border border-violet-100 font-normal text-[10px] px-2 py-0.5 rounded-md">
-                                        Factor
-                                    </Badge>
-                                    <Badge variant="secondary"
-                                        class="bg-cyan-50 text-cyan-600 border border-cyan-100 font-normal text-[10px] px-2 py-0.5 rounded-md">
-                                        Macro
+                                        {{ tag }}
                                     </Badge>
                                 </div>
                             </div>
