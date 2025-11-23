@@ -20,7 +20,13 @@
     "flexibleEngine": "Flexible Rule Engine",
     "cloudComputing": "Lightning-Fast Cloud Computing",
     "selectedStrategies": "Featured Strategies",
-    "welcomeBack": "Welcome Back"
+    "welcomeBack": "Welcome Back",
+    "up": "up",
+    "down": "down",
+    "above": "above",
+    "below": "below",
+    "day": "day",
+    "week": "week"
   },
   "dashboard": {
     "strategyMaster": "Strategy Master",
@@ -103,7 +109,62 @@
     "live": "Live",
     "paper": "Paper",
     "portfolio": "Portfolio",
-    "riskManagement": "Risk Management"
+    "riskManagement": "Risk Management",
+    "unnamedStrategy": "Unnamed Strategy",
+    "status": {
+      "needsAttention": "Needs Attention",
+      "backtesting": "Backtesting",
+      "waitingForConfig": "Waiting for Configuration",
+      "ready": "Ready",
+      "backtestingDescription": "Strategy backtesting is running, check latest results later.",
+      "waitingForConfigDescription": "Add at least one trigger to save and run backtesting.",
+      "readyDescription": "Configuration complete, current strategy can run backtesting directly."
+    },
+    "triggers": {
+      "invalidTriggerConfig": "Invalid trigger configuration",
+      "actionMissing": "Action missing",
+      "triggerParamsMissing": "Trigger parameters missing",
+      "triggerDisplayError": "Trigger display error",
+      "actionDisplayError": "Action display error",
+      "unknownCondition": "Unknown condition",
+      "conditions": {
+        "drawdownFromPeak": "Price drops more than {percentage}% from {days}-day high",
+        "priceStreak": "Price has {direction} for {count} consecutive {unit}",
+        "rsi": "RSI({period}) is {operator} {threshold}",
+        "newHigh": "Price makes {days}-day new high",
+        "newLow": "Price makes {days}-day new low",
+        "periodReturn": "Price has {direction} more than {percentage}% in the past {days} days",
+        "maCross": "Price {direction} the {period}-day moving average"
+      },
+      "actions": {
+        "buy": "Buy",
+        "sell": "Sell",
+        "fixedAmount": "${amount}",
+        "cashPercent": "{amount}% of cash",
+        "positionPercent": "{amount}% of position",
+        "totalValuePercent": "{amount}% of total assets"
+      }
+    },
+    "messages": {
+      "noTriggersYet": "No triggers created yet, click the button below to get started.",
+      "noPublicTriggers": "This strategy has no public trigger configuration yet.",
+      "pleaseAddTriggers": "Please add triggers first",
+      "backtestRunning": "Strategy backtesting is running",
+      "pleaseFillStrategyName": "Please fill in the strategy name",
+      "strategyUpdateSuccess": "Strategy updated successfully!",
+      "updateFailed": "Update failed, please try again",
+      "strategyDeleted": "Strategy deleted",
+      "deleteFailed": "Delete failed, please try again later",
+      "confirmDeleteStrategy": "Confirm delete this strategy?",
+      "deleteStrategyDescription": "Delete operation is irreversible, can only delete strategies created by yourself. After confirmation, the strategy and its backtesting records will be cleared.",
+      "confirmDelete": "Confirm Delete",
+      "updateStrategy": "Update Strategy",
+      "saveAsNewStrategy": "Save as New Strategy",
+      "saveStrategy": "Save Strategy",
+      "running": "Running...",
+      "runBacktest": "Run Backtest",
+      "backtestingStrategyPerformance": "Backtesting strategy performance..."
+    }
   },
   "community": {
     "title": "Strategy Community",
@@ -415,5 +476,17 @@
         "disabled": "No cooldown period set"
       }
     }
+  },
+  "performanceMetrics": {
+    "totalReturn": "Total Return",
+    "annualizedReturn": "Annualized Return",
+    "maxDrawdown": "Max Drawdown",
+    "sharpeRatio": "Sharpe Ratio",
+    "totalTrades": "Total Trades",
+    "buySell": "Buy/Sell",
+    "totalInvested": "Total Invested",
+    "totalProceeds": "Total Proceeds",
+    "strategyDescription": "Strategy Description",
+    "benchmarkDescription": "Buy and hold from the beginning"
   }
 }

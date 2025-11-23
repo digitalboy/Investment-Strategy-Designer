@@ -20,7 +20,13 @@
     "flexibleEngine": "灵活规则引擎",
     "cloudComputing": "极速云端计算",
     "selectedStrategies": "精选策略",
-    "welcomeBack": "欢迎回来"
+    "welcomeBack": "欢迎回来",
+    "up": "上涨",
+    "down": "下跌",
+    "above": "高于",
+    "below": "低于",
+    "day": "天",
+    "week": "周"
   },
   "dashboard": {
     "strategyMaster": "策略大师",
@@ -103,7 +109,62 @@
     "live": "实盘",
     "paper": "模拟",
     "portfolio": "投资组合",
-    "riskManagement": "风险管理"
+    "riskManagement": "风险管理",
+    "unnamedStrategy": "未命名策略",
+    "status": {
+      "needsAttention": "需要关注",
+      "backtesting": "回测中",
+      "waitingForConfig": "等待配置",
+      "ready": "准备就绪",
+      "backtestingDescription": "策略回测正在运行，稍后可查看最新结果。",
+      "waitingForConfigDescription": "添加至少一个触发器后即可保存并运行回测。",
+      "readyDescription": "配置完整，当前策略可以直接运行回测。"
+    },
+    "triggers": {
+      "invalidTriggerConfig": "无效的触发器配置",
+      "actionMissing": "动作缺失",
+      "triggerParamsMissing": "触发器参数缺失",
+      "triggerDisplayError": "触发器显示错误",
+      "actionDisplayError": "动作显示错误",
+      "unknownCondition": "未知条件",
+      "conditions": {
+        "drawdownFromPeak": "价格从 {days} 日高点下跌超过 {percentage}%",
+        "priceStreak": "价格连续 {direction} {count} {unit}",
+        "rsi": "RSI({period}) {operator} {threshold}",
+        "newHigh": "价格创 {days} 日新高",
+        "newLow": "价格创 {days} 日新低",
+        "periodReturn": "{days} 日内{direction}超过 {percentage}%",
+        "maCross": "价格{direction} MA{period}"
+      },
+      "actions": {
+        "buy": "买入",
+        "sell": "卖出",
+        "fixedAmount": "${amount}",
+        "cashPercent": "{amount}% 现金",
+        "positionPercent": "{amount}% 持仓",
+        "totalValuePercent": "{amount}% 总资产"
+      }
+    },
+    "messages": {
+      "noTriggersYet": "尚未创建触发器，点击下方按钮立即开始。",
+      "noPublicTriggers": "该策略还没有公开触发器配置。",
+      "pleaseAddTriggers": "请先添加触发器",
+      "backtestRunning": "策略回测正在运行",
+      "pleaseFillStrategyName": "请填写策略名称",
+      "strategyUpdateSuccess": "策略更新成功！",
+      "updateFailed": "更新失败，请重试",
+      "strategyDeleted": "策略已删除",
+      "deleteFailed": "删除失败，请稍后重试",
+      "confirmDeleteStrategy": "确认删除该策略？",
+      "deleteStrategyDescription": "删除操作不可撤销，只能删除自己创建的策略。确认后该策略及其回测记录将被清除。",
+      "confirmDelete": "确认删除",
+      "updateStrategy": "更新策略",
+      "saveAsNewStrategy": "另存为新策略",
+      "saveStrategy": "保存策略",
+      "running": "运行中...",
+      "runBacktest": "运行回测",
+      "backtestingStrategyPerformance": "正在回测策略表现..."
+    }
   },
   "community": {
     "title": "策略社区",
@@ -419,5 +480,17 @@
         "disabled": "不设置冷却期"
       }
     }
+  },
+  "performanceMetrics": {
+    "totalReturn": "总回报率",
+    "annualizedReturn": "年化回报",
+    "maxDrawdown": "最大回撤",
+    "sharpeRatio": "夏普比率",
+    "totalTrades": "交易次数",
+    "buySell": "买/卖",
+    "totalInvested": "总投入",
+    "totalProceeds": "总回款",
+    "strategyDescription": "策略说明",
+    "benchmarkDescription": "期初全仓买入持有至今"
   }
 }

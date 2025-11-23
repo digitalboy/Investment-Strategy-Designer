@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { PerformanceMetrics } from '@/types'
+
+const { t } = useI18n()
 
 const props = defineProps<{
     title: string
@@ -53,63 +56,65 @@ const statsBgClass = computed(() => {
             <!-- Metrics Row -->
             <div class="grid grid-cols-4 gap-2 mb-2">
                 <div>
-                    <p class="text-[10px] text-slate-500 mb-0.5">总回报率</p>
+                    <p class="text-[10px] text-slate-500 mb-0.5">{{ t('performanceMetrics.totalReturn') }}</p>
                     <p class="text-base font-bold text-slate-900">{{ formatNumber(metrics.totalReturn) }}%</p>
                 </div>
                 <div>
-                    <p class="text-[10px] text-slate-500 mb-0.5">年化回报</p>
+                    <p class="text-[10px] text-slate-500 mb-0.5">{{ t('performanceMetrics.annualizedReturn') }}</p>
                     <p class="text-base font-bold text-slate-900">{{ formatNumber(metrics.annualizedReturn) }}%</p>
                 </div>
                 <div>
-                    <p class="text-[10px] text-slate-500 mb-0.5">最大回撤</p>
+                    <p class="text-[10px] text-slate-500 mb-0.5">{{ t('performanceMetrics.maxDrawdown') }}</p>
                     <p class="text-base font-bold text-red-600">{{ formatNumber(metrics.maxDrawdown) }}%</p>
                 </div>
                 <div>
-                    <p class="text-[10px] text-slate-500 mb-0.5">夏普比率</p>
+                    <p class="text-[10px] text-slate-500 mb-0.5">{{ t('performanceMetrics.sharpeRatio') }}</p>
                     <p class="text-base font-bold text-slate-900">{{ formatNumber(metrics.sharpeRatio) }}</p>
                 </div>
             </div>
 
             <!-- Stats Row -->
-            <div :class="['grid grid-cols-4 gap-2 text-[10px] pt-2 border-t border-indigo-200/60 -mx-3 px-3 -mb-3 pb-3 rounded-b-lg', statsBgClass]">
+            <div
+                :class="['grid grid-cols-4 gap-2 text-[10px] pt-2 border-t border-indigo-200/60 -mx-3 px-3 -mb-3 pb-3 rounded-b-lg', statsBgClass]">
                 <template v-if="variant === 'strategy'">
                     <div>
-                        <span class="text-slate-500 block">交易次数</span>
+                        <span class="text-slate-500 block">{{ t('performanceMetrics.totalTrades') }}</span>
                         <span class="font-medium text-slate-900">{{ metrics.tradeStats.totalTrades }}</span>
                     </div>
                     <div>
-                        <span class="text-slate-500 block">买/卖</span>
+                        <span class="text-slate-500 block">{{ t('performanceMetrics.buySell') }}</span>
                         <span class="font-medium">
                             <span class="text-green-600">{{ metrics.tradeStats.buyCount }}</span> /
                             <span class="text-red-600">{{ metrics.tradeStats.sellCount }}</span>
                         </span>
                     </div>
                     <div>
-                        <span class="text-slate-500 block">总投入</span>
+                        <span class="text-slate-500 block">{{ t('performanceMetrics.totalInvested') }}</span>
                         <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats.totalInvested, 0)
-                            }}</span>
+                        }}</span>
                     </div>
                     <div>
-                        <span class="text-slate-500 block">总回款</span>
+                        <span class="text-slate-500 block">{{ t('performanceMetrics.totalProceeds') }}</span>
                         <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats.totalProceeds, 0)
-                            }}</span>
+                        }}</span>
                     </div>
                 </template>
                 <template v-else>
                     <div>
-                        <span class="text-slate-500 block">交易次数</span>
+                        <span class="text-slate-500 block">{{ t('performanceMetrics.totalTrades') }}</span>
                         <span class="font-medium text-slate-900">1</span>
                     </div>
                     <div>
-                        <span class="text-slate-500 block">买/卖</span>
+                        <span class="text-slate-500 block">{{ t('performanceMetrics.buySell') }}</span>
                         <span class="font-medium">
                             <span class="text-green-600">1</span> /
                             <span class="text-slate-400">0</span>
                         </span>
                     </div>
                     <div class="col-span-2">
-                        <span class="text-slate-500 block">策略说明</span>
-                        <span class="font-medium text-slate-900">期初全仓买入持有至今</span>
+                        <span class="text-slate-500 block">{{ t('performanceMetrics.strategyDescription') }}</span>
+                        <span class="font-medium text-slate-900">{{ t('performanceMetrics.benchmarkDescription')
+                            }}</span>
                     </div>
                 </template>
             </div>

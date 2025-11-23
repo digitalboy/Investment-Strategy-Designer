@@ -1,4 +1,5 @@
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Activity } from 'lucide-vue-next'
 

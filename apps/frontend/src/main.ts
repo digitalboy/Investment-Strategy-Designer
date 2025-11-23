@@ -1,7 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { createI18n } from 'vue-i18n'
-import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import './style.css'
 import App from './App.vue'
 import { useLanguageStore } from './stores/language'
@@ -37,7 +36,7 @@ languageStore.initLanguage();
 i18n.global.locale.value = languageStore.currentLanguage;
 
 // 监听语言变化并更新i18n实例
-languageStore.$subscribe((mutation, state) => {
+languageStore.$subscribe((_mutation, state) => {
   i18n.global.locale.value = state.currentLanguage;
 });
 

@@ -1,8 +1,8 @@
 <script setup lang="ts">
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Pencil, Trash2 } from 'lucide-vue-next'
-import type { Trigger } from '@/types'
 
 const props = defineProps<{
     triggerSummaries: Array<{
