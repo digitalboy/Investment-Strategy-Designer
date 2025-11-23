@@ -2,6 +2,7 @@
 import { Context } from 'hono';
 import { DatabaseService } from '../lib/database';
 import { StrategyEntity, StrategyConfig, StrategySummaryDTO } from '../types';
+import { generateTags } from '../lib/tag-generator';
 
 interface Env {
 	etf_strategy_db: D1Database;
@@ -17,7 +18,7 @@ interface Variables {
 export const strategyController = {
 	createStrategy: async (c: Context<{ Bindings: Env; Variables: Variables }>) => {
 		try {
-			const { name, description, config, isPublic } = await c.req.json();
+			const { name, description, config, isPublic, returnRate, maxDrawdown } = await c.req.json();
 
 			// Basic validation
 			if (!name || typeof name !== 'string' || name.length < 1 || name.length > 255) {
@@ -64,11 +65,15 @@ export const strategyController = {
 			// Get user by firebase UID to get the internal user ID
 			let user = await dbService.getUserByFirebaseUid(firebaseUid);
 
+			const email = c.get('email');
+			const displayName = c.get('displayName');
+			const photoUrl = c.get('photoUrl');
+
 			// If user not found, create it automatically (Lazy creation)
 			if (!user) {
-				const email = c.get('email') || `${firebaseUid}@placeholder.com`;
+				const userEmail = email || `${firebaseUid}@placeholder.com`;
 				try {
-					user = await dbService.createUser(firebaseUid, email);
+					user = await dbService.createUser(firebaseUid, userEmail, displayName, photoUrl);
 				} catch (createError) {
 					console.error('Failed to auto-create user:', createError);
 					return c.json({
@@ -78,10 +83,19 @@ export const strategyController = {
 						}
 					}, 500);
 				}
+			} else {
+				// User exists, try to update profile info if available
+				// We don't await this to avoid blocking, but we want to ensure data consistency eventually
+				// Since D1 is fast, we can just await it or use waitUntil if available (but dbService doesn't have access to ctx)
+				// Let's await it to be safe.
+				if (displayName || photoUrl) {
+					await dbService.updateUser(firebaseUid, displayName, photoUrl);
+				}
 			}
 
 			// Create the strategy
-			const strategy = await dbService.createStrategy(user.id, name, description, config, !!isPublic);
+			const tags = generateTags(config);
+			const strategy = await dbService.createStrategy(user.id, name, description, config, !!isPublic, returnRate, maxDrawdown, tags);
 
 			return c.json({
 				id: strategy.id,
@@ -105,7 +119,7 @@ export const strategyController = {
 			const sortBy = c.req.query('sort') as 'recent' | 'popular' | 'return' || 'recent';
 
 			const dbService = new DatabaseService(c.env.etf_strategy_db);
-			let strategies: StrategyEntity[] = [];
+			let strategies: (StrategyEntity & { author_email: string; author_name?: string; author_photo?: string })[] = [];
 
 			if (scope === 'public') {
 				strategies = await dbService.getPublicStrategies(sortBy);
@@ -138,18 +152,45 @@ export const strategyController = {
 			}
 
 			// Format response as StrategySummaryDTO
-			const summaries: StrategySummaryDTO[] = strategies.map(strategy => ({
-				id: strategy.id,
-				name: strategy.name,
-				description: strategy.description,
-				updatedAt: strategy.updated_at,
-				isPublic: !!strategy.is_public,
-				stats: {
-					views: strategy.view_count,
-					likes: strategy.like_count,
-					clones: strategy.clone_count
+			const summaries: StrategySummaryDTO[] = strategies.map(strategy => {
+				let triggerCount = 0;
+				let etfSymbol: string | undefined;
+				let tags: string[] = [];
+				try {
+					const config = JSON.parse(strategy.config);
+					triggerCount = Array.isArray(config.triggers) ? config.triggers.length : 0;
+					etfSymbol = typeof config.etfSymbol === 'string' ? config.etfSymbol : undefined;
+					if (strategy.tags) {
+						tags = JSON.parse(strategy.tags);
+					}
+				} catch {
+					// Ignore parse error
 				}
-			}));
+
+				return {
+					id: strategy.id,
+					name: strategy.name,
+					description: strategy.description,
+					updatedAt: strategy.updated_at,
+					isPublic: !!strategy.is_public,
+					etfSymbol,
+					stats: {
+						views: strategy.view_count,
+						likes: strategy.like_count,
+						clones: strategy.clone_count,
+						comments: strategy.comment_count || 0
+					},
+					returnRate: strategy.return_rate,
+					maxDrawdown: strategy.max_drawdown,
+					tags,
+					author: {
+						email: strategy.author_email || 'Unknown',
+						displayName: strategy.author_name,
+						photoUrl: strategy.author_photo
+					},
+					triggerCount
+				};
+			});
 
 			return c.json(summaries);
 		} catch (error) {
@@ -220,6 +261,8 @@ export const strategyController = {
 					likes: strategy.like_count,
 					clones: strategy.clone_count
 				},
+				returnRate: strategy.return_rate,
+				maxDrawdown: strategy.max_drawdown,
 				createdAt: strategy.created_at,
 				updatedAt: strategy.updated_at,
 				isOwner
@@ -238,7 +281,7 @@ export const strategyController = {
 	updateStrategy: async (c: Context<{ Bindings: Env; Variables: Variables }>) => {
 		try {
 			const { id } = c.req.param();
-			const { name, description, config, isPublic } = await c.req.json();
+			const { name, description, config, isPublic, returnRate, maxDrawdown } = await c.req.json();
 
 			// Basic validation
 			if (name && (typeof name !== 'string' || name.length < 1 || name.length > 255)) {
@@ -284,11 +327,9 @@ export const strategyController = {
 				}, 404);
 			}
 
-			// Update the strategy
-			const strategy = await dbService.updateStrategy(id, user.id,
-				name || '', description, config as StrategyConfig, !!isPublic);
-
-			if (!strategy) {
+			// Get existing strategy to ensure it exists and belongs to user, and to get current values
+			const existingStrategy = await dbService.getStrategyById(id);
+			if (!existingStrategy || existingStrategy.user_id !== user.id) {
 				return c.json({
 					error: {
 						code: 'STRATEGY_NOT_FOUND',
@@ -297,10 +338,35 @@ export const strategyController = {
 				}, 404);
 			}
 
+			// Update the strategy
+			const finalConfig = config || JSON.parse(existingStrategy.config);
+			const tags = config ? generateTags(finalConfig) : (existingStrategy.tags ? JSON.parse(existingStrategy.tags) : undefined);
+
+			const updatedStrategy = await dbService.updateStrategy(
+				id,
+				user.id,
+				name || existingStrategy.name,
+				description !== undefined ? description : existingStrategy.description,
+				finalConfig,
+				isPublic !== undefined ? !!isPublic : !!existingStrategy.is_public,
+				returnRate,
+				maxDrawdown,
+				tags
+			);
+
+			if (!updatedStrategy) {
+				return c.json({
+					error: {
+						code: 'UPDATE_STRATEGY_ERROR',
+						message: 'Failed to update strategy'
+					}
+				}, 500);
+			}
+
 			return c.json({
-				id: strategy.id,
-				name: strategy.name,
-				updatedAt: strategy.updated_at
+				id: updatedStrategy.id,
+				name: updatedStrategy.name,
+				updatedAt: updatedStrategy.updated_at
 			});
 		} catch (error) {
 			console.error('Update strategy error:', error);
@@ -418,10 +484,25 @@ export const strategyController = {
 			}
 
 			const dbService = new DatabaseService(c.env.etf_strategy_db);
-			const user = await dbService.getUserByFirebaseUid(firebaseUid);
+			let user = await dbService.getUserByFirebaseUid(firebaseUid);
+
+			const email = c.get('email');
+			const displayName = c.get('displayName');
+			const photoUrl = c.get('photoUrl');
 
 			if (!user) {
-				return c.json({ error: { code: 'USER_NOT_FOUND', message: 'User not found' } }, 404);
+				// Try to lazy create user if not found (similar to createStrategy)
+				const userEmail = email || `${firebaseUid}@placeholder.com`;
+				try {
+					user = await dbService.createUser(firebaseUid, userEmail, displayName, photoUrl);
+				} catch (e) {
+					return c.json({ error: { code: 'USER_NOT_FOUND', message: 'User not found and failed to create' } }, 404);
+				}
+			} else {
+				// Update profile if information is available
+				if (displayName || photoUrl) {
+					await dbService.updateUser(firebaseUid, displayName, photoUrl);
+				}
 			}
 
 			const comment = await dbService.addComment(user.id, id, content);
