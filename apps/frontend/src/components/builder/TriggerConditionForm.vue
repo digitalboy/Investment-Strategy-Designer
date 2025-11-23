@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Input } from '@/components/ui/input'
 import {
     Select,
@@ -9,7 +10,9 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { triggerGroups, type TriggerOptionKey } from './constants'
+import { type TriggerOptionKey } from './constants'
+
+const { t } = useI18n()
 
 const props = defineProps<{
     selectedKey: TriggerOptionKey
@@ -27,6 +30,70 @@ const localSelectedKey = computed({
     set: (val) => emit('update:selectedKey', val)
 })
 
+// Generate trigger groups with translations
+const translatedTriggerGroups = computed(() => [
+    {
+        label: t('triggerConditionForm.groups.buyLow'),
+        items: [
+            {
+                value: 'drawdownFromPeak' as TriggerOptionKey,
+                label: t('triggerConditionForm.conditions.drawdownFromPeak.label'),
+                description: t('triggerConditionForm.conditions.drawdownFromPeak.description')
+            },
+            {
+                value: 'newLow' as TriggerOptionKey,
+                label: t('triggerConditionForm.conditions.newLow.label'),
+                description: t('triggerConditionForm.conditions.newLow.description')
+            },
+            {
+                value: 'priceStreak_down' as TriggerOptionKey,
+                label: t('triggerConditionForm.conditions.priceStreak_down.label'),
+                description: t('triggerConditionForm.conditions.priceStreak_down.description')
+            },
+        ],
+    },
+    {
+        label: t('triggerConditionForm.groups.trendFollowing'),
+        items: [
+            {
+                value: 'newHigh' as TriggerOptionKey,
+                label: t('triggerConditionForm.conditions.newHigh.label'),
+                description: t('triggerConditionForm.conditions.newHigh.description')
+            },
+            {
+                value: 'priceStreak_up' as TriggerOptionKey,
+                label: t('triggerConditionForm.conditions.priceStreak_up.label'),
+                description: t('triggerConditionForm.conditions.priceStreak_up.description')
+            },
+            {
+                value: 'periodReturn_up' as TriggerOptionKey,
+                label: t('triggerConditionForm.conditions.periodReturn_up.label'),
+                description: t('triggerConditionForm.conditions.periodReturn_up.description')
+            },
+        ],
+    },
+    {
+        label: t('triggerConditionForm.groups.technicalIndicators'),
+        items: [
+            {
+                value: 'periodReturn_down' as TriggerOptionKey,
+                label: t('triggerConditionForm.conditions.periodReturn_down.label'),
+                description: t('triggerConditionForm.conditions.periodReturn_down.description')
+            },
+            {
+                value: 'rsi' as TriggerOptionKey,
+                label: t('triggerConditionForm.conditions.rsi.label'),
+                description: t('triggerConditionForm.conditions.rsi.description')
+            },
+            {
+                value: 'maCross' as TriggerOptionKey,
+                label: t('triggerConditionForm.conditions.maCross.label'),
+                description: t('triggerConditionForm.conditions.maCross.description')
+            },
+        ],
+    },
+])
+
 // We can mutate props.params properties directly if it is a reactive object passed from parent,
 // but for cleaner data flow with v-model on components, we usually rely on the parent state.
 // Since 'params' is an object, v-model="params.days" works if params is reactive.
@@ -36,13 +103,13 @@ const localSelectedKey = computed({
 <template>
     <section class="rounded-2xl border border-slate-200 bg-white/80 shadow-sm p-4 space-y-4">
         <header class="flex flex-wrap items-center justify-between gap-3">
-            <h3 class="text-lg font-semibold text-slate-900">如果 (IF)...</h3>
-            <span class="text-xs text-slate-500">选择你想捕捉的行情</span>
+            <h3 class="text-lg font-semibold text-slate-900">{{ t('triggerConditionForm.if') }}</h3>
+            <span class="text-xs text-slate-500">{{ t('triggerConditionForm.description') }}</span>
         </header>
 
         <div class="space-y-3">
             <RadioGroup v-model="localSelectedKey" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                <div v-for="group in triggerGroups" :key="group.label"
+                <div v-for="group in translatedTriggerGroups" :key="group.label"
                     class="space-y-3 rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
                     <p class="text-xs uppercase tracking-wide text-slate-500">
                         {{ group.label }}
@@ -67,125 +134,112 @@ const localSelectedKey = computed({
         <div class="rounded-xl bg-slate-50 border border-slate-100 p-4 text-sm text-slate-700 space-y-2">
             <template v-if="conditionType === 'drawdownFromPeak'">
                 <p class="flex flex-wrap items-center gap-2 leading-7">
-                    当价格从过去
+                    {{ t('triggerConditionForm.descriptions.drawdownFromPeak.prefix') }}
                     <Input type="number" v-model="params.days"
                         class="w-16 h-8 text-center bg-white border border-slate-200" />
-                    天的最高点，下跌超过
+                    {{ t('triggerConditionForm.descriptions.drawdownFromPeak.middle') }}
                     <Input type="number" v-model="params.percentage"
                         class="w-16 h-8 text-center bg-white border border-slate-200" />
-                    % 时。
+                    {{ t('triggerConditionForm.descriptions.drawdownFromPeak.suffix') }}
                 </p>
             </template>
 
             <template v-else-if="conditionType === 'newHigh'">
                 <p class="leading-7">
-                    当价格突破过去
+                    {{ t('triggerConditionForm.descriptions.newHigh.prefix') }}
                     <Input type="number" v-model="params.days"
                         class="w-16 h-8 mx-2 text-center bg-white border border-slate-200" />
-                    天的最高价时。
+                    {{ t('triggerConditionForm.descriptions.newHigh.middle') }}
                 </p>
             </template>
 
             <template v-else-if="conditionType === 'newLow'">
                 <p class="leading-7">
-                    当价格跌破过去
+                    {{ t('triggerConditionForm.descriptions.newLow.prefix') }}
                     <Input type="number" v-model="params.days"
                         class="w-16 h-8 mx-2 text-center bg-white border border-slate-200" />
-                    天的最低价时。
+                    {{ t('triggerConditionForm.descriptions.newLow.middle') }}
                 </p>
             </template>
 
             <template v-else-if="conditionType === 'priceStreak'">
-                <div class="space-y-2">
-                    <p class="flex flex-wrap items-center gap-2">
-                        当价格连续
-                        <Input type="number" v-model="params.count"
-                            class="w-16 h-8 text-center bg-white border border-slate-200" />
-                        个
-                        <Select v-model="params.unit" class="w-24">
-                            <SelectTrigger class="h-8 text-xs">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="day">交易日</SelectItem>
-                                <SelectItem value="week">周</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </p>
-                    <p class="flex flex-wrap items-center gap-2">
-                        收盘
-                        <Select v-model="params.direction" class="w-28">
-                            <SelectTrigger class="h-8 text-xs">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="up">📈 上涨</SelectItem>
-                                <SelectItem value="down">📉 下跌</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        时。
-                    </p>
-                </div>
+                <p class="leading-7 flex flex-wrap items-center gap-2">
+                    {{ t('triggerConditionForm.descriptions.priceStreak.prefix') }}
+                    <Input type="number" v-model="params.count"
+                        class="w-16 h-8 text-center bg-white border border-slate-200" />
+                    {{ t('triggerConditionForm.descriptions.priceStreak.middle') }}
+                    <Select v-model="params.unit" class="w-24">
+                        <SelectTrigger class="h-8 text-xs">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="day">{{ t('triggerConditionForm.units.day') }}</SelectItem>
+                            <SelectItem value="week">{{ t('triggerConditionForm.units.week') }}</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    {{ t('triggerConditionForm.descriptions.priceStreak.direction.' + params.direction) }}
+                    {{ t('triggerConditionForm.descriptions.priceStreak.suffix') }}
+                </p>
             </template>
 
             <template v-else-if="conditionType === 'periodReturn'">
                 <p class="leading-7 flex flex-wrap items-center gap-2">
-                    当价格在过去
+                    {{ t('triggerConditionForm.descriptions.periodReturn.prefix') }}
                     <Input type="number" v-model="params.days"
                         class="w-16 h-8 text-center bg-white border border-slate-200" />
-                    天内累计
+                    {{ t('triggerConditionForm.descriptions.periodReturn.middle') }}
                     <Select v-model="params.direction" class="w-28">
                         <SelectTrigger class="h-8 text-xs">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="up">上涨</SelectItem>
-                            <SelectItem value="down">下跌</SelectItem>
+                            <SelectItem value="up">{{ t('triggerConditionForm.directions.up') }}</SelectItem>
+                            <SelectItem value="down">{{ t('triggerConditionForm.directions.down') }}</SelectItem>
                         </SelectContent>
                     </Select>
-                    超过
+                    {{ t('triggerConditionForm.descriptions.periodReturn.moreThan') }}
                     <Input type="number" v-model="params.percentage"
                         class="w-16 h-8 text-center bg-white border border-slate-200" />
-                    % 时。
+                    {{ t('triggerConditionForm.descriptions.periodReturn.suffix') }}
                 </p>
             </template>
 
             <template v-else-if="conditionType === 'rsi'">
                 <p class="leading-7 flex flex-wrap items-center gap-2">
-                    当 RSI(
+                    {{ t('triggerConditionForm.descriptions.rsi.prefix') }}
                     <Input type="number" v-model="params.period"
                         class="w-16 h-8 text-center bg-white border border-slate-200" />
-                    )
+                    {{ t('triggerConditionForm.descriptions.rsi.middle') }}
                     <Select v-model="params.operator" class="w-28">
                         <SelectTrigger class="h-8 text-xs">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="above">高于</SelectItem>
-                            <SelectItem value="below">低于</SelectItem>
+                            <SelectItem value="above">{{ t('triggerConditionForm.operators.above') }}</SelectItem>
+                            <SelectItem value="below">{{ t('triggerConditionForm.operators.below') }}</SelectItem>
                         </SelectContent>
                     </Select>
                     <Input type="number" v-model="params.threshold"
                         class="w-16 h-8 text-center bg-white border border-slate-200" />
-                    时。
+                    {{ t('triggerConditionForm.descriptions.rsi.suffix') }}
                 </p>
             </template>
 
             <template v-else-if="conditionType === 'maCross'">
                 <p class="leading-7 flex flex-wrap items-center gap-2">
-                    当价格
+                    {{ t('triggerConditionForm.descriptions.maCross.prefix') }}
                     <Select v-model="params.direction" class="w-32">
                         <SelectTrigger class="h-8 text-xs">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="above">向上穿越</SelectItem>
-                            <SelectItem value="below">向下穿越</SelectItem>
+                            <SelectItem value="above">{{ t('triggerConditionForm.directions.above') }}</SelectItem>
+                            <SelectItem value="below">{{ t('triggerConditionForm.directions.below') }}</SelectItem>
                         </SelectContent>
                     </Select>
                     <Input type="number" v-model="params.period"
                         class="w-16 h-8 text-center bg-white border border-slate-200" />
-                    日均线时。
+                    {{ t('triggerConditionForm.descriptions.maCross.middle') }}
                 </p>
             </template>
         </div>

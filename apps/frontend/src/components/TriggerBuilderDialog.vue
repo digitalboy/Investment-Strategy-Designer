@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Check, Circle, Dot } from 'lucide-vue-next'
 import { useStrategyStore } from '@/stores/strategy'
 import type { Trigger, TriggerCondition, TriggerAction } from '@/types'
@@ -27,12 +28,14 @@ import {
 import TriggerConditionForm from './builder/TriggerConditionForm.vue'
 import TriggerActionForm from './builder/TriggerActionForm.vue'
 import TriggerPreviewPanel from './builder/TriggerPreviewPanel.vue'
-import { 
-    getConditionConfig, 
-    getConditionKeyFromTrigger, 
-    type TriggerOptionKey, 
+import {
+    getConditionConfig,
+    getConditionKeyFromTrigger,
+    type TriggerOptionKey,
     baseConditionDefaults // Used for resets
 } from './builder/constants'
+
+const { t } = useI18n()
 
 const props = defineProps<{
     open: boolean
@@ -54,13 +57,13 @@ const editingTrigger = computed(() => {
     return store.config.triggers[index] ?? null
 })
 
-const stepItems = [
-    { step: 1, title: '如果 (IF)...', description: '选择你想捕捉的行情' },
-    { step: 2, title: '那么 (THEN)...', description: '确定系统如何下单' },
-    { step: 3, title: '并且 (AND)...冷却期', description: '设置冷静期避免重复触发' },
-] as const
+const stepItems = computed(() => [
+    { step: 1, title: t('triggerBuilderDialog.steps.condition.title'), description: t('triggerBuilderDialog.steps.condition.description') },
+    { step: 2, title: t('triggerBuilderDialog.steps.action.title'), description: t('triggerBuilderDialog.steps.action.description') },
+    { step: 3, title: t('triggerBuilderDialog.steps.cooldown.title'), description: t('triggerBuilderDialog.steps.cooldown.description') },
+] as const)
 
-type StepKey = typeof stepItems[number]['step']
+type StepKey = typeof stepItems.value[number]['step']
 
 const activeStep = ref<StepKey>(1)
 
@@ -94,44 +97,61 @@ const conditionSummary = computed(() => {
     const params = conditionParams.value
     switch (conditionType.value) {
         case 'drawdownFromPeak':
-            return `当价格从过去 ${params.days} 天高点下跌超过 ${params.percentage}% 时`
+            return t('triggerBuilderDialog.summaries.conditions.drawdownFromPeak', { days: params.days, percentage: params.percentage })
         case 'newLow':
-            return `当价格跌破过去 ${params.days} 天最低点`
+            return t('triggerBuilderDialog.summaries.conditions.newLow', { days: params.days })
         case 'newHigh':
-            return `当价格突破过去 ${params.days} 天最高点`
+            return t('triggerBuilderDialog.summaries.conditions.newHigh', { days: params.days })
         case 'priceStreak':
-            return `当价格连续 ${params.count} 个${params.unit === 'day' ? '交易日' : '周'}收盘${params.direction === 'up' ? '上涨' : '下跌'}`
+            return t('triggerBuilderDialog.summaries.conditions.priceStreak', {
+                count: params.count,
+                unit: params.unit === 'day' ? t('triggerConditionForm.units.day') : t('triggerConditionForm.units.week'),
+                direction: params.direction === 'up' ? t('triggerConditionForm.directions.up') : t('triggerConditionForm.directions.down')
+            })
         case 'periodReturn':
-            return `当价格在过去 ${params.days} 天累计${params.direction === 'up' ? '上涨' : '下跌'}超过 ${params.percentage}%`
+            return t('triggerBuilderDialog.summaries.conditions.periodReturn', {
+                days: params.days,
+                direction: params.direction === 'up' ? t('triggerConditionForm.directions.up') : t('triggerConditionForm.directions.down'),
+                percentage: params.percentage
+            })
         case 'rsi':
-            return `当 RSI(${params.period}) ${params.operator === 'above' ? '高于' : '低于'} ${params.threshold}`
+            return t('triggerBuilderDialog.summaries.conditions.rsi', {
+                period: params.period,
+                operator: params.operator === 'above' ? t('triggerConditionForm.operators.above') : t('triggerConditionForm.operators.below'),
+                threshold: params.threshold
+            })
         case 'maCross':
-            return `当价格 ${params.direction === 'above' ? '向上' : '向下'} 穿越 ${params.period} 日均线`
+            return t('triggerBuilderDialog.summaries.conditions.maCross', {
+                direction: params.direction === 'above' ? t('triggerConditionForm.directions.above') : t('triggerConditionForm.directions.below'),
+                period: params.period
+            })
         default:
-            return '配置触发条件'
+            return t('triggerBuilderDialog.summaries.conditions.default')
     }
 })
 
 const actionSummary = computed(() => {
-    const verb = actionType.value === 'buy' ? '买入' : '卖出'
+    const verb = actionType.value === 'buy' ? t('triggerBuilderDialog.summaries.actions.buy') : t('triggerBuilderDialog.summaries.actions.sell')
     const amount = Number(actionAmount.value || 0)
 
     switch (actionValueType.value) {
         case 'fixedAmount':
-            return `${verb} ${amount} 美元`
+            return t('triggerBuilderDialog.summaries.actions.fixedAmount', { amount })
         case 'cashPercent':
-            return `${verb} 可用现金的 ${amount}%`
+            return `${verb} ${t('triggerBuilderDialog.summaries.actions.cashPercent', { amount })}`
         case 'positionPercent':
-            return `${verb} 当前持仓的 ${amount}%`
+            return `${verb} ${t('triggerBuilderDialog.summaries.actions.positionPercent', { amount })}`
         case 'totalValuePercent':
-            return `${verb} 仓位至总资产的 ${amount}%`
+            return `${verb} ${t('triggerBuilderDialog.summaries.actions.totalValuePercent', { amount })}`
         default:
             return `${verb} 指定数量`
     }
 })
 
 const cooldownSummary = computed(() =>
-    enableCooldown.value ? `随后 ${cooldownDays.value} 天内不再重复执行` : '不设置冷却期'
+    enableCooldown.value
+        ? t('triggerBuilderDialog.summaries.cooldown.enabled', { days: cooldownDays.value })
+        : t('triggerBuilderDialog.summaries.cooldown.disabled')
 )
 
 const resetConditionState = (key: TriggerOptionKey) => {
@@ -273,8 +293,8 @@ const handleSave = () => {
     emit('update:open', false)
 }
 
-const dialogTitle = computed(() => (isEditing.value ? '编辑交易触发器' : '创建交易触发器'))
-const primaryButtonLabel = computed(() => (isEditing.value ? '保存修改' : '添加此规则'))
+const dialogTitle = computed(() => (isEditing.value ? t('triggerBuilderDialog.editTitle') : t('triggerBuilderDialog.createTitle')))
+const primaryButtonLabel = computed(() => (isEditing.value ? t('triggerBuilderDialog.buttons.save') : t('triggerBuilderDialog.buttons.add')))
 </script>
 
 <template>
@@ -282,7 +302,7 @@ const primaryButtonLabel = computed(() => (isEditing.value ? '保存修改' : '�
         <DialogContent class="w-full max-w-6xl xl:max-w-7xl">
             <DialogHeader>
                 <DialogTitle>{{ dialogTitle }}</DialogTitle>
-                <DialogDescription>定义“如果...那么...”规则来执行交易。</DialogDescription>
+                <DialogDescription>{{ t('triggerBuilderDialog.description') }}</DialogDescription>
             </DialogHeader>
 
             <Stepper v-slot="stepper" v-model="activeStep" orientation="vertical" class="w-full">
@@ -319,20 +339,14 @@ const primaryButtonLabel = computed(() => (isEditing.value ? '保存修改' : '�
                     <div class="flex-1 min-w-0 space-y-5">
                         <!-- Step 1: Condition -->
                         <div ref="stepOneRef" v-show="activeStep === 1">
-                            <TriggerConditionForm 
-                                v-model:selectedKey="selectedConditionKey"
-                                :conditionType="conditionType"
-                                :params="conditionParams"
-                            />
+                            <TriggerConditionForm v-model:selectedKey="selectedConditionKey"
+                                :conditionType="conditionType" :params="conditionParams" />
                         </div>
 
                         <!-- Step 2: Action -->
                         <div ref="stepTwoRef" v-show="activeStep === 2" :style="stepPanelMinStyle">
-                            <TriggerActionForm
-                                v-model:actionType="actionType"
-                                v-model:valueType="actionValueType"
-                                v-model:amount="actionAmount"
-                            />
+                            <TriggerActionForm v-model:actionType="actionType" v-model:valueType="actionValueType"
+                                v-model:amount="actionAmount" />
                         </div>
 
                         <!-- Step 3: Cooldown -->
@@ -340,25 +354,28 @@ const primaryButtonLabel = computed(() => (isEditing.value ? '保存修改' : '�
                             class="rounded-2xl border border-slate-200 bg-white/80 shadow-sm p-4 space-y-4"
                             :style="stepPanelMinStyle">
                             <header class="flex flex-wrap items-center justify-between gap-3">
-                                <h3 class="text-lg font-semibold text-slate-900">并且 (AND)...冷却期</h3>
+                                <h3 class="text-lg font-semibold text-slate-900">{{
+                                    t('triggerBuilderDialog.cooldown.title') }}</h3>
                                 <label class="flex items-center gap-2 text-sm text-slate-600">
                                     <input type="checkbox" v-model="enableCooldown" class="accent-indigo-600" />
-                                    启用冷静期
+                                    {{ t('triggerBuilderDialog.cooldown.enable') }}
                                 </label>
                             </header>
 
                             <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3"
                                 :class="{ 'opacity-50 pointer-events-none': !enableCooldown }">
                                 <div class="space-y-2 rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
-                                    <Label class="text-xs text-slate-500">冷却天数</Label>
+                                    <Label class="text-xs text-slate-500">{{ t('triggerBuilderDialog.cooldown.days')
+                                        }}</Label>
                                     <div class="relative">
                                         <Input type="number" v-model="cooldownDays" class="h-10 pr-10" />
-                                        <span class="absolute right-3 top-2.5 text-xs text-slate-500">天</span>
+                                        <span class="absolute right-3 top-2.5 text-xs text-slate-500">{{
+                                            t('triggerBuilderDialog.cooldown.unit') }}</span>
                                     </div>
                                 </div>
                                 <div
                                     class="rounded-xl border border-slate-100 bg-slate-50/80 p-3 text-xs text-slate-500 shadow-sm md:col-span-1 xl:col-span-2">
-                                    冷却期可避免重复交易。系统将在冷却结束后再次检查触发条件。
+                                    {{ t('triggerBuilderDialog.cooldown.description') }}
                                 </div>
                             </div>
                         </section>
@@ -366,26 +383,25 @@ const primaryButtonLabel = computed(() => (isEditing.value ? '保存修改' : '�
                         <div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4">
                             <Button variant="outline" size="sm" :disabled="stepper.isPrevDisabled"
                                 @click="stepper.prevStep()">
-                                上一步
+                                {{ t('triggerBuilderDialog.buttons.previous') }}
                             </Button>
                             <Button v-if="!stepper.isLastStep" size="sm" :disabled="stepper.isNextDisabled"
                                 @click="stepper.nextStep()">
-                                下一步
+                                {{ t('triggerBuilderDialog.buttons.next') }}
                             </Button>
-                            <span v-else class="text-xs text-slate-500">完成设置后点击下方“{{ primaryButtonLabel }}”</span>
+                            <span v-else class="text-xs text-slate-500">{{ t('triggerBuilderDialog.buttons.complete', {
+                                button: primaryButtonLabel }) }}</span>
                         </div>
                     </div>
 
-                    <TriggerPreviewPanel 
-                        :conditionSummary="conditionSummary"
-                        :actionSummary="actionSummary"
-                        :cooldownSummary="cooldownSummary"
-                    />
+                    <TriggerPreviewPanel :conditionSummary="conditionSummary" :actionSummary="actionSummary"
+                        :cooldownSummary="cooldownSummary" />
                 </div>
             </Stepper>
 
             <DialogFooter>
-                <Button variant="outline" @click="emit('update:open', false)">取消</Button>
+                <Button variant="outline" @click="emit('update:open', false)">{{
+                    t('triggerBuilderDialog.buttons.cancel') }}</Button>
                 <Button :disabled="activeStep !== stepItems.length" @click="handleSave">{{ primaryButtonLabel
                     }}</Button>
             </DialogFooter>

@@ -283,9 +283,23 @@
       }
     },
     "descriptions": {
-      "drawdownFromPeak": "When the price falls more than {percentage}% from the highest point in the past {days} days.",
-      "newHigh": "When the price breaks above the highest price in the past {days} days.",
-      "newLow": "When the price breaks below the lowest price in the past {days} days.",
+      "drawdownFromPeak": {
+        "prefix": "When the price falls more than",
+        "percentage": "{percentage}%",
+        "from": "from the highest point in the past",
+        "days": "{days} days",
+        "suffix": "."
+      },
+      "newHigh": {
+        "prefix": "When the price breaks above the highest price in the past",
+        "days": "{days} days",
+        "suffix": "."
+      },
+      "newLow": {
+        "prefix": "When the price breaks below the lowest price in the past",
+        "days": "{days} days",
+        "suffix": "."
+      },
       "priceStreak": {
         "prefix": "When the price closes",
         "direction": {
@@ -297,7 +311,8 @@
         "units": {
           "day": "trading days",
           "week": "weeks"
-        }
+        },
+        "suffix": "."
       },
       "periodReturn": {
         "prefix": "When the price has",
@@ -307,8 +322,26 @@
         },
         "moreThan": "more than {percentage}% in the past {days} days."
       },
-      "rsi": "When RSI({period}) is {operator} {threshold}.",
-      "maCross": "When the price {direction} the {period}-day moving average."
+      "rsi": {
+        "prefix": "When RSI(",
+        "period": "{period}",
+        "middle": ") is",
+        "operator": {
+          "above": "above",
+          "below": "below"
+        },
+        "threshold": "{threshold}",
+        "suffix": "."
+      },
+      "maCross": {
+        "prefix": "When the price",
+        "direction": {
+          "above": "crosses above",
+          "below": "crosses below"
+        },
+        "period": "{period}",
+        "suffix": "-day moving average."
+      }
     },
     "operators": {
       "above": "above",
@@ -323,6 +356,64 @@
     "units": {
       "day": "trading day",
       "week": "week"
+    }
+  },
+  "triggerBuilderDialog": {
+    "createTitle": "Create Trading Trigger",
+    "editTitle": "Edit Trading Trigger",
+    "description": "Define \"if...then...\" rules to execute trades.",
+    "steps": {
+      "condition": {
+        "title": "If (IF)...",
+        "description": "Choose the market conditions you want to capture"
+      },
+      "action": {
+        "title": "Then (THEN)...",
+        "description": "Determine how the system places orders"
+      },
+      "cooldown": {
+        "title": "And (AND)...Cooldown",
+        "description": "Set a cooling period to avoid repeated triggers"
+      }
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "save": "Save Changes",
+      "add": "Add This Rule",
+      "previous": "Previous",
+      "next": "Next",
+      "complete": "Complete setup and click \"{button}\" below"
+    },
+    "cooldown": {
+      "title": "And (AND)...Cooldown Period",
+      "enable": "Enable Cooling Period",
+      "days": "Cooldown Days",
+      "unit": "days",
+      "description": "Cooling period prevents repeated trades. The system will check trigger conditions again after the cooldown ends."
+    },
+    "summaries": {
+      "conditions": {
+        "drawdownFromPeak": "When the price falls more than {percentage}% from the highest point in the past {days} days",
+        "newLow": "When the price breaks below the lowest point in the past {days} days",
+        "newHigh": "When the price breaks above the highest point in the past {days} days",
+        "priceStreak": "When the price closes {direction} for {count} consecutive {unit}",
+        "periodReturn": "When the price has {direction} more than {percentage}% in the past {days} days",
+        "rsi": "When RSI({period}) is {operator} {threshold}",
+        "maCross": "When the price {direction} the {period}-day moving average",
+        "default": "Configure trigger condition"
+      },
+      "actions": {
+        "buy": "Buy",
+        "sell": "Sell",
+        "fixedAmount": "{amount} dollars",
+        "cashPercent": "{amount}% of available cash",
+        "positionPercent": "{amount}% of current position",
+        "totalValuePercent": "position to {amount}% of total assets"
+      },
+      "cooldown": {
+        "enabled": "Then do not execute again for {days} days",
+        "disabled": "No cooldown period set"
+      }
     }
   }
 }

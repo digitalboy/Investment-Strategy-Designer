@@ -283,32 +283,69 @@
       }
     },
     "descriptions": {
-      "drawdownFromPeak": "当价格从过去 {days} 天的最高点，下跌超过 {percentage}% 时。",
-      "newHigh": "当价格突破过去 {days} 天的最高价时。",
-      "newLow": "当价格跌破过去 {days} 天的最低价时。",
+      "drawdownFromPeak": {
+        "prefix": "当价格从过去",
+        "days": "{days}",
+        "middle": "天的最高点，下跌超过",
+        "percentage": "{percentage}%",
+        "suffix": "时。"
+      },
+      "newHigh": {
+        "prefix": "当价格突破过去",
+        "days": "{days}",
+        "middle": "天的最高价时。"
+      },
+      "newLow": {
+        "prefix": "当价格跌破过去",
+        "days": "{days}",
+        "middle": "天的最低价时。"
+      },
       "priceStreak": {
         "prefix": "当价格连续",
+        "count": "{count}",
+        "middle": "个",
+        "unit": {
+          "day": "交易日",
+          "week": "周"
+        },
         "direction": {
           "up": "📈 上涨",
           "down": "📉 下跌"
         },
-        "for": "",
-        "consecutive": "个",
-        "units": {
-          "day": "交易日",
-          "week": "周"
-        }
+        "suffix": "时。"
       },
       "periodReturn": {
-        "prefix": "当价格在过去 {days} 天内累计",
+        "prefix": "当价格在过去",
+        "days": "{days}",
+        "middle": "天内累计",
         "direction": {
           "up": "上涨",
           "down": "下跌"
         },
-        "moreThan": "超过 {percentage}% 时。"
+        "moreThan": "超过",
+        "percentage": "{percentage}%",
+        "suffix": "时。"
       },
-      "rsi": "当 RSI({period}) {operator} {threshold} 时。",
-      "maCross": "当价格 {direction} {period} 日均线时。"
+      "rsi": {
+        "prefix": "当 RSI(",
+        "period": "{period}",
+        "middle": ")",
+        "operator": {
+          "above": "高于",
+          "below": "低于"
+        },
+        "threshold": "{threshold}",
+        "suffix": "时。"
+      },
+      "maCross": {
+        "prefix": "当价格",
+        "direction": {
+          "above": "向上穿越",
+          "below": "向下穿越"
+        },
+        "period": "{period}",
+        "middle": "日均线时。"
+      }
     },
     "operators": {
       "above": "高于",
@@ -323,6 +360,64 @@
     "units": {
       "day": "交易日",
       "week": "周"
+    }
+  },
+  "triggerBuilderDialog": {
+    "createTitle": "创建交易触发器",
+    "editTitle": "编辑交易触发器",
+    "description": "定义\"如果...那么...\"规则来执行交易。",
+    "steps": {
+      "condition": {
+        "title": "如果 (IF)...",
+        "description": "选择你想捕捉的行情"
+      },
+      "action": {
+        "title": "那么 (THEN)...",
+        "description": "确定系统如何下单"
+      },
+      "cooldown": {
+        "title": "并且 (AND)...冷却期",
+        "description": "设置冷静期避免重复触发"
+      }
+    },
+    "buttons": {
+      "cancel": "取消",
+      "save": "保存修改",
+      "add": "添加此规则",
+      "previous": "上一步",
+      "next": "下一步",
+      "complete": "完成设置后点击下方\"{button}\""
+    },
+    "cooldown": {
+      "title": "并且 (AND)...冷却期",
+      "enable": "启用冷静期",
+      "days": "冷却天数",
+      "unit": "天",
+      "description": "冷却期可避免重复交易。系统将在冷却结束后再次检查触发条件。"
+    },
+    "summaries": {
+      "conditions": {
+        "drawdownFromPeak": "当价格从过去 {days} 天高点下跌超过 {percentage}% 时",
+        "newLow": "当价格跌破过去 {days} 天最低点",
+        "newHigh": "当价格突破过去 {days} 天最高点",
+        "priceStreak": "当价格连续 {count} 个{unit}收盘{direction}",
+        "periodReturn": "当价格在过去 {days} 天累计{direction}超过 {percentage}%",
+        "rsi": "当 RSI({period}) {operator} {threshold}",
+        "maCross": "当价格 {direction} {period} 日均线",
+        "default": "配置触发条件"
+      },
+      "actions": {
+        "buy": "买入",
+        "sell": "卖出",
+        "fixedAmount": "{amount} 美元",
+        "cashPercent": "可用现金的 {amount}%",
+        "positionPercent": "当前持仓的 {amount}%",
+        "totalValuePercent": "仓位至总资产的 {amount}%"
+      },
+      "cooldown": {
+        "enabled": "随后 {days} 天内不再重复执行",
+        "disabled": "不设置冷却期"
+      }
     }
   }
 }
