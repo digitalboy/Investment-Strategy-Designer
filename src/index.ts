@@ -15,6 +15,8 @@ interface Env {
 interface Variables {
 	firebaseUid: string;
 	email?: string;
+	displayName?: string;
+	photoUrl?: string;
 }
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>();

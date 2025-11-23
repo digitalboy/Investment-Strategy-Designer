@@ -13,6 +13,8 @@ interface Env {
 interface Variables {
 	firebaseUid: string;
 	email?: string;
+	displayName?: string;
+	photoUrl?: string;
 }
 
 export const strategyController = {
@@ -496,6 +498,7 @@ export const strategyController = {
 				try {
 					user = await dbService.createUser(firebaseUid, userEmail, displayName, photoUrl);
 				} catch (e) {
+					console.error('Failed to lazy create user during comment:', e);
 					return c.json({ error: { code: 'USER_NOT_FOUND', message: 'User not found and failed to create' } }, 404);
 				}
 			} else {
