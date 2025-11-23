@@ -1,10 +1,9 @@
 <script setup lang="ts">
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Pencil, Trash2 } from 'lucide-vue-next'
 
-const props = defineProps<{
+const { triggerSummaries, canEdit, emptyStateMessage } = defineProps<{
     triggerSummaries: Array<{
         id: string
         order: number

@@ -8,7 +8,7 @@ import type { StrategySummaryDTO } from '@/types'
 import { formatDate } from '@/lib/utils'
 
 const { t } = useI18n({ useScope: 'global' })
-const props = withDefaults(defineProps<{
+const { strategy, rank, showAuthor, manageMode } = withDefaults(defineProps<{
     strategy: StrategySummaryDTO
     rank?: number
     showAuthor?: boolean

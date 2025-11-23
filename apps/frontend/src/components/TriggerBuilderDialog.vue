@@ -31,8 +31,7 @@ import TriggerPreviewPanel from './builder/TriggerPreviewPanel.vue'
 import {
     getConditionConfig,
     getConditionKeyFromTrigger,
-    type TriggerOptionKey,
-    baseConditionDefaults // Used for resets
+    type TriggerOptionKey
 } from './builder/constants'
 
 const { t } = useI18n()
@@ -366,7 +365,7 @@ const primaryButtonLabel = computed(() => (isEditing.value ? t('triggerBuilderDi
                                 :class="{ 'opacity-50 pointer-events-none': !enableCooldown }">
                                 <div class="space-y-2 rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
                                     <Label class="text-xs text-slate-500">{{ t('triggerBuilderDialog.cooldown.days')
-                                        }}</Label>
+                                    }}</Label>
                                     <div class="relative">
                                         <Input type="number" v-model="cooldownDays" class="h-10 pr-10" />
                                         <span class="absolute right-3 top-2.5 text-xs text-slate-500">{{
@@ -390,7 +389,8 @@ const primaryButtonLabel = computed(() => (isEditing.value ? t('triggerBuilderDi
                                 {{ t('triggerBuilderDialog.buttons.next') }}
                             </Button>
                             <span v-else class="text-xs text-slate-500">{{ t('triggerBuilderDialog.buttons.complete', {
-                                button: primaryButtonLabel }) }}</span>
+                                button: primaryButtonLabel
+                            }) }}</span>
                         </div>
                     </div>
 
@@ -403,7 +403,7 @@ const primaryButtonLabel = computed(() => (isEditing.value ? t('triggerBuilderDi
                 <Button variant="outline" @click="emit('update:open', false)">{{
                     t('triggerBuilderDialog.buttons.cancel') }}</Button>
                 <Button :disabled="activeStep !== stepItems.length" @click="handleSave">{{ primaryButtonLabel
-                    }}</Button>
+                }}</Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>
