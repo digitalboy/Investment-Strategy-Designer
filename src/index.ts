@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
-import { authMiddleware } from './middleware/auth';
+import { authMiddleware, optionalAuthMiddleware } from './middleware/auth';
 import { backtestController, userController, strategyController } from './controllers';
 
 // 定义环境变量接口
@@ -44,8 +44,8 @@ api.post('/users/sync', authMiddleware, userController.syncUser);
 
 // Strategy management
 api.post('/strategies', authMiddleware, strategyController.createStrategy);
-api.get('/strategies', authMiddleware, strategyController.getStrategies); // Handles both 'mine' and 'public'
-api.get('/strategies/:id', authMiddleware, strategyController.getStrategy); // Handles public view logic too
+api.get('/strategies', optionalAuthMiddleware, strategyController.getStrategies); // Handles both 'mine' and 'public'
+api.get('/strategies/:id', optionalAuthMiddleware, strategyController.getStrategy); // Handles public view logic too
 api.put('/strategies/:id', authMiddleware, strategyController.updateStrategy);
 api.delete('/strategies/:id', authMiddleware, strategyController.deleteStrategy);
 

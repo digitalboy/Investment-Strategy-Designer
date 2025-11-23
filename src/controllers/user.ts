@@ -12,6 +12,8 @@ interface Env {
 interface Variables {
 	firebaseUid: string;
 	email?: string;
+	displayName?: string;
+	photoUrl?: string;
 }
 
 export const userController = {
@@ -19,6 +21,9 @@ export const userController = {
 		try {
 			// Get firebaseUid from the authentication middleware
 			const firebaseUid = c.get('firebaseUid');
+			const email = c.get('email');
+			const displayName = c.get('displayName');
+			const photoUrl = c.get('photoUrl');
 
 			if (!firebaseUid) {
 				return c.json({
@@ -35,13 +40,13 @@ export const userController = {
 			let user = await dbService.getUserByFirebaseUid(firebaseUid);
 
 			if (user) {
-				// User exists, update last login
-				await dbService.updateUserLastLogin(firebaseUid);
+				// User exists, update profile and last login
+				await dbService.updateUser(firebaseUid, displayName, photoUrl);
 				user = await dbService.getUserByFirebaseUid(firebaseUid);
 			} else {
 				// User doesn't exist, create new user
-				const email = c.get('email') || `${firebaseUid}@example.com`;
-				user = await dbService.createUser(firebaseUid, email);
+				const userEmail = email || `${firebaseUid}@example.com`;
+				user = await dbService.createUser(firebaseUid, userEmail, displayName, photoUrl);
 			}
 
 			if (!user) {
@@ -57,6 +62,8 @@ export const userController = {
 				id: user.id,
 				firebaseUid: user.firebase_uid,
 				email: user.email,
+				displayName: user.display_name,
+				photoUrl: user.photo_url,
 				createdAt: user.created_at,
 			};
 

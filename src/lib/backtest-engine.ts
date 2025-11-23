@@ -1,5 +1,5 @@
 // src/lib/backtest-engine.ts
-import { StrategyConfig, Trigger, ETFData, BacktestResultDTO, ETFDataPoint, PerformanceMetrics } from '../types';
+import { StrategyConfig, Trigger, ETFData, BacktestResultDTO, ETFDataPoint, PerformanceMetrics, TradeStats } from '../types';
 
 interface AccountState {
 	cash: number;
@@ -27,7 +27,7 @@ export class BacktestEngine {
 		etfData: ETFData
 	): Promise<BacktestResultDTO> {
 		// 初始化账户状态
-		const initialAccountState: AccountState = {
+		const accountState: AccountState = {
 			cash: strategy.initialCapital,
 			positions: 0,
 			totalValue: strategy.initialCapital,
@@ -54,25 +54,43 @@ export class BacktestEngine {
 			accountHistory: {},
 		};
 
+		// 待处理订单 (用于次日开盘执行)
+		let pendingOrders: { trigger: Trigger; triggerId: string; reason: string }[] = [];
+
 		// 执行回测 - 遍历每一天
 		for (let i = 0; i < filteredData.length; i++) {
 			const currentData = filteredData[i];
 			const currentDate = currentData.d;
-			const currentPrice = currentData.c;
+			const currentClose = currentData.c;
+			const currentOpen = currentData.o;
 
-			// 计算当前总价值
-			const currentTotalValue = initialAccountState.cash + (initialAccountState.positions * currentPrice);
+			// 1. 执行待处理订单 (使用当日开盘价)
+			if (pendingOrders.length > 0) {
+				for (const order of pendingOrders) {
+					this.executeTriggerAction(
+						order.trigger,
+						accountState,
+						currentOpen, // 使用开盘价执行
+						currentDate,
+						order.reason
+					);
+				}
+				pendingOrders = [];
+			}
 
-			// 更新账户状态
-			const currentAccountState: AccountState = {
-				...initialAccountState,
+			// 2. 更新账户价值 (使用当日收盘价)
+			const currentTotalValue = accountState.cash + (accountState.positions * currentClose);
+
+			// 更新账户状态快照
+			const currentAccountStateSnapshot: AccountState = {
+				...accountState,
 				totalValue: currentTotalValue,
 			};
 
 			// 保存账户历史
-			executionState.accountHistory[currentDate] = { ...currentAccountState };
+			executionState.accountHistory[currentDate] = { ...currentAccountStateSnapshot };
 
-			// 检查并执行触发器
+			// 3. 检查触发器 (使用当日收盘数据)
 			for (let j = 0; j < strategy.triggers.length; j++) {
 				const trigger = strategy.triggers[j];
 				const triggerId = `trigger_${j}`;
@@ -87,29 +105,22 @@ export class BacktestEngine {
 				}
 
 				// 检查触发器条件
-				if (this.checkTriggerCondition(trigger, filteredData, i, currentAccountState, currentPrice)) {
-					// 执行触发器动作
-					this.executeTriggerAction(
+				if (this.checkTriggerCondition(trigger, filteredData, i, currentAccountStateSnapshot, currentClose)) {
+					// 添加到待处理订单，将在下一天开盘执行
+					pendingOrders.push({
 						trigger,
-						currentAccountState,
-						currentPrice,
-						currentDate,
-						`Trigger ${j + 1}`
-					);
+						triggerId,
+						reason: `Trigger ${j + 1} (Signal on ${currentDate})`
+					});
 
-					// 更新最后执行日期
+					// 更新最后执行日期 (标记为今日触发)
 					executionState.lastTriggerExecution[triggerId] = currentDate;
 				}
 			}
-
-			// 更新初始账户状态以反映交易后的实际情况
-			initialAccountState.cash = currentAccountState.cash;
-			initialAccountState.positions = currentAccountState.positions;
-			initialAccountState.tradeHistory = [...currentAccountState.tradeHistory];
 		}
 
 		// 计算性能指标
-		const performance = this.calculatePerformance(filteredData, executionState.accountHistory, strategy.initialCapital);
+		const performance = this.calculatePerformance(filteredData, executionState.accountHistory, strategy.initialCapital, accountState.tradeHistory);
 
 		// 准备图表数据
 		const chartData = this.prepareChartData(filteredData, executionState.accountHistory);
@@ -121,6 +132,7 @@ export class BacktestEngine {
 			},
 			performance,
 			charts: chartData,
+			trades: accountState.tradeHistory
 		};
 	}
 
@@ -183,20 +195,27 @@ export class BacktestEngine {
 		}
 
 		let streakCount = 0;
-		for (let i = currentIndex; i > currentIndex - count; i--) {
-			const prevPrice = data[i - 1].c;
-			const currPrice = data[i].c;
+		for (let offset = 0; offset < count - 1; offset++) {
+			const currentIdx = currentIndex - offset;
+			const prevIdx = currentIdx - 1;
+
+			if (prevIdx < 0) {
+				return false;
+			}
+
+			const prevPrice = data[prevIdx].c;
+			const currPrice = data[currentIdx].c;
 
 			if (direction === 'up' && currPrice > prevPrice) {
 				streakCount++;
 			} else if (direction === 'down' && currPrice < prevPrice) {
 				streakCount++;
 			} else {
-				break;
+				return false;
 			}
 		}
 
-		return streakCount >= count;
+		return streakCount === count - 1;
 	}
 
 	private checkNewHigh(params: { days: number }, data: ETFDataPoint[], currentIndex: number): boolean {
@@ -238,15 +257,79 @@ export class BacktestEngine {
 		}
 	}
 
-	// 这里应该实现RSI和MA交叉的检查
-	private checkRSI(_params: { period: number; threshold: number; operator: 'above' | 'below' }, _data: ETFDataPoint[], _currentIndex: number): boolean {
-		// RSI计算比较复杂，需要先计算RS
-		// RSI = 100 - (100 / (1 + RS))
-		// RS = 平均收益 / 平均损失
+	/**
+	 * 检查 RSI (相对强弱指标) 条件
+	 *
+	 * @param params 参数包含:
+	 *   - period: 计算周期 (通常为 14)
+	 *   - threshold: 阈值 (如 30 或 70)
+	 *   - operator: 判断方向 ('above' > 阈值, 'below' < 阈值)
+	 * @param data ETF数据点数组
+	 * @param currentIndex 当前回测到的日期索引
+	 */
+	private checkRSI(
+		params: { period: number; threshold: number; operator: 'above' | 'below' },
+		data: ETFDataPoint[],
+		currentIndex: number
+	): boolean {
+		const { period, threshold, operator } = params;
 
-		// 简化实现 - 实际应用中需要完整实现RSI计算
-		console.warn('RSI check is not fully implemented in this example');
-		return false;
+		// 1. 数据量检查
+		// RSI 计算需要前一日的数据来计算涨跌幅，所以需要 period + 1 个数据点
+		// 如果历史数据不足以计算指定周期的 RSI，直接返回 false
+		if (currentIndex < period) {
+			return false;
+		}
+
+		// 2. 计算周期内的总涨幅和总跌幅
+		// 采用 Cutler's RSI 算法 (基于简单移动平均 SMA)，无状态，适合当前架构
+		let sumGain = 0;
+		let sumLoss = 0;
+
+		// 回溯过去 period 天，计算每天的涨跌
+		for (let i = 0; i < period; i++) {
+			// 获取当天的索引和前一天的索引
+			const idx = currentIndex - i;
+			const prevIdx = idx - 1;
+
+			// 计算价格变动 (收盘价 - 前一日收盘价)
+			const change = data[idx].c - data[prevIdx].c;
+
+			if (change > 0) {
+				// 如果是涨，计入总涨幅
+				sumGain += change;
+			} else {
+				// 如果是跌，计入总跌幅 (取绝对值)
+				sumLoss += Math.abs(change);
+			}
+		}
+
+		// 3. 计算平均涨幅 (AvgGain) 和 平均跌幅 (AvgLoss)
+		const avgGain = sumGain / period;
+		const avgLoss = sumLoss / period;
+
+		// 4. 计算 RSI
+		let rsi = 0;
+
+		// 特殊情况处理：如果平均跌幅为 0，说明过去 N 天全是涨的，RSI 为 100
+		if (avgLoss === 0) {
+			rsi = 100;
+		} else {
+			// 正常计算：
+			// RS (相对强弱值) = 平均涨幅 / 平均跌幅
+			const rs = avgGain / avgLoss;
+			// RSI 公式 = 100 - (100 / (1 + RS))
+			rsi = 100 - (100 / (1 + rs));
+		}
+
+		// 5. 判断条件
+		// 如果操作符是 'above' (例如 RSI > 70 超买区)，判断 rsi > threshold
+		// 如果操作符是 'below' (例如 RSI < 30 超卖区)，判断 rsi < threshold
+		if (operator === 'above') {
+			return rsi > threshold;
+		} else {
+			return rsi < threshold;
+		}
 	}
 
 	private checkMACross(params: { period: number; direction: 'above' | 'below' }, data: ETFDataPoint[], currentIndex: number): boolean {
@@ -304,7 +387,7 @@ export class BacktestEngine {
 				});
 			}
 		} else if (action.type === 'sell') {
-			quantity = this.calculateSellQuantity(action.value, accountState);
+			quantity = this.calculateSellQuantity(action.value, accountState, currentPrice);
 			if (quantity > 0) {
 				// 确保不会卖出超过持有的数量
 				quantity = Math.min(quantity, accountState.positions);
@@ -331,37 +414,54 @@ export class BacktestEngine {
 		accountState: AccountState,
 		currentPrice: number
 	): number {
+		let amountToSpend = 0;
+
 		switch (value.type) {
 			case 'fixedAmount':
-				return value.amount / currentPrice;
+				amountToSpend = value.amount;
+				break;
 			case 'cashPercent':
-				return (accountState.cash * value.amount / 100) / currentPrice;
+				amountToSpend = accountState.cash * value.amount / 100;
+				break;
 			case 'totalValuePercent':
 				const targetValue = accountState.totalValue * value.amount / 100;
 				const currentValue = accountState.positions * currentPrice;
 				const additionalValue = targetValue - currentValue;
 				if (additionalValue > 0) {
-					return additionalValue / currentPrice;
+					amountToSpend = additionalValue;
 				}
-				return 0;
+				break;
 			default:
-				return 0;
+				amountToSpend = 0;
 		}
+
+		// 核心修正：确保购买金额不超过可用现金
+		amountToSpend = Math.min(amountToSpend, accountState.cash);
+
+		if (amountToSpend <= 0) return 0;
+		return amountToSpend / currentPrice;
 	}
 
 	private calculateSellQuantity(
 		value: { type: string; amount: number },
-		accountState: AccountState
+		accountState: AccountState,
+		currentPrice: number
 	): number {
 		switch (value.type) {
 			case 'fixedAmount':
-				return value.amount / accountState.positions; // 这里需要修正，应该是固定金额对应的份额
+				return value.amount / currentPrice;
 			case 'positionPercent':
 				return accountState.positions * value.amount / 100;
 			case 'totalValuePercent':
+				// 卖出直到持仓价值等于总价值的百分比
 				const targetValue = accountState.totalValue * value.amount / 100;
-				const currentValue = accountState.positions * accountState.totalValue / (accountState.cash + accountState.positions);
-				return Math.min(accountState.positions, targetValue / currentValue);
+				const currentPositionValue = accountState.positions * currentPrice;
+				const amountToSell = currentPositionValue - targetValue;
+
+				if (amountToSell > 0) {
+					return amountToSell / currentPrice;
+				}
+				return 0;
 			default:
 				return 0;
 		}
@@ -377,10 +477,20 @@ export class BacktestEngine {
 	private calculatePerformance(
 		data: ETFDataPoint[],
 		accountHistory: { [date: string]: AccountState },
-		_initialCapital: number
+		initialCapital: number,
+		tradeHistory: TradeRecord[]
 	): { strategy: PerformanceMetrics; benchmark: PerformanceMetrics } {
 		// 获取所有日期的账户价值
 		const dates = Object.keys(accountHistory).sort();
+
+		// 默认空统计
+		const emptyStats: TradeStats = {
+			totalTrades: 0,
+			buyCount: 0,
+			sellCount: 0,
+			totalInvested: 0,
+			totalProceeds: 0
+		};
 
 		if (dates.length === 0) {
 			return {
@@ -389,15 +499,38 @@ export class BacktestEngine {
 					annualizedReturn: 0,
 					maxDrawdown: 0,
 					sharpeRatio: 0,
+					tradeStats: emptyStats
 				},
 				benchmark: {
 					totalReturn: 0,
 					annualizedReturn: 0,
 					maxDrawdown: 0,
 					sharpeRatio: 0,
+					tradeStats: emptyStats
 				}
 			};
 		}
+
+		// 计算策略交易统计
+		const buyTrades = tradeHistory.filter(t => t.action === 'buy');
+		const sellTrades = tradeHistory.filter(t => t.action === 'sell');
+
+		const strategyTradeStats: TradeStats = {
+			totalTrades: tradeHistory.length,
+			buyCount: buyTrades.length,
+			sellCount: sellTrades.length,
+			totalInvested: buyTrades.reduce((sum, t) => sum + (t.quantity * t.price), 0),
+			totalProceeds: sellTrades.reduce((sum, t) => sum + (t.quantity * t.price), 0)
+		};
+
+		// 计算基准交易统计 (假设期初全仓买入)
+		const benchmarkTradeStats: TradeStats = {
+			totalTrades: 1,
+			buyCount: 1,
+			sellCount: 0,
+			totalInvested: initialCapital,
+			totalProceeds: 0
+		};
 
 		// 计算策略性能
 		const strategyValues = dates.map(date => accountHistory[date].totalValue);
@@ -436,12 +569,14 @@ export class BacktestEngine {
 				annualizedReturn: strategyAnnualizedReturn,
 				maxDrawdown: strategyMaxDrawdown,
 				sharpeRatio: strategySharpeRatio,
+				tradeStats: strategyTradeStats,
 			},
 			benchmark: {
 				totalReturn: benchmarkTotalReturn,
 				annualizedReturn: benchmarkAnnualizedReturn,
 				maxDrawdown: benchmarkMaxDrawdown,
 				sharpeRatio: benchmarkSharpeRatio,
+				tradeStats: benchmarkTradeStats,
 			}
 		};
 	}
