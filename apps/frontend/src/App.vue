@@ -1,17 +1,32 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useStrategyStore } from '@/stores/strategy'
+import { useLanguageStore } from '@/stores/language'
 import Navbar from '@/components/Navbar.vue'
 import WelcomeState from '@/components/WelcomeState.vue'
 import StrategyDashboard from '@/components/StrategyDashboard.vue'
 import CommunityBoard from '@/components/CommunityBoard.vue'
 import SetupWizardDialog from '@/components/SetupWizardDialog.vue'
 
+const { t } = useI18n({ useScope: 'global' })
+const languageStore = useLanguageStore()
 const authStore = useAuthStore()
 const strategyStore = useStrategyStore()
 const showSetupWizard = ref(false)
 const showEditor = ref(false)
+const forceRerenderKey = ref(0) // 用于强制组件重新渲染
+
+// 监听语言变化并强制组件重新渲染以确保UI更新
+watch(
+  () => languageStore.currentLanguage,
+  () => {
+    // 强制组件重新渲染以确保UI更新
+    forceRerenderKey.value += 1;
+  },
+  { immediate: true }
+);
 
 onMounted(() => {
   authStore.init()
@@ -49,7 +64,7 @@ const handleViewStrategy = async (strategyId: string) => {
 </script>
 
 <template>
-  <div class="min-h-screen font-sans text-slate-900 relative">
+  <div :key="forceRerenderKey" class="min-h-screen font-sans text-slate-900 relative">
     <!-- 动态背景装饰 - 固定全屏覆盖 -->
     <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
       <!-- 基础渐变背景 -->
@@ -145,7 +160,7 @@ const handleViewStrategy = async (strategyId: string) => {
               <div class="relative flex justify-center">
                 <span
                   class="bg-linear-to-r from-slate-50 via-blue-50/50 to-slate-50 px-6 text-sm font-medium text-slate-500 tracking-wider uppercase">
-                  精选策略
+                  {{ t('common.selectedStrategies') }}
                 </span>
               </div>
             </div>
@@ -163,10 +178,10 @@ const handleViewStrategy = async (strategyId: string) => {
               </div>
               <div class="relative">
                 <h2 class="text-3xl font-bold text-white mb-3 tracking-tight">
-                  欢迎回来，策略大师 👋
+                  {{ t('common.welcomeBack') }}, {{ t('dashboard.strategyMaster') }} 👋
                 </h2>
                 <p class="text-indigo-100 text-lg max-w-2xl">
-                  继续优化您的投资策略，或探索社区中的创新想法
+                  {{ t('dashboard.continueOptimizing') }}
                 </p>
               </div>
             </div>

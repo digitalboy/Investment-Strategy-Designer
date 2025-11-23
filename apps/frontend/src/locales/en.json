@@ -1,0 +1,220 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "back": "Back",
+    "continue": "Continue",
+    "edit": "Edit",
+    "delete": "Delete",
+    "create": "Create",
+    "view": "View",
+    "welcome": "Welcome",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "notification": "Notification",
+    "description": "Build, backtest, and optimize your quantitative trading strategies without coding, using intuitive \"if...then...\" rules. Let data drive your investment decisions.",
+    "documentation": "Documentation",
+    "backtest": "Visual Backtesting",
+    "flexibleEngine": "Flexible Rule Engine",
+    "cloudComputing": "Lightning-Fast Cloud Computing",
+    "selectedStrategies": "Featured Strategies",
+    "welcomeBack": "Welcome Back"
+  },
+  "dashboard": {
+    "strategyMaster": "Strategy Master",
+    "continueOptimizing": "Continue optimizing your investment strategies, or explore innovative ideas in the community",
+    "welcomeBack": "Welcome Back",
+    "totalValue": "Total Value",
+    "totalReturn": "Total Return",
+    "todayChange": "Today's Change",
+    "myStrategies": "My Strategies",
+    "recentActivity": "Recent Activity",
+    "marketOverview": "Market Overview"
+  },
+  "welcome": {
+    "backtest": {
+      "description": "Generate real-time NAV curves with professional metrics like Sharpe ratio and max drawdown to intuitively evaluate strategy performance."
+    },
+    "engine": {
+      "description": "Support multiple technical indicators (RSI, MA) and price action triggers, freely combining buy/sell logic."
+    },
+    "cloud": {
+      "description": "High-performance edge computing architecture based on Cloudflare Workers, millisecond response, accessible anytime, anywhere."
+    }
+  },
+  "etf": {
+    "voo": {
+      "description": "Largest and cheapest 'US Top 500' one-stop package"
+    },
+    "qqq": {
+      "description": "NASDAQ 100 tech leaders 'faith fund'"
+    },
+    "vti": {
+      "description": "One fund = entire US stock market (large+mid+small 3500 stocks)"
+    },
+    "vug": {
+      "description": "Large-cap growth style 'enhanced version'"
+    },
+    "ijr": {
+      "description": "Small-cap broad-based 'tool', high trading volume"
+    },
+    "schd": {
+      "description": "High dividend + quality screening, retail investors' 'favorite for dividend income'"
+    },
+    "ixus": {
+      "description": "One-click setup for 'global stocks outside US'"
+    }
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password",
+    "signInToAccount": "Sign in to your account",
+    "noAccountYet": "No account yet?",
+    "alreadyHaveAccount": "Already have an account?",
+    "signUp": "Sign Up"
+  },
+  "navbar": {
+    "dashboard": "Dashboard",
+    "strategies": "Strategies",
+    "community": "Community",
+    "reports": "Reports",
+    "settings": "Settings",
+    "profile": "Profile"
+  },
+  "strategy": {
+    "title": "Investment Strategy",
+    "myStrategies": "My Strategies",
+    "createNew": "Create New Strategy",
+    "strategyName": "Strategy Name",
+    "description": "Description",
+    "selectTemplate": "Select Template",
+    "setup": "Setup",
+    "builder": "Builder",
+    "results": "Results",
+    "performance": "Performance",
+    "backtest": "Backtest",
+    "live": "Live",
+    "paper": "Paper",
+    "portfolio": "Portfolio",
+    "riskManagement": "Risk Management"
+  },
+  "community": {
+    "title": "Strategy Community",
+    "popularStrategies": "Popular Strategies",
+    "myStrategies": "My Strategies",
+    "publicStrategies": "Public Strategies",
+    "strategyOfTheDay": "Strategy of the Day",
+    "trending": "Trending",
+    "explore": "Explore",
+    "sortBy": "Sort by",
+    "filterBy": "Filter by",
+    "manageOptimize": "Manage and optimize your investment strategies",
+    "featuredStrategies": "Featured Strategies",
+    "discoverTop": "Discover top quantitative strategies",
+    "refresh": "Refresh",
+    "newStrategy": "New Strategy",
+    "recent": "Newest",
+    "popular": "Most Popular",
+    "return": "Return",
+    "noPublic": "No public strategies yet",
+    "shareFirst": "Share your first strategy now!",
+    "comments": "Comments",
+    "commentDesc": "View and post comments about this strategy.",
+    "strategyCard": {
+      "public": "✓ Public",
+      "draft": "Draft",
+      "annualReturn": "Annual Return",
+      "maxDrawdown": "Max Drawdown",
+      "triggers": "",
+      "unknown": "Unknown",
+      "unspecified": "Unspecified"
+    },
+    "commentsDialog": {
+      "author": "Strategy Author",
+      "anonymousUser": "Anonymous User",
+      "loading": "Loading...",
+      "noComments": "No comments yet",
+      "beFirst": "Be the first to comment!",
+      "placeholder": "Share your thoughts...",
+      "send": "Send"
+    },
+    "commentItem": {
+      "anonymousUser": "Anonymous User",
+      "cancel": "Cancel",
+      "reply": "Reply",
+      "replyPlaceholder": "Reply to comment...",
+      "send": "Send"
+    }
+  },
+  "saveStrategyDialog": {
+    "title": "Save Strategy",
+    "description": "Name your strategy so you can view and load it later.",
+    "strategyName": "Strategy Name",
+    "example": "e.g., QQQ Bottom Fishing Strategy",
+    "descriptionPlaceholder": "Briefly describe the strategy logic",
+    "descriptionLabel": "Description (Optional)",
+    "shareToCommunity": "Share to community (allows others to view and like)",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving..."
+  },
+  "resultsReportDialog": {
+    "title": "Backtest Report",
+    "description": "View the historical backtest performance, return comparisons, and detailed trading data of the strategy.",
+    "strategyCardTitle": "My Strategy",
+    "benchmarkCardTitle": "Benchmark: Buy & Hold",
+    "noData": "No data available",
+    "runBacktest": "Run a backtest to view results",
+    "dataError": "Data format error: Unable to parse performance metrics",
+    "closeReport": "Close Report",
+    "defaultStrategy": "Strategy",
+    "defaultSymbol": "Symbol"
+  },
+  "setupWizard": {
+    "title": "Strategy Setup Wizard",
+    "step1": "Basic Information",
+    "step2": "Parameter Settings",
+    "step3": "Risk Configuration",
+    "step4": "Confirmation",
+    "strategyType": "Strategy Type",
+    "investmentAmount": "Investment Amount",
+    "riskLevel": "Risk Level",
+    "timeHorizon": "Time Horizon",
+    "benchmark": "Benchmark",
+    "next": "Next",
+    "previous": "Previous",
+    "finish": "Finish",
+    "setupParameters": "Set Basic Backtest Parameters",
+    "pleaseEnterETF": "Please enter the ETF code and date range you want to backtest.",
+    "etfCode": "ETF Code",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "initialCapital": "Initial Capital",
+    "selectETF": "Select ETF",
+    "startDesigningStrategy": "Start Designing Strategy"
+  },
+  "reports": {
+    "title": "Reports",
+    "summary": "Summary",
+    "performance": "Performance",
+    "riskMetrics": "Risk Metrics",
+    "returnAnalysis": "Return Analysis",
+    "drawdown": "Drawdown",
+    "sharpeRatio": "Sharpe Ratio",
+    "maxReturn": "Max Return",
+    "minReturn": "Min Return"
+  },
+  "validation": {
+    "required": "This field is required",
+    "emailInvalid": "Please enter a valid email address",
+    "passwordMinLength": "Password must be at least 8 characters long",
+    "passwordsNotMatch": "Passwords do not match"
+  }
+}

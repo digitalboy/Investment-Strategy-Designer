@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useStrategyStore } from '@/stores/strategy'
 import { useAuthStore } from '@/stores/auth'
@@ -8,6 +9,7 @@ import CommentsDialog from '@/components/CommentsDialog.vue'
 import StrategyCard from '@/components/shared/StrategyCard.vue'
 import { Plus, Trophy, RefreshCw } from 'lucide-vue-next'
 
+const { t } = useI18n({ useScope: 'global' })
 const emit = defineEmits(['create-strategy', 'view-strategy'])
 
 const strategyStore = useStrategyStore()
@@ -119,8 +121,8 @@ const handleLoadMoreComments = async () => {
                     <div>
                         <h2
                             class="text-2xl font-bold tracking-tight bg-linear-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                            我的策略</h2>
-                        <p class="text-sm text-slate-500 mt-0.5">管理和优化您的投资策略</p>
+                            {{ t('community.myStrategies') }}</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">{{ t('community.manageOptimize') }}</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
@@ -128,13 +130,13 @@ const handleLoadMoreComments = async () => {
                         class="border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all"
                         @click="strategyStore.fetchUserStrategies()">
                         <RefreshCw class="mr-2 h-4 w-4" />
-                        刷新
+                        {{ t('community.refresh') }}
                     </Button>
                     <Button size="sm"
                         class="bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white border-none shadow-lg shadow-indigo-500/30 transition-all"
                         @click="emit('create-strategy')">
                         <Plus class="mr-2 h-4 w-4" />
-                        新建策略
+                        {{ t('community.newStrategy') }}
                     </Button>
                 </div>
             </div>
@@ -156,8 +158,8 @@ const handleLoadMoreComments = async () => {
                     <div>
                         <h2
                             class="text-2xl font-bold tracking-tight bg-linear-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                            精选榜单</h2>
-                        <p class="text-sm text-slate-500 mt-0.5">发现顶尖量化策略</p>
+                            {{ t('community.featuredStrategies') }}</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">{{ t('community.discoverTop') }}</p>
                     </div>
                 </div>
                 <div class="flex gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
@@ -166,7 +168,8 @@ const handleLoadMoreComments = async () => {
                             'px-4 py-2 text-sm rounded-lg transition-all font-medium',
                             sortBy === sort ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                         ]">
-                        {{ sort === 'recent' ? '最新发布' : (sort === 'popular' ? '最受欢迎' : '收益率') }}
+                        {{ sort === 'recent' ? t('community.recent') : (sort === 'popular' ? t('community.popular') :
+                            t('community.return')) }}
                     </button>
                 </div>
             </div>
@@ -182,8 +185,8 @@ const handleLoadMoreComments = async () => {
                     <div class="p-4 bg-slate-100 rounded-full">
                         <Trophy class="h-8 w-8 text-slate-400" />
                     </div>
-                    <p class="text-lg font-medium">暂无公开策略</p>
-                    <p class="text-sm text-slate-400">快来分享你的第一个策略吧！</p>
+                    <p class="text-lg font-medium">{{ t('community.noPublic') }}</p>
+                    <p class="text-sm text-slate-400">{{ t('community.shareFirst') }}</p>
                 </div>
             </div>
 
@@ -196,8 +199,9 @@ const handleLoadMoreComments = async () => {
             <!-- Comments Dialog -->
             <CommentsDialog :open="showCommentsDialog" @update:open="showCommentsDialog = $event"
                 :comments="currentStrategyComments" :has-more="hasMoreComments" :loading="commentsLoading"
-                :strategy-name="currentStrategyInfo?.name" :author="currentStrategyInfo?.author" title="评论区"
-                description="查看和发表关于此策略的评论。" @add-comment="handleAddComment" @load-more="handleLoadMoreComments" />
+                :strategy-name="currentStrategyInfo?.name" :author="currentStrategyInfo?.author"
+                :title="t('community.comments')" :description="t('community.commentDesc')"
+                @add-comment="handleAddComment" @load-more="handleLoadMoreComments" />
         </div>
     </div>
 

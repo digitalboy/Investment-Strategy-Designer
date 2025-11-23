@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref } from 'vue'
 import { useStrategyStore } from '@/stores/strategy'
 import {
@@ -12,6 +13,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+
+const { t } = useI18n({ useScope: 'global' })
 
 defineProps<{
   open: boolean
@@ -48,38 +51,39 @@ const handleSave = async () => {
   <Dialog :open="open" @update:open="$emit('update:open', $event)">
     <DialogContent class="sm:max-w-[425px]">
       <DialogHeader>
-        <DialogTitle>保存策略</DialogTitle>
+        <DialogTitle>{{ t('saveStrategyDialog.title') }}</DialogTitle>
         <DialogDescription>
-          给您的策略起个名字，以便日后查看和加载。
+          {{ t('saveStrategyDialog.description') }}
         </DialogDescription>
       </DialogHeader>
       <div class="grid gap-4 py-4">
         <div class="grid grid-cols-4 items-center gap-4">
           <Label for="name" class="text-right">
-            策略名称
+            {{ t('saveStrategyDialog.strategyName') }}
           </Label>
-          <Input id="name" v-model="name" placeholder="例如：QQQ 抄底策略" class="col-span-3" />
+          <Input id="name" v-model="name" :placeholder="t('saveStrategyDialog.example')" class="col-span-3" />
         </div>
         <div class="grid grid-cols-4 items-center gap-4">
           <Label for="description" class="text-right">
-            描述 (可选)
+            {{ t('saveStrategyDialog.descriptionLabel') }}
           </Label>
-          <Input id="description" v-model="description" placeholder="简要描述策略逻辑" class="col-span-3" />
+          <Input id="description" v-model="description" :placeholder="t('saveStrategyDialog.descriptionPlaceholder')"
+            class="col-span-3" />
         </div>
         <div class="grid grid-cols-4 items-center gap-4">
           <div class="col-start-2 col-span-3 flex items-center space-x-2">
             <input type="checkbox" id="isPublic" v-model="isPublic"
               class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
             <Label for="isPublic" class="font-normal cursor-pointer">
-              公开分享到社区 (允许他人查看和点赞)
+              {{ t('saveStrategyDialog.shareToCommunity') }}
             </Label>
           </div>
         </div>
       </div>
       <DialogFooter>
-        <Button variant="outline" @click="$emit('update:open', false)">取消</Button>
+        <Button variant="outline" @click="$emit('update:open', false)">{{ t('saveStrategyDialog.cancel') }}</Button>
         <Button type="submit" @click="handleSave" :disabled="!name || isSaving">
-          {{ isSaving ? '保存中...' : '保存' }}
+          {{ isSaving ? t('saveStrategyDialog.saving') : t('saveStrategyDialog.save') }}
         </Button>
       </DialogFooter>
     </DialogContent>

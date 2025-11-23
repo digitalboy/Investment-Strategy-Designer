@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
+import LanguageSelector from '@/components/LanguageSelector.vue'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
@@ -11,6 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
+const { t } = useI18n({ useScope: 'global' })
 const emit = defineEmits(['navigate-home'])
 
 const authStore = useAuthStore()
@@ -42,7 +45,7 @@ const handleLogout = () => {
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
-                    
+                    <LanguageSelector />
 
                     <div v-if="authStore.isLoading" class="h-8 w-8 rounded-full bg-slate-200 animate-pulse"></div>
 
@@ -67,7 +70,7 @@ const handleLogout = () => {
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem @click="handleLogout" class="text-red-600 cursor-pointer">
                                     <i class="fa-solid fa-right-from-bracket mr-2"></i>
-                                    退出登录
+                                    {{ t('auth.logout') }}
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -76,7 +79,7 @@ const handleLogout = () => {
                     <Button v-else @click="handleLogin" variant="default" size="sm"
                         class="bg-indigo-600 hover:bg-indigo-700 text-white">
                         <i class="fa-brands fa-google mr-2"></i>
-                        登录
+                        {{ t('auth.login') }}
                     </Button>
                 </div>
             </div>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useStrategyStore } from '@/stores/strategy'
 import {
     Dialog,
@@ -20,6 +21,7 @@ import {
     SelectTrigger,
 } from '@/components/ui/select'
 
+const { t } = useI18n({ useScope: 'global' })
 const props = defineProps<{
     open: boolean
 }>()
@@ -29,13 +31,13 @@ const emit = defineEmits(['update:open', 'completed'])
 const store = useStrategyStore()
 
 const ETF_OPTIONS = [
-    { value: 'VOO', name: 'Vanguard S&P 500 ETF', desc: '最大最便宜的“美股500强”一站式打包' },
-    { value: 'QQQ', name: 'Invesco QQQ Trust', desc: '纳指100科技龙头“信仰基”' },
-    { value: 'VTI', name: 'Vanguard Total Stock Market ETF', desc: '一只基金=整个美股（大+中+小3500只）' },
-    { value: 'VUG', name: 'Vanguard Growth ETF', desc: '大盘成长风格“增强版”' },
-    { value: 'IJR', name: 'iShares Core S&P Small-Cap ETF', desc: '小盘宽基“工具人”，交易量大' },
-    { value: 'SCHD', name: 'Schwab U.S. Dividend Equity ETF', desc: '高股息+质量筛选，散户“收息最爱”' },
-    { value: 'IXUS', name: 'iShares Core MSCI Total Intl ETF', desc: '一键配齐“除美外的全球股票”' },
+    { value: 'VOO', name: 'Vanguard S&P 500 ETF', desc: t('etf.voo.description') },
+    { value: 'QQQ', name: 'Invesco QQQ Trust', desc: t('etf.qqq.description') },
+    { value: 'VTI', name: 'Vanguard Total Stock Market ETF', desc: t('etf.vti.description') },
+    { value: 'VUG', name: 'Vanguard Growth ETF', desc: t('etf.vug.description') },
+    { value: 'IJR', name: 'iShares Core S&P Small-Cap ETF', desc: t('etf.ijr.description') },
+    { value: 'SCHD', name: 'Schwab U.S. Dividend Equity ETF', desc: t('etf.schd.description') },
+    { value: 'IXUS', name: 'iShares Core MSCI Total Intl ETF', desc: t('etf.ixus.description') },
 ]
 
 const formatLocalDate = (date: Date) => {
@@ -110,15 +112,15 @@ const handleSave = () => {
     <Dialog :open="open" @update:open="$emit('update:open', $event)">
         <DialogContent class="sm:max-w-[425px]">
             <DialogHeader>
-                <DialogTitle>第一步：设置回测基础参数</DialogTitle>
+                <DialogTitle>{{ t('setupWizard.step1') }}：{{ t('setupWizard.setupParameters') }}</DialogTitle>
                 <DialogDescription>
-                    请输入您想要回测的 ETF 代码及时间范围。
+                    {{ t('setupWizard.pleaseEnterETF') }}
                 </DialogDescription>
             </DialogHeader>
             <div class="grid gap-4 py-4">
                 <div class="grid grid-cols-4 items-center gap-4">
                     <Label for="etf" class="text-right">
-                        ETF 代码
+                        {{ t('setupWizard.etfCode') }}
                     </Label>
                     <div class="col-span-3">
                         <Select v-model="etfSymbol">
@@ -127,7 +129,7 @@ const handleSave = () => {
                                     <span class="font-medium">{{ selectedEtf.value }}</span>
                                     <span class="text-slate-500 text-xs truncate">{{ selectedEtf.name }}</span>
                                 </span>
-                                <span v-else class="text-muted-foreground">选择 ETF</span>
+                                <span v-else class="text-muted-foreground">{{ t('setupWizard.selectETF') }}</span>
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectGroup>
@@ -144,13 +146,13 @@ const handleSave = () => {
                 </div>
                 <div class="grid grid-cols-4 items-center gap-4">
                     <Label for="start-date" class="text-right">
-                        开始日期
+                        {{ t('setupWizard.startDate') }}
                     </Label>
                     <Input id="start-date" type="date" v-model="startDate" class="col-span-3" />
                 </div>
                 <div class="grid grid-cols-4 items-center gap-4">
                     <Label for="end-date" class="text-right">
-                        结束日期
+                        {{ t('setupWizard.endDate') }}
                     </Label>
                     <Input id="end-date" type="date" v-model="endDate" class="col-span-3" />
                 </div>
@@ -159,7 +161,7 @@ const handleSave = () => {
                 </p>
                 <div class="grid grid-cols-4 items-center gap-4">
                     <Label for="capital" class="text-right">
-                        初始本金
+                        {{ t('setupWizard.initialCapital') }}
                     </Label>
                     <div class="col-span-3 relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">$</span>
@@ -168,8 +170,8 @@ const handleSave = () => {
                 </div>
             </div>
             <DialogFooter>
-                <Button variant="outline" @click="$emit('update:open', false)">取消</Button>
-                <Button type="submit" @click="handleSave">开始设计策略</Button>
+                <Button variant="outline" @click="$emit('update:open', false)">{{ t('common.cancel') }}</Button>
+                <Button type="submit" @click="handleSave">{{ t('setupWizard.startDesigningStrategy') }}</Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>

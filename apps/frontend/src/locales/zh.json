@@ -1,0 +1,220 @@
+{
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "confirm": "确认",
+    "back": "返回",
+    "continue": "继续",
+    "edit": "编辑",
+    "delete": "删除",
+    "create": "创建",
+    "view": "查看",
+    "welcome": "欢迎",
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功",
+    "notification": "通知",
+    "description": "无需编写代码，通过直观的\"如果...那么...\"规则，构建、回测并优化您的量化交易策略。让数据驱动您的投资决策。",
+    "documentation": "文档",
+    "backtest": "可视化回测",
+    "flexibleEngine": "灵活规则引擎",
+    "cloudComputing": "极速云端计算",
+    "selectedStrategies": "精选策略",
+    "welcomeBack": "欢迎回来"
+  },
+  "dashboard": {
+    "strategyMaster": "策略大师",
+    "continueOptimizing": "继续优化您的投资策略，或探索社区中的创新想法",
+    "welcomeBack": "欢迎回来",
+    "totalValue": "总价值",
+    "totalReturn": "总回报",
+    "todayChange": "今日变化",
+    "myStrategies": "我的策略",
+    "recentActivity": "最近活动",
+    "marketOverview": "市场概览"
+  },
+  "welcome": {
+    "backtest": {
+      "description": "实时生成净值曲线，提供夏普比率、最大回撤等专业指标，直观评估策略表现。"
+    },
+    "engine": {
+      "description": "支持多种技术指标（RSI, MA）和价格行为触发器，自由组合买入卖出逻辑。"
+    },
+    "cloud": {
+      "description": "基于 Cloudflare Workers 的高性能边缘计算架构，毫秒级响应，随时随地访问。"
+    }
+  },
+  "etf": {
+    "voo": {
+      "description": "最大最便宜的\"美股500强\"一站式打包"
+    },
+    "qqq": {
+      "description": "纳指100科技龙头\"信仰基\""
+    },
+    "vti": {
+      "description": "一只基金=整个美股（大+中+小3500只）"
+    },
+    "vug": {
+      "description": "大盘成长风格\"增强版\""
+    },
+    "ijr": {
+      "description": "小盘宽基\"工具人\"，交易量大"
+    },
+    "schd": {
+      "description": "高股息+质量筛选，散户\"收息最爱\""
+    },
+    "ixus": {
+      "description": "一键配齐\"除美外的全球股票\""
+    }
+  },
+  "auth": {
+    "login": "登录",
+    "logout": "退出登录",
+    "register": "注册",
+    "email": "邮箱",
+    "password": "密码",
+    "confirmPassword": "确认密码",
+    "forgotPassword": "忘记密码",
+    "signInToAccount": "登录您的账户",
+    "noAccountYet": "还没有账户？",
+    "alreadyHaveAccount": "已经有账户了？",
+    "signUp": "注册"
+  },
+  "navbar": {
+    "dashboard": "仪表板",
+    "strategies": "策略",
+    "community": "社区",
+    "reports": "报告",
+    "settings": "设置",
+    "profile": "个人资料"
+  },
+  "strategy": {
+    "title": "投资策略",
+    "myStrategies": "我的策略",
+    "createNew": "创建新策略",
+    "strategyName": "策略名称",
+    "description": "描述",
+    "selectTemplate": "选择模板",
+    "setup": "设置",
+    "builder": "构建器",
+    "results": "结果",
+    "performance": "表现",
+    "backtest": "可视化回测",
+    "live": "实盘",
+    "paper": "模拟",
+    "portfolio": "投资组合",
+    "riskManagement": "风险管理"
+  },
+  "community": {
+    "title": "策略社区",
+    "popularStrategies": "热门策略",
+    "myStrategies": "我的策略",
+    "publicStrategies": "公共策略",
+    "strategyOfTheDay": "今日策略",
+    "trending": "趋势",
+    "explore": "探索",
+    "sortBy": "排序方式",
+    "filterBy": "筛选条件",
+    "manageOptimize": "管理和优化您的投资策略",
+    "featuredStrategies": "精选榜单",
+    "discoverTop": "发现顶尖量化策略",
+    "refresh": "刷新",
+    "newStrategy": "新建策略",
+    "recent": "最新发布",
+    "popular": "最受欢迎",
+    "return": "收益率",
+    "noPublic": "暂无公开策略",
+    "shareFirst": "快来分享你的第一个策略吧！",
+    "comments": "评论区",
+    "commentDesc": "查看和发表关于此策略的评论。",
+    "strategyCard": {
+      "public": "✓ 公开",
+      "draft": "草稿",
+      "annualReturn": "年化收益",
+      "maxDrawdown": "最大回撤",
+      "triggers": "个",
+      "unknown": "Unknown",
+      "unspecified": "未指定"
+    },
+    "commentsDialog": {
+      "author": "策略作者",
+      "anonymousUser": "匿名用户",
+      "loading": "加载中...",
+      "noComments": "暂无评论",
+      "beFirst": "快来抢沙发！",
+      "placeholder": "写下你的想法...",
+      "send": "发送"
+    },
+    "commentItem": {
+      "anonymousUser": "匿名用户",
+      "cancel": "取消",
+      "reply": "回复",
+      "replyPlaceholder": "回复评论...",
+      "send": "发送"
+    }
+  },
+  "saveStrategyDialog": {
+    "title": "保存策略",
+    "description": "给您的策略起个名字，以便日后查看和加载。",
+    "strategyName": "策略名称",
+    "example": "例如：QQQ 抄底策略",
+    "descriptionPlaceholder": "简要描述策略逻辑",
+    "descriptionLabel": "描述 (可选)",
+    "shareToCommunity": "公开分享到社区 (允许他人查看和点赞)",
+    "cancel": "取消",
+    "save": "保存",
+    "saving": "保存中..."
+  },
+  "resultsReportDialog": {
+    "title": "回测报告",
+    "description": "查看策略的历史回测表现、收益率对比及详细交易数据。",
+    "strategyCardTitle": "我的策略",
+    "benchmarkCardTitle": "基准：买入并持有",
+    "noData": "暂无数据",
+    "runBacktest": "请运行回测以查看结果",
+    "dataError": "数据格式错误: 无法解析性能指标",
+    "closeReport": "关闭报告",
+    "defaultStrategy": "策略",
+    "defaultSymbol": "标的"
+  },
+  "setupWizard": {
+    "title": "策略设置向导",
+    "step1": "基础信息",
+    "step2": "参数设置",
+    "step3": "风险配置",
+    "step4": "确认",
+    "strategyType": "策略类型",
+    "investmentAmount": "投资金额",
+    "riskLevel": "风险等级",
+    "timeHorizon": "时间范围",
+    "benchmark": "基准",
+    "next": "下一步",
+    "previous": "上一步",
+    "finish": "完成",
+    "setupParameters": "设置回测基础参数",
+    "pleaseEnterETF": "请输入您想要回测的 ETF 代码及时间范围。",
+    "etfCode": "ETF 代码",
+    "startDate": "开始日期",
+    "endDate": "结束日期",
+    "initialCapital": "初始本金",
+    "selectETF": "选择 ETF",
+    "startDesigningStrategy": "开始设计策略"
+  },
+  "reports": {
+    "title": "报告",
+    "summary": "摘要",
+    "performance": "表现",
+    "riskMetrics": "风险指标",
+    "returnAnalysis": "回报分析",
+    "drawdown": "回撤",
+    "sharpeRatio": "夏普比率",
+    "maxReturn": "最大回报",
+    "minReturn": "最小回报"
+  },
+  "validation": {
+    "required": "此字段为必填项",
+    "emailInvalid": "请输入有效的邮箱地址",
+    "passwordMinLength": "密码长度至少为8位",
+    "passwordsNotMatch": "两次输入的密码不一致"
+  }
+}

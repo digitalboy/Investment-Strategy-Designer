@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -7,6 +8,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { MessageSquare } from 'lucide-vue-next'
 import CommentItem, { type Comment } from '@/components/CommentItem.vue'
 
+const { t } = useI18n({ useScope: 'global' })
 const props = defineProps<{
     open: boolean
     comments: Comment[]
@@ -157,7 +159,7 @@ const commentTree = computed(() => {
                     <div class="grow">
                         <DialogTitle
                             class="text-xl font-bold bg-linear-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
-                            {{ strategyName || title || '评论区' }}
+                            {{ strategyName || title || t('community.comments') }}
                         </DialogTitle>
                         <div v-if="author" class="flex items-center gap-2.5 mt-2">
                             <Avatar class="h-8 w-8 border border-indigo-100 shadow-sm">
@@ -167,13 +169,14 @@ const commentTree = computed(() => {
                                 </AvatarFallback>
                             </Avatar>
                             <div class="flex flex-col">
-                                <span class="text-sm font-medium text-slate-700 leading-none">{{ author.name || '匿名用户'
+                                <span class="text-sm font-medium text-slate-700 leading-none">{{ author.name ||
+                                    t('commentsDialog.anonymousUser')
                                     }}</span>
-                                <span class="text-xs text-slate-400 mt-0.5">策略作者</span>
+                                <span class="text-xs text-slate-400 mt-0.5">{{ t('commentsDialog.author') }}</span>
                             </div>
                         </div>
                         <DialogDescription v-else class="text-slate-500 mt-1">
-                            {{ description || '查看和发表评论。' }}
+                            {{ description || t('community.commentDesc') }}
                         </DialogDescription>
                     </div>
                 </div>
@@ -185,7 +188,7 @@ const commentTree = computed(() => {
                 <div v-if="loading && comments.length === 0" class="text-center text-slate-400 py-12">
                     <div class="flex flex-col items-center gap-3">
                         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                        <p class="text-sm text-slate-500">加载中...</p>
+                        <p class="text-sm text-slate-500">{{ t('commentsDialog.loading') }}</p>
                     </div>
                 </div>
 
@@ -196,8 +199,8 @@ const commentTree = computed(() => {
                             class="p-4 bg-linear-to-br from-indigo-50 to-blue-50 rounded-full shadow-md shadow-indigo-500/20">
                             <MessageSquare class="h-8 w-8 text-indigo-400" />
                         </div>
-                        <p class="text-base font-medium text-slate-500">暂无评论</p>
-                        <p class="text-sm text-slate-400">快来抢沙发！</p>
+                        <p class="text-base font-medium text-slate-500">{{ t('commentsDialog.noComments') }}</p>
+                        <p class="text-sm text-slate-400">{{ t('commentsDialog.beFirst') }}</p>
                     </div>
                 </div>
 
@@ -218,12 +221,12 @@ const commentTree = computed(() => {
             <div
                 class="border-t border-indigo-200/40 pt-4 mt-auto bg-linear-to-r from-blue-50/30 to-indigo-50/30 -mx-6 px-6 -mb-6 pb-6 rounded-b-2xl">
                 <div class="flex gap-2">
-                    <Input v-model="newComment" placeholder="写下你的想法..."
+                    <Input v-model="newComment" :placeholder="t('commentsDialog.placeholder')"
                         class="border-indigo-200/60 bg-white/80 backdrop-blur-sm focus:border-indigo-400 focus:ring-indigo-200 focus:bg-white transition-all"
                         @keyup.enter="handleAddComment" />
                     <Button @click="handleAddComment" :disabled="!newComment.trim()"
                         class="bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 transition-all disabled:opacity-50 disabled:shadow-none">
-                        发送
+                        {{ t('commentsDialog.send') }}
                     </Button>
                 </div>
             </div>

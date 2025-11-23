@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -6,6 +7,7 @@ import { Heart, MessageSquare } from 'lucide-vue-next'
 import type { StrategySummaryDTO } from '@/types'
 import { formatDate } from '@/lib/utils'
 
+const { t } = useI18n({ useScope: 'global' })
 const props = withDefaults(defineProps<{
     strategy: StrategySummaryDTO
     rank?: number
@@ -28,12 +30,12 @@ const formatPercent = (value?: number) => {
 }
 
 const formatTriggerCount = (count?: number) => {
-    if (typeof count === 'number') return `${count} 个`
+    if (typeof count === 'number') return `${count} ${t('community.strategyCard.triggers')}`
     return '--'
 }
 
 const getEtfTicker = (strategy: StrategySummaryDTO) => {
-    return strategy.etfSymbol || '未指定'
+    return strategy.etfSymbol || t('community.strategyCard.unspecified')
 }
 
 const getRankColor = (index: number) => {
@@ -48,7 +50,7 @@ const getRankColor = (index: number) => {
     <Card
         class="group relative flex flex-col bg-linear-to-br from-white via-blue-50/70 to-indigo-100/60 backdrop-blur-sm border border-slate-200/50 shadow-lg shadow-slate-200/50 hover:shadow-xl hover:shadow-indigo-200/30 hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer rounded-2xl"
         @click="emit('click')">
-        
+
         <!-- Rank Badge -->
         <div v-if="typeof rank === 'number'"
             :class="['absolute top-0 right-0 w-11 h-11 flex items-center justify-center rounded-bl-2xl font-bold text-sm shadow-lg z-10 transition-transform group-hover:scale-110', getRankColor(rank)]">
@@ -64,7 +66,7 @@ const getRankColor = (index: number) => {
                         <Badge
                             :class="strategy.isPublic ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-600 border-slate-200'"
                             class="rounded-lg px-2 py-0.5 font-medium text-[10px] border">
-                            {{ strategy.isPublic ? '✓ 公开' : '草稿' }}
+                            {{ strategy.isPublic ? t('community.strategyCard.public') : t('community.strategyCard.draft') }}
                         </Badge>
                         <span class="text-[10px] text-slate-400">{{ formatDate(strategy.updatedAt) }}</span>
                     </div>
@@ -74,11 +76,12 @@ const getRankColor = (index: number) => {
                                 :alt="strategy.author?.displayName" />
                             <AvatarFallback
                                 class="text-[10px] bg-linear-to-br from-indigo-50 to-blue-50 text-indigo-600 font-bold">
-                                {{ (strategy.author?.displayName || strategy.author?.email || 'U').charAt(0).toUpperCase() }}
+                                {{ (strategy.author?.displayName || strategy.author?.email ||
+                                'U').charAt(0).toUpperCase() }}
                             </AvatarFallback>
                         </Avatar>
                         <span class="text-xs text-slate-600 truncate max-w-[120px] font-medium">
-                            @{{ strategy.author?.displayName || 'Unknown' }}
+                            @{{ strategy.author?.displayName || t('community.strategyCard.unknown') }}
                         </span>
                     </div>
 
@@ -102,8 +105,7 @@ const getRankColor = (index: number) => {
 
                     <!-- Tags -->
                     <div class="flex flex-wrap gap-1.5 pt-1">
-                        <Badge v-for="tag in (strategy.tags || []).slice(0, 3)" :key="tag"
-                            variant="secondary"
+                        <Badge v-for="tag in (strategy.tags || []).slice(0, 3)" :key="tag" variant="secondary"
                             class="bg-blue-50 text-blue-600 border border-blue-100 font-normal text-[10px] px-2 py-0.5 rounded-md">
                             {{ tag }}
                         </Badge>
@@ -111,8 +113,7 @@ const getRankColor = (index: number) => {
                 </div>
 
                 <!-- Right Side: Performance -->
-                <div
-                    class="flex flex-col items-end justify-center pl-4 border-l border-slate-200 min-w-[100px] py-1"
+                <div class="flex flex-col items-end justify-center pl-4 border-l border-slate-200 min-w-[100px] py-1"
                     :class="{ 'mt-4': !manageMode }">
                     <div class="text-right mb-3">
                         <div class="text-2xl font-bold tracking-tight"
@@ -120,14 +121,14 @@ const getRankColor = (index: number) => {
                             {{ formatPercent(strategy.returnRate) }}
                         </div>
                         <div class="text-[10px] text-slate-400 uppercase tracking-wider font-medium">
-                            年化收益</div>
+                            {{ t('community.strategyCard.annualReturn') }}</div>
                     </div>
                     <div class="text-right">
                         <div class="text-sm font-semibold text-slate-700">
                             {{ formatPercent(strategy.maxDrawdown) }}
                         </div>
                         <div class="text-[10px] text-slate-400 uppercase tracking-wider font-medium">
-                            最大回撤</div>
+                            {{ t('community.strategyCard.maxDrawdown') }}</div>
                     </div>
                 </div>
             </div>
