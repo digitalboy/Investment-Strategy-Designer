@@ -360,7 +360,7 @@ const getEtfTicker = (strategy: Partial<StrategySummaryDTO> & { symbol?: string;
                                 <button @click.stop="openComments(strategy.id)"
                                     class="flex items-center gap-1.5 hover:text-indigo-500 transition-all text-xs font-medium">
                                     <MessageSquare class="w-4 h-4" />
-                                    <span>{{ strategy.stats.views }}</span>
+                                    <span>{{ strategy.stats.comments || 0 }}</span>
                                 </button>
                             </div>
                             <div class="text-[10px] text-slate-400 font-medium">{{ formatDate(strategy.updatedAt) }}

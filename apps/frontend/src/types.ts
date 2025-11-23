@@ -17,6 +17,7 @@ export interface StrategyEntity {
     view_count: number;
     like_count: number;
     clone_count: number;
+    comment_count: number;
     return_rate?: number;
     max_drawdown?: number;
     created_at: string;
@@ -34,6 +35,7 @@ export interface StrategySummaryDTO {
         views: number;
         likes: number;
         clones: number;
+        comments: number;
     };
     returnRate?: number;
     maxDrawdown?: number;
