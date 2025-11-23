@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -22,6 +22,8 @@ const emit = defineEmits<{
 }>()
 
 const newComment = ref('')
+const loadMoreTrigger = ref<HTMLElement | null>(null)
+let observer: IntersectionObserver | null = null
 
 // Handle top-level comment
 const handleAddComment = () => {
@@ -32,11 +34,55 @@ const handleAddComment = () => {
 }
 
 // Handle reply from CommentItem
-// parentId comes first from CommentItem event, content second
 const handleReply = (parentId: string, content: string) => {
-    // Emit up with content first, then parentId
     emit('add-comment', content, parentId)
 }
+
+const setupObserver = () => {
+    if (observer) observer.disconnect()
+    
+    observer = new IntersectionObserver((entries) => {
+        const target = entries[0]
+        if (target.isIntersecting && props.hasMore && !props.loading) {
+            emit('load-more')
+        }
+    }, {
+        root: null, // viewport
+        rootMargin: '100px', // load before reaching bottom
+        threshold: 0.1
+    })
+
+    if (loadMoreTrigger.value) {
+        observer.observe(loadMoreTrigger.value)
+    }
+}
+
+onMounted(() => {
+    // Setup initially
+    setupObserver()
+})
+
+onUnmounted(() => {
+    if (observer) observer.disconnect()
+})
+
+// Re-setup observer when element might change or open state changes
+watch(() => props.open, (isOpen) => {
+    if (isOpen) {
+        setTimeout(setupObserver, 100) // wait for render
+    }
+})
+
+// Also watch for loading/hasMore state changes to ensure we trigger again if needed?
+// Actually IntersectionObserver triggers continuously if still intersecting unless disconnected.
+// But we only emit if !loading. 
+// So if loading finishes and we are still at bottom, intersection might not re-trigger if we don't move?
+// Correct, usually IO triggers on transition. If we stay visible, no new event.
+// But if new items load, the trigger moves down, potentially exiting and re-entering or just moving.
+// If items are appended, the trigger element is pushed down.
+// To be safe, we rely on user scrolling or standard IO behavior. 
+// Standard "infinite scroll" libraries often re-check.
+// For simplicity, this should be enough for now.
 
 const commentTree = computed(() => {
     const map = new Map<string, Comment>()
@@ -73,7 +119,6 @@ const commentTree = computed(() => {
     // Process roots
     sortReplies(roots)
     // Roots are typically Newest First (default from backend usually)
-    // If we want to ensure it:
     roots.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 
     return roots
@@ -95,9 +140,11 @@ const commentTree = computed(() => {
             </DialogHeader>
 
             <div
-                class="grow overflow-y-auto py-4 space-y-4 min-h-[200px] bg-linear-to-br from-slate-50/30 via-blue-50/20 to-indigo-50/30 -mx-6 px-6">
-                <!-- Loading State -->
-                <div v-if="loading" class="text-center text-slate-400 py-12">
+                class="grow overflow-y-auto py-4 space-y-4 min-h-[200px] bg-linear-to-br from-slate-50/30 via-blue-50/20 to-indigo-50/30 -mx-6 px-6"
+                ref="scrollContainer"
+            >
+                <!-- Initial Loading State -->
+                <div v-if="loading && comments.length === 0" class="text-center text-slate-400 py-12">
                     <div class="flex flex-col items-center gap-3">
                         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
                         <p class="text-sm text-slate-500">加载中...</p>
@@ -105,7 +152,7 @@ const commentTree = computed(() => {
                 </div>
 
                 <!-- Empty State -->
-                <div v-else-if="comments.length === 0" class="text-center text-slate-400 py-12">
+                <div v-else-if="comments.length === 0 && !loading" class="text-center text-slate-400 py-12">
                     <div class="flex flex-col items-center gap-3">
                         <div
                             class="p-4 bg-linear-to-br from-indigo-50 to-blue-50 rounded-full shadow-md shadow-indigo-500/20">
@@ -125,10 +172,9 @@ const commentTree = computed(() => {
                         @reply="handleReply"
                     />
                     
-                    <div v-if="hasMore" class="pt-2 text-center">
-                        <Button variant="ghost" size="sm" @click="$emit('load-more')" class="text-indigo-600 hover:text-indigo-800">
-                            加载更多评论
-                        </Button>
+                    <!-- Sentinel for infinite scroll -->
+                    <div ref="loadMoreTrigger" class="h-10 flex justify-center items-center mt-2">
+                        <div v-if="loading" class="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600"></div>
                     </div>
                 </div>
             </div>
