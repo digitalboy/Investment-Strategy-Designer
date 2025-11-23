@@ -3,7 +3,7 @@ import { clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { formatInTimeZone } from "date-fns-tz"
 import { zhCN } from "date-fns/locale"
-import { isToday, isYesterday } from "date-fns"
+import { isToday, isYesterday, differenceInDays } from "date-fns"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -19,8 +19,10 @@ export const formatDate = (dateString: string): string => {
   if (isYesterday(date)) {
     return `昨天 ${formatInTimeZone(date, userTimeZone, 'HH:mm', { locale: zhCN })}`
   }
-  if (date.getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000) {
-    return `${Math.ceil((Date.now() - date.getTime()) / (24 * 60 * 60 * 1000))}天前`
+
+  const daysDiff = differenceInDays(new Date(), date)
+  if (daysDiff < 7) {
+    return `${daysDiff}天前`
   }
 
   // 获取用户本地时区并格式化为中文
