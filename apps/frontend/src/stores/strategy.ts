@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { StrategyConfig, Trigger, BacktestResultDTO, StrategySummaryDTO, CommentEntity } from '@/types'
-import axios from 'axios'
+import axios from '@/lib/api'
 import { useAuthStore } from './auth'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://investment-strategy-designer-backend.digitalboyzone.workers.dev/api/v1'
@@ -32,6 +32,7 @@ export const useStrategyStore = defineStore('strategy', () => {
     // Metadata for the currently loaded strategy (if any)
     const currentStrategyMetadata = ref<{ id: string; userId: string; isPublic: boolean; isOwner: boolean; name?: string } | null>(null)
     const currentStrategyName = ref('')
+    const currentStrategyDescription = ref('')
 
     // Actions
     const setConfig = (newConfig: Partial<StrategyConfig>) => {
@@ -517,8 +518,8 @@ export const useStrategyStore = defineStore('strategy', () => {
         error.value = null
         currentStrategyMetadata.value = null
         currentStrategyName.value = ''
+        currentStrategyDescription.value = ''
     }
-
     return {
         config,
         backtestResult,
@@ -532,8 +533,8 @@ export const useStrategyStore = defineStore('strategy', () => {
         commentsLoading,
         currentStrategyMetadata,
         currentStrategyName,
-        setConfig,
-        addTrigger,
+        currentStrategyDescription, // Add this
+        setConfig, addTrigger,
         removeTrigger,
         updateTrigger,
         runBacktest,

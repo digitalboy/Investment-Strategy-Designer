@@ -21,6 +21,7 @@ import {
     SelectTrigger,
 } from '@/components/ui/select'
 import { Lock } from 'lucide-vue-next'
+import { getStrategyNameLength } from '@/lib/utils'
 
 const { t } = useI18n({ useScope: 'global' })
 const props = defineProps<{
@@ -48,6 +49,8 @@ const formatLocalDate = (date: Date) => {
     return `${year}-${month}-${day}`
 }
 
+const strategyName = ref(t('setupWizard.mySmartStrategyPlaceholder')) // Initialize with placeholder
+const description = ref(t('setupWizard.strategyDescriptionPlaceholder')) // Initialized with multilingual placeholder
 const etfSymbol = ref('QQQ')
 const startDate = ref('2020-01-01')
 const today = formatLocalDate(new Date())
@@ -77,6 +80,10 @@ const validateDateRange = () => {
 }
 
 watch(() => props.open, (isOpen) => {
+    if (isOpen) {
+        strategyName.value = store.currentStrategyName || t('setupWizard.mySmartStrategyPlaceholder')
+        description.value = store.currentStrategyDescription || t('setupWizard.strategyDescriptionPlaceholder')
+    }
     if (isOpen && store.config.etfSymbol) {
         etfSymbol.value = store.config.etfSymbol
         startDate.value = store.config.startDate || '2020-01-01'
@@ -95,9 +102,19 @@ watch([startDate, endDate], () => {
 const selectedEtf = computed(() => ETF_OPTIONS.find(e => e.value === etfSymbol.value))
 
 const handleSave = () => {
+    // Strategy name and description now have placeholders, no need for mandatory validation here.
+    // The store will receive the placeholder if user doesn't change it.
+    
+    if (strategyName.value && getStrategyNameLength(strategyName.value) > 20) {
+        validationError.value = t('setupWizard.validation.strategyNameTooLong')
+        return
+    }
+
     if (!validateDateRange()) {
         return
     }
+    store.currentStrategyName = strategyName.value // Use current value, which might be placeholder
+    store.currentStrategyDescription = description.value // Save description
     store.setConfig({
         etfSymbol: etfSymbol.value,
         startDate: startDate.value,
@@ -141,6 +158,34 @@ const handleSave = () => {
 
             <!-- Form Section -->
             <div class="px-8 py-6 space-y-7">
+                <!-- Strategy Name -->
+                <div class="space-y-4">
+                    <Label for="strategy-name" class="text-sm font-semibold text-slate-700 flex items-center gap-2 ml-1">
+                        <div class="p-1 rounded-md bg-emerald-50 text-emerald-600">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                        </div>
+                        {{ t('strategy.strategyName') }}
+                    </Label>
+                    <Input id="strategy-name" v-model="strategyName" :placeholder="t('setupWizard.mySmartStrategyPlaceholder')"
+                        class="h-11 border-slate-200 hover:border-emerald-300 focus:border-emerald-500 transition-colors bg-white shadow-sm" />
+                </div>
+
+                <!-- Strategy Description -->
+                <div class="space-y-4">
+                    <Label for="strategy-description" class="text-sm font-semibold text-slate-700 flex items-center gap-2 ml-1">
+                        <div class="p-1 rounded-md bg-blue-50 text-blue-600">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        {{ t('setupWizard.strategyDescriptionLabel') }}
+                    </Label>
+                    <textarea id="strategy-description" v-model="description" :placeholder="t('setupWizard.strategyDescriptionPlaceholder')"
+                        class="flex h-24 w-full rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus-visible:outline-none focus:border-blue-500 transition-colors disabled:cursor-not-allowed disabled:opacity-50 shadow-sm" />
+                </div>
+
                 <!-- ETF Selection -->
                 <div class="space-y-4">
                     <Label class="text-sm font-semibold text-slate-700 flex items-center gap-2 ml-1">

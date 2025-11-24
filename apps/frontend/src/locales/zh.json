@@ -205,8 +205,10 @@
       "deleteStrategyDescription": "删除操作不可撤销，只能删除自己创建的策略。确认后该策略及其回测记录将被清除。",
       "confirmDelete": "确认删除",
       "updateStrategy": "更新策略",
-      "saveAsNewStrategy": "另存为新策略",
+      "saveAsNewStrategy": "保存为新策略",
       "saveStrategy": "保存策略",
+      "strategySaved": "策略保存成功！",
+      "saveFailed": "保存策略失败",
       "running": "运行中...",
       "runBacktest": "运行回测",
       "backtestingStrategyPerformance": "正在回测策略表现..."
@@ -307,9 +309,10 @@
     "selectETF": "选择 ETF",
     "startDesigningStrategy": "开始设计策略",
     "validation": {
-      "invalidDates": "请输入有效的开始和结束日期",
-      "endBeforeStart": "结束日期必须晚于开始日期",
-      "minRange": "回测区间至少 {days} 天，请调整开始或结束日期"
+        "invalidDates": "无效的日期范围",
+        "endBeforeStart": "结束日期必须在开始日期之后",
+        "minRange": "回测时间范围必须至少 {days} 天",
+        "strategyNameTooLong": "策略名称过长（最多10个汉字或20个英文字符）"
     }
   },
   "reports": {

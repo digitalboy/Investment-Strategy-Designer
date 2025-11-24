@@ -207,6 +207,8 @@
       "updateStrategy": "Update Strategy",
       "saveAsNewStrategy": "Save as New Strategy",
       "saveStrategy": "Save Strategy",
+      "strategySaved": "Strategy saved successfully!",
+      "saveFailed": "Failed to save strategy",
       "running": "Running...",
       "runBacktest": "Run Backtest",
       "backtestingStrategyPerformance": "Backtesting strategy performance..."
@@ -305,7 +307,13 @@
     "endDate": "End Date",
     "initialCapital": "Initial Capital",
     "selectETF": "Select ETF",
-    "startDesigningStrategy": "Start Designing Strategy"
+    "startDesigningStrategy": "Start Designing Strategy",
+    "validation": {
+        "invalidDates": "Invalid date range",
+        "endBeforeStart": "End date must be after start date",
+        "minRange": "Backtest range must be at least {days} days",
+        "strategyNameTooLong": "Strategy name is too long (max 10 Chinese characters or 20 English letters)"
+    }
   },
   "reports": {
     "title": "Reports",

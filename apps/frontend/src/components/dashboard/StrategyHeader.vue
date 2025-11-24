@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { ArrowLeft, Pencil, Calendar, Wallet, Layers, Settings } from 'lucide-vue-next'
 import type { StrategyConfig } from '@/types'
+import { getStrategyNameLength } from '@/lib/utils'
 
 const props = defineProps<{
     title: string
@@ -64,6 +65,18 @@ const startEditingName = () => {
 
 const finishEditingName = () => {
     const trimmed = editableName.value.trim()
+    
+    if (trimmed && getStrategyNameLength(trimmed) > 20) {
+        alert(t('setupWizard.validation.strategyNameTooLong'))
+        // Keep editing state true so user can fix it, but we need to focus back or something.
+        // However, the blur event triggers this. If we alert on blur, it might be annoying loop.
+        // A better UX for inline edit on blur is to revert if invalid, or just accept if valid.
+        // Let's revert if invalid to avoid getting stuck.
+        editableName.value = props.title
+        isEditingName.value = false
+        return
+    }
+
     if (trimmed && trimmed !== props.title) {
         emit('update-name', trimmed)
     } else {

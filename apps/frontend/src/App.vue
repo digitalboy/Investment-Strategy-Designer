@@ -9,6 +9,7 @@ import WelcomeState from '@/components/WelcomeState.vue'
 import StrategyDashboard from '@/components/StrategyDashboard.vue'
 import CommunityBoard from '@/components/CommunityBoard.vue'
 import SetupWizardDialog from '@/components/SetupWizardDialog.vue'
+import { Toaster } from '@/components/ui/sonner'
 
 const { t } = useI18n({ useScope: 'global' })
 const languageStore = useLanguageStore()
@@ -65,6 +66,9 @@ const handleViewStrategy = async (strategyId: string) => {
 
 <template>
   <div :key="forceRerenderKey" class="min-h-screen font-sans text-slate-900 relative">
+    <!-- Toaster for notifications -->
+    <Toaster position="top-center" rich-colors close-button />
+
     <!-- 动态背景装饰 - 固定全屏覆盖 -->
     <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
       <!-- 基础渐变背景 -->

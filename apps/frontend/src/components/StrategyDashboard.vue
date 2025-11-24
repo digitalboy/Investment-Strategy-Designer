@@ -21,6 +21,7 @@ import ResultsReportDialog from './ResultsReportDialog.vue'
 import SaveStrategyDialog from './SaveStrategyDialog.vue'
 import StockLoading from './StockLoading.vue'
 import type { Trigger } from '@/types'
+import { toast } from 'vue-sonner'
 
 // New components
 import StrategyHeader from './dashboard/StrategyHeader.vue'
@@ -289,7 +290,7 @@ const handleUpdate = async () => {
     const safeName = strategyTitle.value.trim()
 
     if (!safeName) {
-        alert(t('strategy.messages.pleaseFillStrategyName'))
+        toast.error(t('strategy.messages.pleaseFillStrategyName'))
         return
     }
 
@@ -302,10 +303,10 @@ const handleUpdate = async () => {
             name: safeName,
             isPublic: currentStrategyMetadata.value.isPublic
         })
-        alert(t('strategy.messages.strategyUpdateSuccess'))
-    } catch (e) {
+        toast.success(t('strategy.messages.strategyUpdateSuccess'))
+    } catch (e: any) {
         console.error('Failed to update strategy:', e)
-        alert(t('strategy.messages.updateFailed'))
+        toast.error(e.message || t('strategy.messages.updateFailed'))
     }
 }
 
@@ -314,11 +315,11 @@ const handleDelete = async () => {
 
     try {
         await store.deleteStrategy(currentStrategyMetadata.value.id)
-        alert(t('strategy.messages.strategyDeleted'))
+        toast.success(t('strategy.messages.strategyDeleted'))
         emit('back')
-    } catch (e) {
+    } catch (e: any) {
         console.error('Failed to delete strategy:', e)
-        alert(t('strategy.messages.deleteFailed'))
+        toast.error(e.message || t('strategy.messages.deleteFailed'))
     } finally {
         showDeleteDialog.value = false
     }

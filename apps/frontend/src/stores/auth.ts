@@ -7,7 +7,7 @@ import {
     type User
 } from 'firebase/auth'
 import { auth, googleProvider } from '@/lib/firebase'
-import axios from 'axios'
+import axios from '@/lib/api'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://investment-strategy-designer-backend.digitalboyzone.workers.dev/api/v1'
 
