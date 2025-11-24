@@ -40,10 +40,7 @@ const handleStart = async () => {
                     <i class="fa-brands fa-google mr-2"></i>
                     {{ t('auth.signInToAccount') }}
                 </Button>
-                <Button variant="outline" size="lg"
-                    class="h-14 px-8 text-lg rounded-full border-slate-300 hover:bg-slate-50">
-                    {{ t('common.view') }} {{ t('common.documentation') }}
-                </Button>
+                
             </div>
         </div>
 

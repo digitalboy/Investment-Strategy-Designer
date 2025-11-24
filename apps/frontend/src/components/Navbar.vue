@@ -12,6 +12,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Globe } from 'lucide-vue-next'
 
 const { t } = useI18n({ useScope: 'global' })
 const emit = defineEmits(['navigate-home'])
@@ -45,14 +46,17 @@ const handleLogout = () => {
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
-                    <LanguageSelector />
+                    <div class="flex items-center gap-2">
+                        <Globe class="h-4 w-4 text-slate-500" />
+                        <LanguageSelector />
+                    </div>
 
                     <div v-if="authStore.isLoading" class="h-8 w-8 rounded-full bg-slate-200 animate-pulse"></div>
 
                     <div v-else-if="authStore.user">
                         <DropdownMenu>
                             <DropdownMenuTrigger class="focus:outline-none">
-                                <Avatar>
+                                <Avatar class="border-2 border-emerald-200 shadow-sm">
                                     <AvatarImage :src="authStore.user.photoURL || ''"
                                         :alt="authStore.user.displayName || 'User'" />
                                     <AvatarFallback>{{ authStore.user.displayName ?
