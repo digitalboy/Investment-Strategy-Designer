@@ -152,7 +152,7 @@ const describeTrigger = (trigger: Trigger) => {
             return {
                 condition: t('strategy.triggers.triggerParamsMissing'),
                 action: t('strategy.triggers.actionMissing'),
-                cooldown: trigger.cooldown ? `${trigger.cooldown.days} 天` : ''
+                cooldown: trigger.cooldown ? `${trigger.cooldown.days} ${t('common.day')}` : ''
             }
         }
 
@@ -232,7 +232,7 @@ const describeTrigger = (trigger: Trigger) => {
             }
         }
 
-        const cooldownText = trigger.cooldown ? `${trigger.cooldown.days} 天` : ''
+        const cooldownText = trigger.cooldown ? `${trigger.cooldown.days} ${t('common.day')}` : ''
 
         return {
             condition: conditionText,
