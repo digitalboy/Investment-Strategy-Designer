@@ -308,6 +308,9 @@
     "initialCapital": "Initial Capital",
     "selectETF": "Select ETF",
     "startDesigningStrategy": "Start Designing Strategy",
+    "mySmartStrategyPlaceholder": "My Smart Strategy",
+    "strategyDescriptionPlaceholder": "Describe your investment strategy philosophy and goals...",
+    "strategyDescriptionLabel": "Strategy Description",
     "validation": {
       "invalidDates": "Invalid date range",
       "endBeforeStart": "End date must be after start date",

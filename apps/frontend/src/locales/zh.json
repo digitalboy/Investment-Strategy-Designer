@@ -308,6 +308,9 @@
     "initialCapital": "初始本金",
     "selectETF": "选择 ETF",
     "startDesigningStrategy": "开始设计策略",
+    "mySmartStrategyPlaceholder": "我的智能策略",
+    "strategyDescriptionPlaceholder": "描述您的投资策略理念和目标...",
+    "strategyDescriptionLabel": "策略描述",
     "validation": {
       "invalidDates": "无效的日期范围",
       "endBeforeStart": "结束日期必须在开始日期之后",
