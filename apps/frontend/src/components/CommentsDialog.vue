@@ -170,9 +170,10 @@ const commentTree = computed(() => {
                             </Avatar>
                             <div class="flex flex-col">
                                 <span class="text-sm font-medium text-slate-700 leading-none">{{ author.name ||
-                                    t('commentsDialog.anonymousUser')
-                                }}</span>
-                                <span class="text-xs text-slate-400 mt-0.5">{{ t('commentsDialog.author') }}</span>
+                                    t('community.commentsDialog.anonymousUser')
+                                    }}</span>
+                                <span class="text-xs text-slate-400 mt-0.5">{{ t('community.commentsDialog.author')
+                                    }}</span>
                             </div>
                         </div>
                         <DialogDescription v-else class="text-slate-500 mt-1">
@@ -188,7 +189,7 @@ const commentTree = computed(() => {
                 <div v-if="loading && comments.length === 0" class="text-center text-slate-400 py-12">
                     <div class="flex flex-col items-center gap-3">
                         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-                        <p class="text-sm text-slate-500">{{ t('commentsDialog.loading') }}</p>
+                        <p class="text-sm text-slate-500">{{ t('community.commentsDialog.loading') }}</p>
                     </div>
                 </div>
 
@@ -199,8 +200,9 @@ const commentTree = computed(() => {
                             class="p-4 bg-linear-to-br from-emerald-50 to-lime-50 rounded-full shadow-md shadow-emerald-500/20">
                             <MessageSquare class="h-8 w-8 text-emerald-400" />
                         </div>
-                        <p class="text-base font-medium text-slate-500">{{ t('commentsDialog.noComments') }}</p>
-                        <p class="text-sm text-slate-400">{{ t('commentsDialog.beFirst') }}</p>
+                        <p class="text-base font-medium text-slate-500">{{ t('community.commentsDialog.noComments') }}
+                        </p>
+                        <p class="text-sm text-slate-400">{{ t('community.commentsDialog.beFirst') }}</p>
                     </div>
                 </div>
 
@@ -221,12 +223,12 @@ const commentTree = computed(() => {
             <div
                 class="border-t border-emerald-200/40 pt-4 mt-auto bg-linear-to-r from-lime-50/30 to-emerald-50/30 -mx-6 px-6 -mb-6 pb-6 rounded-b-2xl">
                 <div class="flex gap-2">
-                    <Input v-model="newComment" :placeholder="t('commentsDialog.placeholder')"
+                    <Input v-model="newComment" :placeholder="t('community.commentsDialog.placeholder')"
                         class="border-emerald-200/60 bg-white/80 backdrop-blur-sm focus:border-emerald-400 focus:ring-emerald-200 focus:bg-white transition-all"
                         @keyup.enter="handleAddComment" />
                     <Button @click="handleAddComment" :disabled="!newComment.trim()"
                         class="bg-linear-to-r from-lime-600 to-emerald-600 hover:from-lime-700 hover:to-emerald-700 text-white shadow-lg shadow-lime-500/30 hover:shadow-xl hover:shadow-lime-500/40 transition-all disabled:opacity-50 disabled:shadow-none">
-                        {{ t('commentsDialog.send') }}
+                        {{ t('community.commentsDialog.send') }}
                     </Button>
                 </div>
             </div>

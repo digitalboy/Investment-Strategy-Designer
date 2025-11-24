@@ -88,7 +88,8 @@
     "signInToAccount": "Sign in to your account",
     "noAccountYet": "No account yet?",
     "alreadyHaveAccount": "Already have an account?",
-    "signUp": "Sign Up"
+    "signUp": "Sign Up",
+    "loginRequired": "Please log in first"
   },
   "navbar": {
     "dashboard": "Dashboard",

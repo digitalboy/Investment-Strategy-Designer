@@ -88,7 +88,8 @@
     "signInToAccount": "登录您的账户",
     "noAccountYet": "还没有账户？",
     "alreadyHaveAccount": "已经有账户了？",
-    "signUp": "注册"
+    "signUp": "注册",
+    "loginRequired": "请先登录"
   },
   "navbar": {
     "dashboard": "仪表板",

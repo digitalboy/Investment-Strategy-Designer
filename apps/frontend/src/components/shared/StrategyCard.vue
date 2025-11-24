@@ -3,12 +3,15 @@ import { useI18n } from 'vue-i18n'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Heart, MessageSquare } from 'lucide-vue-next'
+import { Heart, MessageSquare, X } from 'lucide-vue-next'
 import type { StrategySummaryDTO } from '@/types'
 import { useDateFormatter } from '@/lib/useDateFormatter'
+import { useAuthStore } from '@/stores/auth'
+import { toast } from 'vue-sonner'
 
 const { t } = useI18n({ useScope: 'global' })
 const { formatDate } = useDateFormatter()
+const authStore = useAuthStore()
 const { strategy, rank, showAuthor, manageMode } = withDefaults(defineProps<{
     strategy: StrategySummaryDTO
     rank?: number
@@ -144,17 +147,33 @@ const getRankColor = (index: number) => {
             <!-- 修改点 3: 使用 `mt-auto`。这会自动吸附到底部，无论上面内容是多是少 -->
             <div v-if="!manageMode" class="mt-auto flex justify-between items-center pt-3 border-t border-slate-100/80">
                 <div class="flex gap-4 text-slate-400">
-                    <button @click.stop="emit('like')"
-                        class="flex items-center gap-1.5 hover:text-red-500 transition-all group/like text-xs font-medium">
+                    <button
+                        @click.stop="authStore.isAuthenticated ? emit('like') : toast.error(t('auth.loginRequired'))"
+                        :class="[
+                            'flex items-center gap-1.5 transition-all group/like text-xs font-medium relative',
+                            authStore.isAuthenticated
+                                ? 'hover:text-red-500 cursor-pointer'
+                                : 'cursor-not-allowed opacity-50'
+                        ]">
                         <Heart
                             class="w-4 h-4 group-hover/like:fill-current group-hover/like:scale-110 transition-transform"
                             :class="{ 'fill-red-500 text-red-500': false }" />
                         <span>{{ strategy.stats.likes }}</span>
+                        <X v-if="!authStore.isAuthenticated"
+                            class="w-3 h-3 absolute -top-1 -right-1 text-red-500 bg-white rounded-full" />
                     </button>
-                    <button @click.stop="emit('comment')"
-                        class="flex items-center gap-1.5 hover:text-emerald-500 transition-all text-xs font-medium">
+                    <button
+                        @click.stop="authStore.isAuthenticated ? emit('comment') : toast.error(t('auth.loginRequired'))"
+                        :class="[
+                            'flex items-center gap-1.5 transition-all text-xs font-medium relative',
+                            authStore.isAuthenticated
+                                ? 'hover:text-emerald-500 cursor-pointer'
+                                : 'cursor-not-allowed opacity-50'
+                        ]">
                         <MessageSquare class="w-4 h-4" />
                         <span>{{ strategy.stats.comments || 0 }}</span>
+                        <X v-if="!authStore.isAuthenticated"
+                            class="w-3 h-3 absolute -top-1 -right-1 text-red-500 bg-white rounded-full" />
                     </button>
                 </div>
                 <div class="text-[10px] text-slate-400 font-medium">{{ formatDate(strategy.updatedAt) }}</div>
