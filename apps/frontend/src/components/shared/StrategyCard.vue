@@ -13,7 +13,7 @@ const { strategy, rank, showAuthor, manageMode } = withDefaults(defineProps<{
     strategy: StrategySummaryDTO
     rank?: number
     showAuthor?: boolean
-    manageMode?: boolean // If true, shows status badge instead of author
+    manageMode?: boolean
 }>(), {
     showAuthor: true,
     manageMode: false
@@ -40,17 +40,18 @@ const getEtfTicker = (strategy: StrategySummaryDTO) => {
 }
 
 const getRankColor = (index: number) => {
-    if (index === 0) return 'bg-gradient-to-br from-yellow-400 via-yellow-500 to-amber-600 text-white shadow-yellow-500/50' // Gold
-    if (index === 1) return 'bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 text-white shadow-slate-400/50'   // Silver
-    if (index === 2) return 'bg-gradient-to-br from-amber-600 via-orange-600 to-orange-700 text-white shadow-orange-600/50'   // Bronze
+    if (index === 0) return 'bg-gradient-to-br from-yellow-400 via-yellow-500 to-amber-600 text-white shadow-yellow-500/50'
+    if (index === 1) return 'bg-gradient-to-br from-slate-300 via-slate-400 to-slate-500 text-white shadow-slate-400/50'
+    if (index === 2) return 'bg-gradient-to-br from-amber-600 via-orange-600 to-orange-700 text-white shadow-orange-600/50'
     return 'bg-slate-100 text-slate-600'
 }
 </script>
 
 <template>
     <Card
-        class="group relative flex flex-col bg-linear-to-br from-white via-blue-50/70 to-indigo-100/60 backdrop-blur-sm border border-slate-200/50 shadow-lg shadow-slate-200/50 hover:shadow-xl hover:shadow-indigo-200/30 hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer rounded-2xl"
+        class="group h-full pt-5 pb-5 relative flex flex-col bg-linear-to-br from-white via-blue-50/70 to-indigo-100/60 backdrop-blur-sm border border-slate-200/50 shadow-lg shadow-slate-200/50 hover:shadow-xl hover:shadow-indigo-200/30 hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer rounded-2xl"
         @click="emit('click')">
+        <!-- ^^^ 修改点 1: 在 class 里添加了 `h-full`，让卡片高度在 Grid 中自动拉伸 -->
 
         <!-- Rank Badge -->
         <div v-if="typeof rank === 'number'"
@@ -58,11 +59,12 @@ const getRankColor = (index: number) => {
             #{{ rank + 1 }}
         </div>
 
-        <CardContent class="pl-5">
+        <CardContent class="pl-5 pt-0 pb-0 h-full flex flex-col">
+            <!-- 1. Top Section -->
             <div class="flex justify-between items-start gap-4">
-                <!-- Left Side: Identity & Context -->
+                <!-- Left Column -->
                 <div class="flex-1 min-w-0 space-y-3">
-                    <!-- Meta Row: Author OR Status -->
+                    <!-- Meta Row -->
                     <div v-if="manageMode" class="flex items-center gap-2">
                         <Badge
                             :class="strategy.isPublic ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-50 text-slate-600 border-slate-200'"
@@ -72,7 +74,7 @@ const getRankColor = (index: number) => {
                         </Badge>
                         <span class="text-[10px] text-slate-400">{{ formatDate(strategy.updatedAt) }}</span>
                     </div>
-                    <div v-else-if="showAuthor" class="flex items-center gap-2 mb-1">
+                    <div v-else-if="showAuthor" class="flex items-center gap-2 mb-2">
                         <Avatar class="h-6 w-6 border-2 border-indigo-100 shadow-sm">
                             <AvatarImage v-if="strategy.author?.photoUrl" :src="strategy.author.photoUrl"
                                 :alt="strategy.author?.displayName" />
@@ -90,7 +92,7 @@ const getRankColor = (index: number) => {
                     <!-- Title & Ticker -->
                     <div>
                         <h3
-                            class="text-lg font-bold text-slate-900 leading-tight mb-1.5 line-clamp-1 group-hover:text-indigo-600 transition-colors">
+                            class="text-lg font-bold text-slate-900 leading-tight mb-4 line-clamp-1 group-hover:text-indigo-600 transition-colors">
                             {{ strategy.name }}
                         </h3>
                         <div class="flex items-center gap-2">
@@ -104,18 +106,10 @@ const getRankColor = (index: number) => {
                             </span>
                         </div>
                     </div>
-
-                    <!-- Tags -->
-                    <div class="flex flex-wrap gap-1.5 pt-1">
-                        <Badge v-for="tag in (strategy.tags || []).slice(0, 3)" :key="tag" variant="secondary"
-                            class="bg-blue-50 text-blue-600 border border-blue-100 font-normal text-[10px] px-2 py-0.5 rounded-md">
-                            {{ tag }}
-                        </Badge>
-                    </div>
                 </div>
 
-                <!-- Right Side: Performance -->
-                <div class="flex flex-col items-end justify-center pl-4 border-l border-slate-200 min-w-[100px] py-1"
+                <!-- Right Column -->
+                <div class="flex flex-col items-end justify-center pl-4 border-l border-slate-200 min-w-[100px] py-1 shrink-0"
                     :class="{ 'mt-4': !manageMode }">
                     <div class="text-right mb-3">
                         <div class="text-2xl font-bold tracking-tight"
@@ -123,20 +117,32 @@ const getRankColor = (index: number) => {
                             {{ formatPercent(strategy.returnRate) }}
                         </div>
                         <div class="text-[10px] text-slate-400 uppercase tracking-wider font-medium">
-                            {{ t('community.strategyCard.annualReturn') }}</div>
+                            {{ t('community.strategyCard.annualReturn') }}
+                        </div>
                     </div>
                     <div class="text-right">
                         <div class="text-sm font-semibold text-slate-700">
                             {{ formatPercent(strategy.maxDrawdown) }}
                         </div>
                         <div class="text-[10px] text-slate-400 uppercase tracking-wider font-medium">
-                            {{ t('community.strategyCard.maxDrawdown') }}</div>
+                            {{ t('community.strategyCard.maxDrawdown') }}
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Footer: Social & Date (Only for public view) -->
-            <div v-if="!manageMode" class="flex justify-between items-center pt-3 mt-2 border-t border-slate-100">
+            <!-- 2. Middle Section: Tags -->
+            <!-- 修改点 2: 添加 v-if 判断。如果没标签，连这个 div 都不渲染，避免占据高度或 margin -->
+            <div v-if="strategy.tags && strategy.tags.length > 0" class="mt-4 flex flex-wrap gap-1.5">
+                <Badge v-for="tag in strategy.tags.slice(0, 5)" :key="tag" variant="secondary"
+                    class="bg-blue-50 text-blue-600 border border-blue-100 font-normal text-[10px] px-2 py-0.5 rounded-md hover:bg-blue-100 transition-colors">
+                    {{ tag }}
+                </Badge>
+            </div>
+
+            <!-- 3. Footer Section: Social & Date -->
+            <!-- 修改点 3: 使用 `mt-auto`。这会自动吸附到底部，无论上面内容是多是少 -->
+            <div v-if="!manageMode" class="mt-auto flex justify-between items-center pt-3 border-t border-slate-100/80">
                 <div class="flex gap-4 text-slate-400">
                     <button @click.stop="emit('like')"
                         class="flex items-center gap-1.5 hover:text-red-500 transition-all group/like text-xs font-medium">
@@ -151,8 +157,7 @@ const getRankColor = (index: number) => {
                         <span>{{ strategy.stats.comments || 0 }}</span>
                     </button>
                 </div>
-                <div class="text-[10px] text-slate-400 font-medium">{{ formatDate(strategy.updatedAt) }}
-                </div>
+                <div class="text-[10px] text-slate-400 font-medium">{{ formatDate(strategy.updatedAt) }}</div>
             </div>
         </CardContent>
     </Card>
