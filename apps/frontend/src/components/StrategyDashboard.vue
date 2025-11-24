@@ -304,6 +304,10 @@ const handleUpdate = async () => {
             isPublic: currentStrategyMetadata.value.isPublic
         })
         toast.success(t('strategy.messages.strategyUpdateSuccess'))
+        // 刷新用户策略列表以反映更新
+        if (authStore.isAuthenticated) {
+            store.fetchUserStrategies()
+        }
     } catch (e: any) {
         console.error('Failed to update strategy:', e)
         toast.error(e.message || t('strategy.messages.updateFailed'))

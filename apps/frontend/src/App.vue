@@ -48,6 +48,11 @@ const editSetup = () => {
 
 const exitEditor = () => {
   showEditor.value = false
+  // 刷新策略数据以反映更新
+  strategyStore.fetchPublicStrategies()
+  if (authStore.isAuthenticated) {
+    strategyStore.fetchUserStrategies()
+  }
 }
 
 const handleNavigateHome = () => {
