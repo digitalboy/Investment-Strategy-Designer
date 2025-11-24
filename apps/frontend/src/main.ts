@@ -1,28 +1,13 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import { createI18n } from 'vue-i18n'
+import { i18n } from './lib/i18n'
 import './style.css'
 import 'vue-sonner/style.css'
 import App from './App.vue'
 import { useLanguageStore } from './stores/language'
 
-// 引入语言文件
-import en from './locales/en.json'
-import zh from './locales/zh.json'
-
 // 创建 Pinia 实例
 const pinia = createPinia()
-
-// 创建 Vue I18n 实例
-const i18n = createI18n({
-  legacy: false, // 使用 Composition API 模式
-  locale: 'zh', // 设置默认语言为中文（稍后会被用户偏好覆盖）
-  fallbackLocale: 'en', // 设置备用语言为英文
-  messages: {
-    en,
-    zh
-  }
-})
 
 const app = createApp(App)
 

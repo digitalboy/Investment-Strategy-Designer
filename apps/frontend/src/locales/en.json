@@ -309,10 +309,10 @@
     "selectETF": "Select ETF",
     "startDesigningStrategy": "Start Designing Strategy",
     "validation": {
-        "invalidDates": "Invalid date range",
-        "endBeforeStart": "End date must be after start date",
-        "minRange": "Backtest range must be at least {days} days",
-        "strategyNameTooLong": "Strategy name is too long (max 10 Chinese characters or 20 English letters)"
+      "invalidDates": "Invalid date range",
+      "endBeforeStart": "End date must be after start date",
+      "minRange": "Backtest range must be at least {days} days",
+      "strategyNameTooLong": "Strategy name is too long (max 10 Chinese characters or 20 English letters)"
     }
   },
   "reports": {
@@ -542,5 +542,24 @@
     "totalProceeds": "Total Proceeds",
     "strategyDescription": "Strategy Description",
     "benchmarkDescription": "Buy and hold from the beginning"
+  },
+  "api": {
+    "status": {
+      "400": "Invalid request, please check your input.",
+      "401": "Please log in again to continue.",
+      "403": "You do not have permission to perform this action.",
+      "404": "Target resource not found, please try again later.",
+      "408": "Request timed out, please try again later.",
+      "409": "Request conflict, please refresh and try again.",
+      "429": "Too many requests, please try again later.",
+      "500": "Server is having issues, please try again later.",
+      "502": "Gateway or proxy error, please try again later.",
+      "503": "Server temporarily unavailable, please wait.",
+      "504": "Gateway timeout, please try again later."
+    },
+    "timeout": "Request timed out, please check your network or try again later.",
+    "networkError": "Network error, please check your connection and try again.",
+    "requestFailed": "Request failed, please try again later.",
+    "httpStatus": "Request failed, HTTP {status}"
   }
 }
