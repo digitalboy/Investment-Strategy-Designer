@@ -311,10 +311,10 @@ const primaryButtonLabel = computed(() => (isEditing.value ? t('triggerBuilderDi
                             v-slot="{ state }" class="block">
                             <StepperTrigger as-child class="flex-1 items-stretch p-0 text-left">
                                 <button type="button" :data-state="state"
-                                    class="w-full rounded-2xl border border-slate-200 bg-white px-3 py-4 text-left transition hover:border-indigo-300 focus:outline-none data-[state=active]:border-indigo-500 data-[state=active]:bg-indigo-50">
+                                    class="w-full rounded-2xl border border-slate-200 bg-white px-3 py-4 text-left transition hover:border-emerald-300 focus:outline-none data-[state=active]:border-emerald-500 data-[state=active]:bg-emerald-50">
                                     <div class="flex items-center gap-3">
                                         <span :data-state="state"
-                                            class="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-sm font-semibold text-slate-600 transition data-[state=active]:border-indigo-500 data-[state=active]:text-indigo-600 data-[state=completed]:border-indigo-500 data-[state=completed]:bg-indigo-500 data-[state=completed]:text-white">
+                                            class="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-sm font-semibold text-slate-600 transition data-[state=active]:border-emerald-500 data-[state=active]:text-emerald-600 data-[state=completed]:border-emerald-500 data-[state=completed]:bg-emerald-500 data-[state=completed]:text-white">
                                             <Check v-if="state === 'completed'" class="h-4 w-4" />
                                             <Circle v-else-if="state === 'active'" class="h-4 w-4" />
                                             <Dot v-else class="h-4 w-4 text-slate-400" />
@@ -356,7 +356,7 @@ const primaryButtonLabel = computed(() => (isEditing.value ? t('triggerBuilderDi
                                 <h3 class="text-lg font-semibold text-slate-900">{{
                                     t('triggerBuilderDialog.cooldown.title') }}</h3>
                                 <label class="flex items-center gap-2 text-sm text-slate-600">
-                                    <input type="checkbox" v-model="enableCooldown" class="accent-indigo-600" />
+                                    <input type="checkbox" v-model="enableCooldown" class="accent-emerald-600" />
                                     {{ t('triggerBuilderDialog.cooldown.enable') }}
                                 </label>
                             </header>
@@ -365,7 +365,7 @@ const primaryButtonLabel = computed(() => (isEditing.value ? t('triggerBuilderDi
                                 :class="{ 'opacity-50 pointer-events-none': !enableCooldown }">
                                 <div class="space-y-2 rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
                                     <Label class="text-xs text-slate-500">{{ t('triggerBuilderDialog.cooldown.days')
-                                    }}</Label>
+                                        }}</Label>
                                     <div class="relative">
                                         <Input type="number" v-model="cooldownDays" class="h-10 pr-10" />
                                         <span class="absolute right-3 top-2.5 text-xs text-slate-500">{{
@@ -403,7 +403,7 @@ const primaryButtonLabel = computed(() => (isEditing.value ? t('triggerBuilderDi
                 <Button variant="outline" @click="emit('update:open', false)">{{
                     t('triggerBuilderDialog.buttons.cancel') }}</Button>
                 <Button :disabled="activeStep !== stepItems.length" @click="handleSave">{{ primaryButtonLabel
-                }}</Button>
+                    }}</Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>

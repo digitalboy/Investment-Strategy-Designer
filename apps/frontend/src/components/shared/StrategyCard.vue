@@ -49,7 +49,7 @@ const getRankColor = (index: number) => {
 
 <template>
     <Card
-        class="group h-full pt-5 pb-5 relative flex flex-col bg-linear-to-br from-white via-blue-50/70 to-indigo-100/60 backdrop-blur-sm border border-slate-200/50 shadow-lg shadow-slate-200/50 hover:shadow-xl hover:shadow-indigo-200/30 hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer rounded-2xl"
+        class="group h-full pt-5 pb-5 relative flex flex-col bg-linear-to-br from-white via-lime-50/70 to-emerald-100/60 backdrop-blur-sm border border-slate-200/50 shadow-lg shadow-slate-200/50 hover:shadow-xl hover:shadow-emerald-200/30 hover:-translate-y-1 transition-all duration-300 overflow-hidden cursor-pointer rounded-2xl"
         @click="emit('click')">
         <!-- ^^^ 修改点 1: 在 class 里添加了 `h-full`，让卡片高度在 Grid 中自动拉伸 -->
 
@@ -75,11 +75,11 @@ const getRankColor = (index: number) => {
                         <span class="text-[10px] text-slate-400">{{ formatDate(strategy.updatedAt) }}</span>
                     </div>
                     <div v-else-if="showAuthor" class="flex items-center gap-2 mb-2">
-                        <Avatar class="h-6 w-6 border-2 border-indigo-100 shadow-sm">
+                        <Avatar class="h-6 w-6 border-2 border-emerald-100 shadow-sm">
                             <AvatarImage v-if="strategy.author?.photoUrl" :src="strategy.author.photoUrl"
                                 :alt="strategy.author?.displayName" />
                             <AvatarFallback
-                                class="text-[10px] bg-linear-to-br from-indigo-50 to-blue-50 text-indigo-600 font-bold">
+                                class="text-[10px] bg-linear-to-br from-emerald-50 to-lime-50 text-emerald-600 font-bold">
                                 {{ (strategy.author?.displayName || strategy.author?.email ||
                                     'U').charAt(0).toUpperCase() }}
                             </AvatarFallback>
@@ -92,16 +92,16 @@ const getRankColor = (index: number) => {
                     <!-- Title & Ticker -->
                     <div>
                         <h3
-                            class="text-lg font-bold text-slate-900 leading-tight mb-4 line-clamp-1 group-hover:text-indigo-600 transition-colors">
+                            class="text-lg font-bold text-slate-900 leading-tight mb-4 line-clamp-1 group-hover:text-emerald-600 transition-colors">
                             {{ strategy.name }}
                         </h3>
                         <div class="flex items-center gap-2">
                             <Badge variant="outline"
-                                class="bg-indigo-50 text-indigo-700 border-indigo-200 font-semibold px-2.5 py-0.5 text-xs rounded-lg">
+                                class="bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold px-2.5 py-0.5 text-xs rounded-lg">
                                 {{ getEtfTicker(strategy) }}
                             </Badge>
                             <span class="text-xs text-slate-400 flex items-center gap-1.5">
-                                <span class="w-1 h-1 rounded-full bg-indigo-300"></span>
+                                <span class="w-1 h-1 rounded-full bg-emerald-300"></span>
                                 {{ formatTriggerCount(strategy.triggerCount) }}
                             </span>
                         </div>
@@ -135,7 +135,7 @@ const getRankColor = (index: number) => {
             <!-- 修改点 2: 添加 v-if 判断。如果没标签，连这个 div 都不渲染，避免占据高度或 margin -->
             <div v-if="strategy.tags && strategy.tags.length > 0" class="mt-4 flex flex-wrap gap-1.5">
                 <Badge v-for="tag in strategy.tags.slice(0, 5)" :key="tag" variant="secondary"
-                    class="bg-blue-50 text-blue-600 border border-blue-100 font-normal text-[10px] px-2 py-0.5 rounded-md hover:bg-blue-100 transition-colors">
+                    class="bg-lime-50 text-lime-600 border border-lime-100 font-normal text-[10px] px-2 py-0.5 rounded-md hover:bg-lime-100 transition-colors">
                     {{ tag }}
                 </Badge>
             </div>
@@ -152,7 +152,7 @@ const getRankColor = (index: number) => {
                         <span>{{ strategy.stats.likes }}</span>
                     </button>
                     <button @click.stop="emit('comment')"
-                        class="flex items-center gap-1.5 hover:text-indigo-500 transition-all text-xs font-medium">
+                        class="flex items-center gap-1.5 hover:text-emerald-500 transition-all text-xs font-medium">
                         <MessageSquare class="w-4 h-4" />
                         <span>{{ strategy.stats.comments || 0 }}</span>
                     </button>

@@ -153,25 +153,25 @@ const commentTree = computed(() => {
 <template>
     <Dialog :open="open" @update:open="$emit('update:open', $event)">
         <DialogContent
-            class="sm:max-w-[600px] max-h-[80vh] flex flex-col rounded-2xl border-indigo-200/40 shadow-2xl shadow-indigo-500/20 bg-white">
-            <DialogHeader class="pb-4 border-b border-indigo-100">
+            class="sm:max-w-[600px] max-h-[80vh] flex flex-col rounded-2xl border-emerald-200/40 shadow-2xl shadow-emerald-500/20 bg-white">
+            <DialogHeader class="pb-4 border-b border-emerald-100">
                 <div class="flex items-start gap-4">
                     <div class="grow">
                         <DialogTitle
-                            class="text-xl font-bold bg-linear-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
+                            class="text-xl font-bold bg-linear-to-r from-lime-600 to-emerald-600 bg-clip-text text-transparent">
                             {{ strategyName || title || t('community.comments') }}
                         </DialogTitle>
                         <div v-if="author" class="flex items-center gap-2.5 mt-2">
-                            <Avatar class="h-8 w-8 border border-indigo-100 shadow-sm">
+                            <Avatar class="h-8 w-8 border border-emerald-100 shadow-sm">
                                 <AvatarImage v-if="author.photo" :src="author.photo" :alt="author.name" />
-                                <AvatarFallback class="text-xs bg-indigo-50 text-indigo-600 font-medium">
+                                <AvatarFallback class="text-xs bg-emerald-50 text-emerald-600 font-medium">
                                     {{ (author.name || 'U').charAt(0).toUpperCase() }}
                                 </AvatarFallback>
                             </Avatar>
                             <div class="flex flex-col">
                                 <span class="text-sm font-medium text-slate-700 leading-none">{{ author.name ||
                                     t('commentsDialog.anonymousUser')
-                                    }}</span>
+                                }}</span>
                                 <span class="text-xs text-slate-400 mt-0.5">{{ t('commentsDialog.author') }}</span>
                             </div>
                         </div>
@@ -182,12 +182,12 @@ const commentTree = computed(() => {
                 </div>
             </DialogHeader>
 
-            <div class="grow overflow-y-auto py-4 space-y-4 min-h-[200px] bg-linear-to-br from-slate-50/30 via-blue-50/20 to-indigo-50/30 -mx-6 px-6"
+            <div class="grow overflow-y-auto py-4 space-y-4 min-h-[200px] bg-linear-to-br from-slate-50/30 via-lime-50/20 to-emerald-50/30 -mx-6 px-6"
                 ref="scrollContainer">
                 <!-- Initial Loading State -->
                 <div v-if="loading && comments.length === 0" class="text-center text-slate-400 py-12">
                     <div class="flex flex-col items-center gap-3">
-                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
                         <p class="text-sm text-slate-500">{{ t('commentsDialog.loading') }}</p>
                     </div>
                 </div>
@@ -196,8 +196,8 @@ const commentTree = computed(() => {
                 <div v-else-if="comments.length === 0 && !loading" class="text-center text-slate-400 py-12">
                     <div class="flex flex-col items-center gap-3">
                         <div
-                            class="p-4 bg-linear-to-br from-indigo-50 to-blue-50 rounded-full shadow-md shadow-indigo-500/20">
-                            <MessageSquare class="h-8 w-8 text-indigo-400" />
+                            class="p-4 bg-linear-to-br from-emerald-50 to-lime-50 rounded-full shadow-md shadow-emerald-500/20">
+                            <MessageSquare class="h-8 w-8 text-emerald-400" />
                         </div>
                         <p class="text-base font-medium text-slate-500">{{ t('commentsDialog.noComments') }}</p>
                         <p class="text-sm text-slate-400">{{ t('commentsDialog.beFirst') }}</p>
@@ -211,7 +211,7 @@ const commentTree = computed(() => {
 
                     <!-- Sentinel for infinite scroll -->
                     <div ref="loadMoreTrigger" class="h-10 flex justify-center items-center mt-2">
-                        <div v-if="loading" class="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600">
+                        <div v-if="loading" class="animate-spin rounded-full h-5 w-5 border-b-2 border-emerald-600">
                         </div>
                     </div>
                 </div>
@@ -219,13 +219,13 @@ const commentTree = computed(() => {
 
             <!-- Input Area -->
             <div
-                class="border-t border-indigo-200/40 pt-4 mt-auto bg-linear-to-r from-blue-50/30 to-indigo-50/30 -mx-6 px-6 -mb-6 pb-6 rounded-b-2xl">
+                class="border-t border-emerald-200/40 pt-4 mt-auto bg-linear-to-r from-lime-50/30 to-emerald-50/30 -mx-6 px-6 -mb-6 pb-6 rounded-b-2xl">
                 <div class="flex gap-2">
                     <Input v-model="newComment" :placeholder="t('commentsDialog.placeholder')"
-                        class="border-indigo-200/60 bg-white/80 backdrop-blur-sm focus:border-indigo-400 focus:ring-indigo-200 focus:bg-white transition-all"
+                        class="border-emerald-200/60 bg-white/80 backdrop-blur-sm focus:border-emerald-400 focus:ring-emerald-200 focus:bg-white transition-all"
                         @keyup.enter="handleAddComment" />
                     <Button @click="handleAddComment" :disabled="!newComment.trim()"
-                        class="bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 transition-all disabled:opacity-50 disabled:shadow-none">
+                        class="bg-linear-to-r from-lime-600 to-emerald-600 hover:from-lime-700 hover:to-emerald-700 text-white shadow-lg shadow-lime-500/30 hover:shadow-xl hover:shadow-lime-500/40 transition-all disabled:opacity-50 disabled:shadow-none">
                         {{ t('commentsDialog.send') }}
                     </Button>
                 </div>

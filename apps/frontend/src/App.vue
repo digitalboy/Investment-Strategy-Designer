@@ -77,14 +77,14 @@ const handleViewStrategy = async (strategyId: string) => {
     <!-- 动态背景装饰 - 固定全屏覆盖 -->
     <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
       <!-- 基础渐变背景 -->
-      <div class="absolute inset-0 bg-linear-to-br from-slate-50 via-blue-50/30 to-indigo-50/40"></div>
+      <div class="absolute inset-0 bg-linear-to-br from-slate-50 via-lime-50/30 to-emerald-50/40"></div>
 
       <!-- 主渐变光晕 -->
       <div
-        class="absolute top-0 right-0 w-[120vw] h-screen bg-linear-to-br from-indigo-200/40 via-blue-200/30 to-transparent rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3 animate-pulse-slow">
+        class="absolute top-0 right-0 w-[120vw] h-screen bg-linear-to-br from-lime-200/40 via-emerald-200/30 to-transparent rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/3 animate-pulse-slow">
       </div>
       <div
-        class="absolute bottom-0 left-0 w-screen h-[80vh] bg-linear-to-tr from-violet-200/30 via-purple-200/20 to-transparent rounded-full blur-3xl transform -translate-x-1/4 translate-y-1/4 animate-pulse-slower">
+        class="absolute bottom-0 left-0 w-screen h-[80vh] bg-linear-to-tr from-emerald-200/30 via-lime-200/20 to-transparent rounded-full blur-3xl transform -translate-x-1/4 translate-y-1/4 animate-pulse-slower">
       </div>
 
       <!-- 透视网格背景 -->
@@ -94,7 +94,7 @@ const handleViewStrategy = async (strategyId: string) => {
 
       <!-- 增长走势折线：从左到右贯穿全屏，分段向上 -->
       <svg
-        class="absolute left-0 right-0 w-screen bottom-0 h-[260px] text-indigo-400/80 drop-shadow-[0_0_18px_rgba(129,140,248,0.55)]"
+        class="absolute left-0 right-0 w-screen bottom-0 h-[260px] text-emerald-400/80 drop-shadow-[0_0_18px_rgba(16,185,129,0.55)]"
         viewBox="0 0 1440 400" preserveAspectRatio="none" aria-hidden="true">
         <defs>
           <!-- 折线下方柔和渐变填充 -->
@@ -162,17 +162,17 @@ const handleViewStrategy = async (strategyId: string) => {
             <WelcomeState @start-create="startCreate" />
 
             <!-- 分隔装饰 -->
-            <div class="relative py-8">
+            <!-- <div class="relative py-8">
               <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                <div class="w-full border-t border-gradient-to-r from-transparent via-indigo-200 to-transparent"></div>
+                <div class="w-full border-t border-gradient-to-r from-transparent via-emerald-200 to-transparent"></div>
               </div>
               <div class="relative flex justify-center">
                 <span
-                  class="bg-linear-to-r from-slate-50 via-blue-50/50 to-slate-50 px-6 text-sm font-medium text-slate-500 tracking-wider uppercase">
+                  class="bg-linear-to-r from-slate-50 via-lime-50/50 to-slate-50 px-6 text-sm font-medium text-slate-500 tracking-wider uppercase">
                   {{ t('common.selectedStrategies') }}
                 </span>
               </div>
-            </div>
+            </div> -->
 
             <CommunityBoard @create-strategy="startCreate" @view-strategy="handleViewStrategy" />
           </div>
@@ -181,7 +181,7 @@ const handleViewStrategy = async (strategyId: string) => {
           <div v-else class="space-y-8">
             <!-- 欢迎横幅 -->
             <div
-              class="relative overflow-hidden rounded-3xl bg-linear-to-r from-indigo-600 via-blue-600 to-violet-600 px-8 py-12 shadow-2xl shadow-indigo-500/20">
+              class="relative overflow-hidden rounded-3xl bg-linear-to-r from-lime-600 via-emerald-600 to-lime-600 px-8 py-12 shadow-2xl shadow-lime-500/20">
               <div
                 class="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,.05)_50%,transparent_75%,transparent_100%)] bg-size-[250%_250%] animate-shimmer">
               </div>
@@ -189,7 +189,7 @@ const handleViewStrategy = async (strategyId: string) => {
                 <h2 class="text-3xl font-bold text-white mb-3 tracking-tight">
                   {{ t('common.welcomeBack') }}, {{ t('dashboard.strategyMaster') }} 👋
                 </h2>
-                <p class="text-indigo-100 text-lg max-w-2xl">
+                <p class="text-emerald-100 text-lg max-w-2xl">
                   {{ t('dashboard.continueOptimizing') }}
                 </p>
               </div>
@@ -206,7 +206,7 @@ const handleViewStrategy = async (strategyId: string) => {
 
     <!-- 底部装饰线 -->
     <div
-      class="fixed bottom-0 left-0 right-0 h-1 bg-linear-to-r from-indigo-500 via-blue-500 to-violet-500 opacity-80 z-50">
+      class="fixed bottom-0 left-0 right-0 h-1 bg-linear-to-r from-lime-500 via-emerald-500 to-lime-600 opacity-80 z-50">
     </div>
   </div>
 </template>

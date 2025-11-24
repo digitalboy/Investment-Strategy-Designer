@@ -55,17 +55,17 @@ const onRecursiveReply = (parentId: string, content: string) => {
 
 <template>
     <div class="flex gap-3" :class="{ 'mt-4': currentDepth > 0 }">
-        <Avatar class="h-8 w-8 border-2 border-indigo-200/50 shadow-sm shrink-0">
+        <Avatar class="h-8 w-8 border-2 border-emerald-200/50 shadow-sm shrink-0">
             <AvatarImage v-if="comment.user_photo" :src="comment.user_photo"
                 :alt="comment.user_name || comment.user_email" />
-            <AvatarFallback class="bg-linear-to-br from-indigo-500 to-blue-500 text-white font-bold text-xs">
+            <AvatarFallback class="bg-linear-to-br from-lime-500 to-emerald-500 text-white font-bold text-xs">
                 {{ (comment.user_name || comment.user_email || 'U').charAt(0).toUpperCase() }}
             </AvatarFallback>
         </Avatar>
 
         <div class="grow space-y-2">
             <div
-                class="bg-linear-to-br from-white via-blue-50/40 to-indigo-50/30 p-3 rounded-xl border border-indigo-200/40 shadow-sm hover:shadow-md hover:shadow-indigo-500/10 transition-all">
+                class="bg-linear-to-br from-white via-lime-50/40 to-emerald-50/30 p-3 rounded-xl border border-emerald-200/40 shadow-sm hover:shadow-md hover:shadow-emerald-500/10 transition-all">
                 <div class="flex justify-between items-center mb-1">
                     <span class="text-xs font-semibold text-slate-700">
                         {{ comment.user_name || comment.user_email || t('commentItem.anonymousUser') }}
@@ -77,7 +77,7 @@ const onRecursiveReply = (parentId: string, content: string) => {
                 <!-- Actions -->
                 <div class="mt-2 flex items-center gap-2">
                     <button @click="toggleReply"
-                        class="text-xs font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors cursor-pointer">
+                        class="text-xs font-medium text-emerald-600 hover:text-emerald-800 flex items-center gap-1 transition-colors cursor-pointer">
                         <MessageSquare class="h-3 w-3" />
                         {{ isReplying ? t('commentItem.cancel') : t('commentItem.reply') }}
                     </button>
@@ -87,7 +87,7 @@ const onRecursiveReply = (parentId: string, content: string) => {
             <!-- Reply Input -->
             <div v-if="isReplying"
                 class="flex gap-2 items-center pl-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                <CornerDownRight class="h-4 w-4 text-indigo-300 shrink-0" />
+                <CornerDownRight class="h-4 w-4 text-emerald-300 shrink-0" />
                 <Input v-model="replyContent" :placeholder="t('commentItem.replyPlaceholder')"
                     class="h-9 text-sm bg-white/80" @keyup.enter="submitReply" auto-focus />
                 <Button size="sm" @click="submitReply" :disabled="!replyContent.trim()" class="h-9 px-3">
@@ -96,7 +96,7 @@ const onRecursiveReply = (parentId: string, content: string) => {
             </div>
 
             <!-- Nested Replies -->
-            <div v-if="comment.replies && comment.replies.length > 0" class="pl-4 border-l-2 border-indigo-100/50">
+            <div v-if="comment.replies && comment.replies.length > 0" class="pl-4 border-l-2 border-emerald-100/50">
                 <CommentItem v-for="reply in comment.replies" :key="reply.id" :comment="reply" :depth="currentDepth + 1"
                     @reply="onRecursiveReply" />
             </div>

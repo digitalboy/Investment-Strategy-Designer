@@ -116,11 +116,11 @@ const translatedTriggerGroups = computed(() => [
                     </p>
                     <div class="space-y-2">
                         <label v-for="item in group.items" :key="item.value"
-                            class="flex cursor-pointer items-start gap-3 rounded-2xl border px-3 py-2.5 transition hover:border-indigo-300"
+                            class="flex cursor-pointer items-start gap-3 rounded-2xl border px-3 py-2.5 transition hover:border-emerald-300"
                             :class="selectedKey === item.value
-                                ? 'border-indigo-500 bg-indigo-50/70 shadow-sm'
+                                ? 'border-emerald-500 bg-emerald-50/70 shadow-sm'
                                 : 'border-slate-200 bg-white'">
-                            <RadioGroupItem :value="item.value" class="mt-1 text-indigo-600" />
+                            <RadioGroupItem :value="item.value" class="mt-1 text-emerald-600" />
                             <div class="flex flex-col">
                                 <span class="text-sm font-medium text-slate-900">{{ item.label }}</span>
                                 <span class="text-xs text-slate-500">{{ item.description }}</span>

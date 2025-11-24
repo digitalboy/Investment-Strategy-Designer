@@ -38,17 +38,17 @@ const currentSymbol = computed(() => result.value?.metadata?.symbol || store.con
     <Dialog :open="open" @update:open="$emit('update:open', $event)">
         <DialogContent class="sm:max-w-7xl h-[90vh] flex flex-col p-0 gap-0 overflow-hidden">
             <DialogHeader
-                class="px-6 py-4 bg-linear-to-r from-indigo-600 via-blue-600 to-violet-600 text-white shrink-0">
+                class="px-6 py-4 bg-linear-to-r from-lime-600 via-emerald-600 to-lime-600 text-white shrink-0">
                 <DialogTitle class="text-lg font-bold">
                     {{ resultTitle }} · {{ currentSymbol }} · {{ t('resultsReportDialog.title') }}
                 </DialogTitle>
-                <DialogDescription class="text-xs mt-1 text-indigo-100">
+                <DialogDescription class="text-xs mt-1 text-emerald-100">
                     {{ t('resultsReportDialog.description') }}
                 </DialogDescription>
             </DialogHeader>
 
             <div v-if="result && result.performance && result.performance.strategy"
-                class="flex-1 flex flex-col p-4 min-h-0 overflow-y-auto bg-linear-to-br from-slate-50 via-blue-50/30 to-indigo-50/40">
+                class="flex-1 flex flex-col p-4 min-h-0 overflow-y-auto bg-linear-to-br from-slate-50 via-lime-50/30 to-emerald-50/40">
                 <!-- KPI Cards -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3 shrink-0">
                     <!-- Strategy Card -->
@@ -64,7 +64,7 @@ const currentSymbol = computed(() => result.value?.metadata?.symbol || store.con
                 <BacktestChart :result="result" />
             </div>
             <div v-else
-                class="flex-1 flex items-center justify-center flex-col gap-2 bg-linear-to-br from-slate-50 via-blue-50/30 to-indigo-50/40">
+                class="flex-1 flex items-center justify-center flex-col gap-2 bg-linear-to-br from-slate-50 via-lime-50/30 to-emerald-50/40">
                 <p class="text-lg font-medium text-slate-900">{{ t('resultsReportDialog.noData') }}</p>
                 <p class="text-sm text-slate-500">{{ t('resultsReportDialog.runBacktest') }}</p>
                 <p v-if="result && (!result.performance || !result.performance.strategy)"
@@ -73,9 +73,9 @@ const currentSymbol = computed(() => result.value?.metadata?.symbol || store.con
                 </p>
             </div>
 
-            <div class="p-4 border-t border-indigo-200/30 bg-white/90 backdrop-blur-md flex justify-end shrink-0">
+            <div class="p-4 border-t border-emerald-200/30 bg-white/90 backdrop-blur-md flex justify-end shrink-0">
                 <Button @click="$emit('update:open', false)"
-                    class="bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-md shadow-indigo-500/30 transition-all">{{
+                    class="bg-linear-to-r from-lime-600 to-emerald-600 hover:from-lime-700 hover:to-emerald-700 text-white shadow-md shadow-lime-500/30 transition-all">{{
                         t('resultsReportDialog.closeReport') }}</Button>
             </div>
         </DialogContent>

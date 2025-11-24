@@ -104,7 +104,7 @@ const selectedEtf = computed(() => ETF_OPTIONS.find(e => e.value === etfSymbol.v
 const handleSave = () => {
     // Strategy name and description now have placeholders, no need for mandatory validation here.
     // The store will receive the placeholder if user doesn't change it.
-    
+
     if (strategyName.value && getStrategyNameLength(strategyName.value) > 20) {
         validationError.value = t('setupWizard.validation.strategyNameTooLong')
         return
@@ -129,15 +129,15 @@ const handleSave = () => {
 <template>
     <Dialog :open="open" @update:open="$emit('update:open', $event)">
         <DialogContent
-            class="sm:max-w-[600px] p-0 gap-0 overflow-hidden bg-linear-to-br from-white via-blue-50/30 to-indigo-50/20">
+            class="sm:max-w-[600px] p-0 gap-0 overflow-hidden bg-linear-to-br from-white via-lime-50/30 to-emerald-50/20">
             <!-- 顶部装饰渐变条 -->
-            <div class="h-1.5 bg-linear-to-r from-indigo-500 via-blue-500 to-violet-500"></div>
+            <div class="h-1.5 bg-linear-to-r from-lime-500 via-emerald-500 to-lime-600"></div>
 
             <!-- Header Section with Icon -->
             <DialogHeader class="px-8 pt-8 pb-6 space-y-3">
                 <div class="flex items-center gap-4">
                     <div
-                        class="flex items-center justify-center w-14 h-14 rounded-2xl bg-linear-to-br from-indigo-500 to-blue-600 shadow-lg shadow-indigo-500/30">
+                        class="flex items-center justify-center w-14 h-14 rounded-2xl bg-linear-to-br from-lime-500 to-emerald-600 shadow-lg shadow-lime-500/30">
                         <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
@@ -160,36 +160,44 @@ const handleSave = () => {
             <div class="px-8 py-6 space-y-7">
                 <!-- Strategy Name -->
                 <div class="space-y-4">
-                    <Label for="strategy-name" class="text-sm font-semibold text-slate-700 flex items-center gap-2 ml-1">
+                    <Label for="strategy-name"
+                        class="text-sm font-semibold text-slate-700 flex items-center gap-2 ml-1">
                         <div class="p-1 rounded-md bg-emerald-50 text-emerald-600">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                </path>
                             </svg>
                         </div>
                         {{ t('strategy.strategyName') }}
                     </Label>
-                    <Input id="strategy-name" v-model="strategyName" :placeholder="t('setupWizard.mySmartStrategyPlaceholder')"
+                    <Input id="strategy-name" v-model="strategyName"
+                        :placeholder="t('setupWizard.mySmartStrategyPlaceholder')"
                         class="h-11 border-slate-200 hover:border-emerald-300 focus:border-emerald-500 transition-colors bg-white shadow-sm" />
                 </div>
 
                 <!-- Strategy Description -->
                 <div class="space-y-4">
-                    <Label for="strategy-description" class="text-sm font-semibold text-slate-700 flex items-center gap-2 ml-1">
-                        <div class="p-1 rounded-md bg-blue-50 text-blue-600">
+                    <Label for="strategy-description"
+                        class="text-sm font-semibold text-slate-700 flex items-center gap-2 ml-1">
+                        <div class="p-1 rounded-md bg-lime-50 text-lime-600">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                </path>
                             </svg>
                         </div>
                         {{ t('setupWizard.strategyDescriptionLabel') }}
                     </Label>
-                    <textarea id="strategy-description" v-model="description" :placeholder="t('setupWizard.strategyDescriptionPlaceholder')"
-                        class="flex h-24 w-full rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus-visible:outline-none focus:border-blue-500 transition-colors disabled:cursor-not-allowed disabled:opacity-50 shadow-sm" />
+                    <textarea id="strategy-description" v-model="description"
+                        :placeholder="t('setupWizard.strategyDescriptionPlaceholder')"
+                        class="flex h-24 w-full rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus-visible:outline-none focus:border-emerald-500 transition-colors disabled:cursor-not-allowed disabled:opacity-50 shadow-sm" />
                 </div>
 
                 <!-- ETF Selection -->
                 <div class="space-y-4">
                     <Label class="text-sm font-semibold text-slate-700 flex items-center gap-2 ml-1">
-                        <div class="p-1 rounded-md bg-indigo-50 text-indigo-600">
+                        <div class="p-1 rounded-md bg-emerald-50 text-emerald-600">
                             <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                                 <path
                                     d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z">
@@ -201,7 +209,7 @@ const handleSave = () => {
 
                     <Select v-model="etfSymbol">
                         <SelectTrigger
-                            class="w-full h-24 pl-20 pr-4 bg-white border-2 border-slate-200 rounded-lg shadow-sm hover:shadow-xl hover:border-indigo-300 transition-all duration-300 group relative overflow-visible flex items-center">
+                            class="w-full h-24 pl-20 pr-4 bg-white border-2 border-slate-200 rounded-lg shadow-sm hover:shadow-xl hover:border-emerald-300 transition-all duration-300 group relative overflow-visible flex items-center">
 
                             <!-- 背景装饰 -->
                             <div
@@ -213,7 +221,7 @@ const handleSave = () => {
                                 class="absolute -left-2 top-1/2 -translate-y-1/2 z-20 shrink-0 transition-all duration-500 ease-out transform -rotate-12 group-hover:rotate-6 group-hover:scale-110 origin-center drop-shadow-2xl">
                                 <!-- 主贴纸 -->
                                 <div
-                                    class="relative w-14 h-14 flex items-center justify-center rounded-xl bg-linear-to-br from-indigo-500 via-blue-600 to-violet-600 text-white border-3 border-white shadow-[0_10px_24px_-6px_rgba(79,70,229,0.5)] group-hover:shadow-[0_16px_32px_-6px_rgba(79,70,229,0.6)]">
+                                    class="relative w-14 h-14 flex items-center justify-center rounded-xl bg-linear-to-br from-lime-500 via-emerald-600 to-lime-600 text-white border-3 border-white shadow-[0_10px_24px_-6px_rgba(34,197,94,0.5)] group-hover:shadow-[0_16px_32px_-6px_rgba(34,197,94,0.6)]">
                                     <span class="text-2xl font-black tracking-tighter drop-shadow-sm">
                                         {{ selectedEtf ? selectedEtf.value.charAt(0) : '?' }}
                                     </span>
@@ -248,7 +256,7 @@ const handleSave = () => {
                             <div class="flex items-center gap-3 flex-1 text-left min-w-0 relative z-10">
                                 <!-- ETF 代码 -->
                                 <span v-if="selectedEtf"
-                                    class="text-2xl font-bold text-slate-800 tracking-tight group-hover:text-indigo-600 transition-colors shrink-0">
+                                    class="text-2xl font-bold text-slate-800 tracking-tight group-hover:text-emerald-600 transition-colors shrink-0">
                                     {{ selectedEtf.value }}
                                 </span>
                                 <span v-else class="text-slate-400 font-medium text-lg">{{
@@ -265,7 +273,7 @@ const handleSave = () => {
                         <SelectContent class="max-h-[300px] rounded-xl border-slate-100 shadow-xl shadow-slate-200/50">
                             <SelectGroup class="p-2">
                                 <SelectItem v-for="etf in ETF_OPTIONS" :key="etf.value" :value="etf.value"
-                                    class="rounded-lg cursor-pointer py-3 my-1 focus:bg-indigo-50 data-[state=checked]:bg-indigo-50/80">
+                                    class="rounded-lg cursor-pointer py-3 my-1 focus:bg-emerald-50 data-[state=checked]:bg-emerald-50/80">
                                     <div class="flex items-center gap-3">
                                         <div
                                             class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm">
@@ -286,7 +294,7 @@ const handleSave = () => {
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-3">
                         <Label for="start-date" class="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
                                 </path>
@@ -294,11 +302,11 @@ const handleSave = () => {
                             {{ t('setupWizard.startDate') }}
                         </Label>
                         <Input id="start-date" type="date" v-model="startDate"
-                            class="h-11 border-slate-200 hover:border-blue-300 focus:border-blue-500 transition-colors bg-white shadow-sm" />
+                            class="h-11 border-slate-200 hover:border-emerald-300 focus:border-emerald-500 transition-colors bg-white shadow-sm" />
                     </div>
                     <div class="space-y-3">
                         <Label for="end-date" class="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                            <svg class="w-4 h-4 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-lime-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
                                 </path>
@@ -306,7 +314,7 @@ const handleSave = () => {
                             {{ t('setupWizard.endDate') }}
                         </Label>
                         <Input id="end-date" type="date" v-model="endDate"
-                            class="h-11 border-slate-200 hover:border-violet-300 focus:border-violet-500 transition-colors bg-white shadow-sm" />
+                            class="h-11 border-slate-200 hover:border-lime-300 focus:border-lime-500 transition-colors bg-white shadow-sm" />
                     </div>
                 </div>
 
@@ -358,7 +366,7 @@ const handleSave = () => {
                     {{ t('common.cancel') }}
                 </Button>
                 <Button type="submit" @click="handleSave" :disabled="!!validationError"
-                    class="h-11 px-8 bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
+                    class="h-11 px-8 bg-linear-to-r from-lime-600 to-emerald-600 hover:from-lime-700 hover:to-emerald-700 text-white shadow-lg shadow-lime-500/30 hover:shadow-xl hover:shadow-lime-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M13 10V3L4 14h7v7l9-11h-7z"></path>

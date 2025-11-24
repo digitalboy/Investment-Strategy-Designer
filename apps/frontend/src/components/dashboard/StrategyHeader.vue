@@ -65,7 +65,7 @@ const startEditingName = () => {
 
 const finishEditingName = () => {
     const trimmed = editableName.value.trim()
-    
+
     if (trimmed && getStrategyNameLength(trimmed) > 20) {
         alert(t('setupWizard.validation.strategyNameTooLong'))
         // Keep editing state true so user can fix it, but we need to focus back or something.
@@ -88,18 +88,18 @@ const finishEditingName = () => {
 
 <template>
     <section
-        class="rounded-3xl border border-indigo-300/40 bg-linear-to-r from-indigo-600 via-blue-600 to-violet-600 px-6 py-5 shadow-2xl shadow-indigo-500/20 sticky top-4 z-20">
+        class="rounded-3xl border border-emerald-300/40 bg-linear-to-r from-lime-600 via-emerald-600 to-lime-600 px-6 py-5 shadow-2xl shadow-lime-500/20 sticky top-4 z-20">
         <div class="max-w-7xl mx-auto">
             <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
                 <!-- Left: Title & Meta -->
                 <div class="space-y-3">
-                    <div class="flex items-center gap-2 text-indigo-100">
+                    <div class="flex items-center gap-2 text-emerald-100">
                         <Button variant="ghost" size="icon"
-                            class="h-8 w-8 -ml-2 text-indigo-100 hover:text-white hover:bg-white/20 rounded-full transition-all"
+                            class="h-8 w-8 -ml-2 text-emerald-100 hover:text-white hover:bg-white/20 rounded-full transition-all"
                             @click="emit('back')">
                             <ArrowLeft class="h-4 w-4" />
                         </Button>
-                        <span class="text-xs font-medium uppercase tracking-wider text-indigo-100">{{
+                        <span class="text-xs font-medium uppercase tracking-wider text-emerald-100">{{
                             t('strategy.header.workspaceTitle') }}</span>
                     </div>
 
@@ -128,19 +128,19 @@ const finishEditingName = () => {
                     <div class="flex flex-wrap items-center gap-x-8 gap-y-2 text-sm">
                         <div class="flex items-center gap-2 group cursor-help"
                             :title="t('strategy.header.backtestingTimeRange')">
-                            <Calendar class="h-4 w-4 text-indigo-100 group-hover:text-white transition-colors" />
+                            <Calendar class="h-4 w-4 text-emerald-100 group-hover:text-white transition-colors" />
                             <span class="font-medium text-white/90 group-hover:text-white transition-colors">{{
                                 investingHorizon }}</span>
                         </div>
                         <div class="flex items-center gap-2 group cursor-help"
                             :title="t('strategy.header.initialCapital')">
-                            <Wallet class="h-4 w-4 text-indigo-100 group-hover:text-white transition-colors" />
+                            <Wallet class="h-4 w-4 text-emerald-100 group-hover:text-white transition-colors" />
                             <span class="font-medium text-white/90 group-hover:text-white transition-colors">{{
                                 formatCurrency(config.initialCapital) }}</span>
                         </div>
                         <div class="flex items-center gap-2 group cursor-help"
                             :title="t('strategy.header.triggerCount')">
-                            <Layers class="h-4 w-4 text-indigo-100 group-hover:text-white transition-colors" />
+                            <Layers class="h-4 w-4 text-emerald-100 group-hover:text-white transition-colors" />
                             <span class="font-medium text-white/90 group-hover:text-white transition-colors">{{
                                 triggerCount }} {{ t('strategy.header.triggers') }}</span>
                         </div>
@@ -165,7 +165,7 @@ const finishEditingName = () => {
                             </svg>
                             <span class="text-xs font-medium text-white/90">{{ isPublicChecked ?
                                 t('strategy.header.public') : t('strategy.header.private')
-                                }}</span>
+                            }}</span>
                         </div>
                         <Switch v-model="isPublicChecked" :disabled="isLoading"
                             class="data-[state=checked]:bg-white/60 data-[state=unchecked]:bg-white/20 border-0" />

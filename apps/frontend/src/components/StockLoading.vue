@@ -13,7 +13,7 @@ defineProps<{
         <div class="relative w-48 h-24">
             <!-- Grid lines -->
             <div class="absolute inset-0 grid grid-cols-6 grid-rows-3 gap-0 opacity-10">
-                <div v-for="i in 18" :key="i" class="border-r border-b border-indigo-900 last:border-r-0"></div>
+                <div v-for="i in 18" :key="i" class="border-r border-b border-emerald-900 last:border-r-0"></div>
             </div>
 
             <!-- Chart SVG -->
@@ -47,11 +47,14 @@ defineProps<{
         </div>
 
         <div class="mt-6 flex flex-col items-center gap-1">
-            <p class="text-sm font-semibold text-indigo-600 tracking-wide animate-pulse">{{ text || '正在分析市场数据...' }}</p>
+            <p class="text-sm font-semibold text-emerald-600 tracking-wide animate-pulse">{{ text || '正在分析市场数据...' }}
+            </p>
             <div class="flex gap-1 mt-1">
-                <div class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style="animation-delay: 0ms"></div>
-                <div class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style="animation-delay: 150ms"></div>
-                <div class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-bounce" style="animation-delay: 300ms"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style="animation-delay: 0ms"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style="animation-delay: 150ms">
+                </div>
+                <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style="animation-delay: 300ms">
+                </div>
             </div>
         </div>
     </div>

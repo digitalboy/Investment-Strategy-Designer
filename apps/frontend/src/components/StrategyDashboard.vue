@@ -120,7 +120,7 @@ const statusBadge = computed(() => {
         return {
             label: t('strategy.status.backtesting'),
             description: t('strategy.status.backtestingDescription'),
-            classes: 'border-indigo-200 bg-indigo-50 text-indigo-700'
+            classes: 'border-emerald-200 bg-emerald-50 text-emerald-700'
         }
     }
     if (!triggers.value.length) {
@@ -377,7 +377,7 @@ const handleDelete = async () => {
                     </AlertDialogContent>
                 </AlertDialog>
                 <Button v-if="canEdit && currentStrategyMetadata?.isOwner" variant="outline" size="lg"
-                    class="w-full sm:w-auto border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                    class="w-full sm:w-auto border-emerald-200 text-emerald-700 hover:bg-emerald-50"
                     :disabled="updateDisabled" @click="handleUpdate">
                     {{ t('strategy.messages.updateStrategy') }}
                 </Button>
@@ -387,7 +387,7 @@ const handleDelete = async () => {
                         t('strategy.messages.saveStrategy') }}
                 </Button>
                 <Button size="lg"
-                    class="w-full sm:w-auto bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg shadow-indigo-500/30 transition-all"
+                    class="w-full sm:w-auto bg-linear-to-r from-lime-600 to-emerald-600 hover:from-lime-700 hover:to-emerald-700 text-white shadow-lg shadow-lime-500/30 transition-all"
                     :disabled="runDisabled" :title="runDisabledReason" @click="handleRunBacktest">
                     <span v-if="isLoading">{{ t('strategy.messages.running') }}</span>
                     <span v-else>{{ t('strategy.messages.runBacktest') }}</span>

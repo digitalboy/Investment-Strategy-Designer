@@ -1,10 +1,7 @@
 <template>
   <div class="flex items-center">
-    <select
-      @change="changeLanguage"
-      :value="currentLanguage"
-      class="bg-transparent border border-slate-200 rounded-md py-1 pl-2 pr-6 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
-    >
+    <select @change="changeLanguage" :value="currentLanguage"
+      class="bg-transparent border border-slate-200 rounded-md py-1 pl-2 pr-6 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500">
       <option value="zh">中文</option>
       <option value="en">English</option>
     </select>

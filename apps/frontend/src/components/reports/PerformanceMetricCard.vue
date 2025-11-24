@@ -20,23 +20,23 @@ const formatNumber = (num: number | null | undefined, decimals = 2) => {
 
 const cardClasses = computed(() => {
     if (props.variant === 'strategy') {
-        return 'border-indigo-300/50 bg-linear-to-br from-white via-indigo-50/70 to-blue-100/60 shadow-lg shadow-indigo-500/20'
+        return 'border-emerald-300/50 bg-linear-to-br from-white via-emerald-50/70 to-lime-100/60 shadow-lg shadow-emerald-500/20'
     }
     return 'border-slate-300/50 bg-linear-to-br from-white via-slate-50/70 to-gray-100/50 shadow-lg shadow-slate-500/10'
 })
 
 const headerBorderClass = computed(() => {
-    if (props.variant === 'strategy') return 'border-indigo-200/60'
+    if (props.variant === 'strategy') return 'border-emerald-200/60'
     return 'border-slate-200/60'
 })
 
 const titleClass = computed(() => {
-    if (props.variant === 'strategy') return 'text-indigo-700'
+    if (props.variant === 'strategy') return 'text-emerald-700'
     return 'text-slate-700'
 })
 
 const statsBgClass = computed(() => {
-    if (props.variant === 'strategy') return 'bg-indigo-50/30'
+    if (props.variant === 'strategy') return 'bg-emerald-50/30'
     return 'bg-slate-50/40'
 })
 </script>
@@ -47,7 +47,7 @@ const statsBgClass = computed(() => {
             <CardTitle :class="['text-sm font-semibold flex items-center justify-between', titleClass]">
                 <span>{{ title }}</span>
                 <span v-if="symbol"
-                    class="text-[10px] font-normal text-white bg-linear-to-r from-indigo-600 to-blue-600 px-2 py-0.5 rounded-full shadow-md">
+                    class="text-[10px] font-normal text-white bg-linear-to-r from-lime-600 to-emerald-600 px-2 py-0.5 rounded-full shadow-md">
                     {{ symbol }}
                 </span>
             </CardTitle>
@@ -75,7 +75,7 @@ const statsBgClass = computed(() => {
 
             <!-- Stats Row -->
             <div
-                :class="['grid grid-cols-4 gap-2 text-[10px] pt-2 border-t border-indigo-200/60 -mx-3 px-3 -mb-3 pb-3 rounded-b-lg', statsBgClass]">
+                :class="['grid grid-cols-4 gap-2 text-[10px] pt-2 border-t border-emerald-200/60 -mx-3 px-3 -mb-3 pb-3 rounded-b-lg', statsBgClass]">
                 <template v-if="variant === 'strategy'">
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.totalTrades') }}</span>
@@ -91,12 +91,12 @@ const statsBgClass = computed(() => {
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.totalInvested') }}</span>
                         <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats.totalInvested, 0)
-                        }}</span>
+                            }}</span>
                     </div>
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.totalProceeds') }}</span>
                         <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats.totalProceeds, 0)
-                        }}</span>
+                            }}</span>
                     </div>
                 </template>
                 <template v-else>
@@ -114,7 +114,7 @@ const statsBgClass = computed(() => {
                     <div class="col-span-2">
                         <span class="text-slate-500 block">{{ t('performanceMetrics.strategyDescription') }}</span>
                         <span class="font-medium text-slate-900">{{ t('performanceMetrics.benchmarkDescription')
-                            }}</span>
+                        }}</span>
                     </div>
                 </template>
             </div>

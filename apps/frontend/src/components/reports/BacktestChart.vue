@@ -214,7 +214,7 @@ const chartOptions = {
 
 <template>
     <div
-        class="flex-1 min-h-[300px] w-full bg-white/90 backdrop-blur-sm p-4 rounded-xl border border-indigo-200/40 shadow-lg shadow-indigo-500/10 relative">
+        class="flex-1 min-h-[300px] w-full bg-white/90 backdrop-blur-sm p-4 rounded-xl border border-emerald-200/40 shadow-lg shadow-emerald-500/10 relative">
         <Line :data="chartData" :options="chartOptions" />
     </div>
 </template>

@@ -110,7 +110,7 @@ const handleLoadMoreComments = async () => {
             <div class="flex justify-between items-center">
                 <div class="flex items-center gap-3">
                     <div
-                        class="p-2.5 bg-linear-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-lg shadow-indigo-500/30">
+                        class="p-2.5 bg-linear-to-br from-emerald-500 to-emerald-600 rounded-xl shadow-lg shadow-emerald-500/30">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                             class="text-white">
@@ -133,7 +133,7 @@ const handleLoadMoreComments = async () => {
                         {{ t('community.refresh') }}
                     </Button>
                     <Button size="sm"
-                        class="bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white border-none shadow-lg shadow-indigo-500/30 transition-all"
+                        class="bg-linear-to-r from-lime-600 to-emerald-600 hover:from-lime-700 hover:to-emerald-700 text-white border-none shadow-lg shadow-lime-500/30 transition-all"
                         @click="emit('create-strategy')">
                         <Plus class="mr-2 h-4 w-4" />
                         {{ t('community.newStrategy') }}
@@ -166,7 +166,7 @@ const handleLoadMoreComments = async () => {
                     <button v-for="sort in ['recent', 'popular', 'return']" :key="sort"
                         @click="handleSortChange(sort as any)" :class="[
                             'px-4 py-2 text-sm rounded-lg transition-all font-medium',
-                            sortBy === sort ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                            sortBy === sort ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                         ]">
                         {{ sort === 'recent' ? t('community.recent') : (sort === 'popular' ? t('community.popular') :
                             t('community.return')) }}

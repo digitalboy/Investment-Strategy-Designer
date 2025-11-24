@@ -38,7 +38,7 @@ const handleLogout = () => {
                 <div class="flex items-center gap-8">
                     <div class="flex items-center gap-3 cursor-pointer" @click="$emit('navigate-home')">
                         <div
-                            class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">
+                            class="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center text-white font-bold">
                             Q
                         </div>
                         <span class="font-bold text-xl tracking-tight text-slate-800">QuantStrategy</span>
@@ -77,7 +77,7 @@ const handleLogout = () => {
                     </div>
 
                     <Button v-else @click="handleLogin" variant="default" size="sm"
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white">
+                        class="bg-emerald-600 hover:bg-emerald-700 text-white">
                         <i class="fa-brands fa-google mr-2"></i>
                         {{ t('auth.login') }}
                     </Button>

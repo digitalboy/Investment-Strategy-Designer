@@ -73,15 +73,15 @@ const handleSave = async () => {
 <template>
   <Dialog :open="open" @update:open="$emit('update:open', $event)">
     <DialogContent
-      class="sm:max-w-[600px] p-0 gap-0 overflow-hidden bg-linear-to-br from-white via-blue-50/30 to-indigo-50/20">
+      class="sm:max-w-[600px] p-0 gap-0 overflow-hidden bg-linear-to-br from-white via-lime-50/30 to-emerald-50/20">
       <!-- Top Decoration Bar -->
-      <div class="h-1.5 bg-linear-to-r from-indigo-500 via-blue-500 to-violet-500"></div>
+      <div class="h-1.5 bg-linear-to-r from-lime-500 via-emerald-500 to-lime-600"></div>
 
       <!-- Header Section -->
       <DialogHeader class="px-8 pt-8 pb-6 space-y-3">
         <div class="flex items-center gap-4">
           <div
-            class="flex items-center justify-center w-14 h-14 rounded-2xl bg-linear-to-br from-indigo-500 to-blue-600 shadow-lg shadow-indigo-500/30">
+            class="flex items-center justify-center w-14 h-14 rounded-2xl bg-linear-to-br from-lime-500 to-emerald-600 shadow-lg shadow-lime-500/30">
             <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
@@ -114,7 +114,7 @@ const handleSave = async () => {
             {{ t('saveStrategyDialog.strategyName') }}
           </Label>
           <Input id="name" v-model="name" :placeholder="t('saveStrategyDialog.example')"
-            class="h-11 border-slate-200 hover:border-emerald-300 focus:border-emerald-500 transition-colors bg-white shadow-sm" 
+            class="h-11 border-slate-200 hover:border-emerald-300 focus:border-emerald-500 transition-colors bg-white shadow-sm"
             :class="{ 'border-red-300 focus:border-red-500': nameError }" />
           <p v-if="nameError" class="text-xs text-red-500 font-medium ml-1">{{ nameError }}</p>
         </div>
@@ -122,7 +122,7 @@ const handleSave = async () => {
         <!-- Description -->
         <div class="space-y-4">
           <Label for="description" class="text-sm font-semibold text-slate-700 flex items-center gap-2 ml-1">
-            <div class="p-1 rounded-md bg-blue-50 text-blue-600">
+            <div class="p-1 rounded-md bg-lime-50 text-lime-600">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
@@ -132,14 +132,14 @@ const handleSave = async () => {
             {{ t('saveStrategyDialog.descriptionLabel') }}
           </Label>
           <textarea id="description" v-model="description" :placeholder="t('saveStrategyDialog.descriptionPlaceholder')"
-            class="flex h-24 w-full rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus-visible:outline-none focus:border-blue-500 transition-colors disabled:cursor-not-allowed disabled:opacity-50 shadow-sm" />
+            class="flex h-24 w-full rounded-lg border-2 border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus-visible:outline-none focus:border-emerald-500 transition-colors disabled:cursor-not-allowed disabled:opacity-50 shadow-sm" />
         </div>
 
         <!-- Public Toggle -->
         <div class="flex items-center justify-between p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
           <div class="space-y-0.5">
             <Label class="text-base font-medium text-slate-800 flex items-center gap-2">
-              <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
                 </path>
@@ -150,13 +150,11 @@ const handleSave = async () => {
               Allows other users to view and copy your strategy
             </p>
           </div>
-          <Switch :checked="isPublic" @update:checked="isPublic = $event"
-            class="
-              data-[state=checked]:bg-indigo-600 data-[state=unchecked]:bg-slate-200
+          <Switch :checked="isPublic" @update:checked="isPublic = $event" class="
+              data-[state=checked]:bg-emerald-600 data-[state=unchecked]:bg-slate-200
               shadow-sm hover:shadow-md transition-shadow
               focus-visible:ring-offset-background
-            "
-          />
+            " />
         </div>
       </div>
 
@@ -167,7 +165,7 @@ const handleSave = async () => {
           {{ t('saveStrategyDialog.cancel') }}
         </Button>
         <Button type="submit" @click="handleSave" :disabled="!name || !!nameError || isSaving"
-          class="h-11 px-8 bg-linear-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
+          class="h-11 px-8 bg-linear-to-r from-lime-600 to-emerald-600 hover:from-lime-700 hover:to-emerald-700 text-white shadow-lg shadow-lime-500/30 hover:shadow-xl hover:shadow-lime-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none">
           <svg v-if="isSaving" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg"
             fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -176,7 +174,8 @@ const handleSave = async () => {
             </path>
           </svg>
           <svg v-else class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
           </svg>
           {{ isSaving ? t('saveStrategyDialog.saving') : t('saveStrategyDialog.save') }}
         </Button>
