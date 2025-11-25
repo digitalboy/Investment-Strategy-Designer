@@ -77,15 +77,20 @@ const currentSymbol = computed(() => result.value?.metadata?.symbol || store.con
                 <div v-if="result && result.performance && result.performance.strategy"
                     class="flex-1 flex flex-col p-4 overflow-y-auto bg-linear-to-br from-slate-50 via-lime-50/10 to-emerald-50/20">
                     <!-- KPI Cards -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4 shrink-0">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 shrink-0">
                         <!-- Strategy Card -->
                         <PerformanceMetricCard :title="t('resultsReportDialog.strategyCardTitle')"
                             :metrics="result.performance.strategy" variant="strategy"
                             :symbol="result.metadata.symbol" />
 
-                        <!-- Benchmark Card -->
+                        <!-- Benchmark Card: Buy & Hold -->
                         <PerformanceMetricCard :title="t('resultsReportDialog.benchmarkCardTitle')"
                             :metrics="result.performance.benchmark" variant="benchmark" />
+
+                        <!-- Benchmark Card: Smart Weekly DCA -->
+                        <PerformanceMetricCard v-if="result.performance.dca"
+                            :title="t('resultsReportDialog.dcaCardTitle')" :metrics="result.performance.dca"
+                            variant="dca" />
                     </div>
 
                     <!-- Chart -->

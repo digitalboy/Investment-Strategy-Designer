@@ -100,11 +100,13 @@ export interface BacktestResultDTO {
     performance: {
         strategy: PerformanceMetrics;
         benchmark: PerformanceMetrics;
+        dca: PerformanceMetrics;       // 周定投基准
     };
     charts: {
         dates: string[];
         strategyEquity: number[];
         benchmarkEquity: number[];
+        dcaEquity: number[];           // 周定投净值曲线
         underlyingPrice: number[];
     };
     trades: Trade[];

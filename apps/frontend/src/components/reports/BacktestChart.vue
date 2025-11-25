@@ -94,6 +94,17 @@ const chartData = computed(() => {
                 order: 3
             },
             {
+                label: t('strategy.backtestChart.weeklyDCA'),
+                backgroundColor: '#8b5cf6',
+                borderColor: '#8b5cf6',
+                borderWidth: 1.5,
+                data: props.result.charts.dcaEquity || [],
+                tension: 0.1,
+                pointRadius: 0,
+                yAxisID: 'y',
+                order: 3
+            },
+            {
                 label: t('strategy.backtestChart.etfPrice'),
                 backgroundColor: '#f59e0b',
                 borderColor: '#f59e0b',

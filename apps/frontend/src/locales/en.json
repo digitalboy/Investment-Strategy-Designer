@@ -177,6 +177,7 @@
     "backtestChart": {
       "myStrategy": "My Strategy",
       "buyAndHold": "Buy and Hold",
+      "weeklyDCA": "Smart Weekly DCA",
       "etfPrice": "ETF Price",
       "buy": "Buy",
       "sell": "Sell"
@@ -313,6 +314,7 @@
     "description": "View the historical backtest performance, return comparisons, and detailed trading data of the strategy.",
     "strategyCardTitle": "My Strategy",
     "benchmarkCardTitle": "Benchmark: Buy & Hold",
+    "dcaCardTitle": "Benchmark: Smart Weekly DCA",
     "noData": "No data available",
     "runBacktest": "Run a backtest to view results",
     "dataError": "Data format error: Unable to parse performance metrics",
@@ -578,7 +580,8 @@
     "totalInvested": "Total Invested",
     "totalProceeds": "Total Proceeds",
     "strategyDescription": "Strategy Description",
-    "benchmarkDescription": "Buy and hold from the beginning"
+    "benchmarkDescription": "Buy and hold from the beginning",
+    "dcaDescription": "Fixed amount buy on first trading day of each week"
   },
   "api": {
     "status": {

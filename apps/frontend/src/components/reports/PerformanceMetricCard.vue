@@ -9,7 +9,7 @@ const { t } = useI18n()
 const props = defineProps<{
     title: string
     metrics: PerformanceMetrics
-    variant: 'strategy' | 'benchmark'
+    variant: 'strategy' | 'benchmark' | 'dca'
     symbol?: string
 }>()
 
@@ -22,21 +22,27 @@ const cardClasses = computed(() => {
     if (props.variant === 'strategy') {
         return 'border-emerald-300/50 bg-linear-to-br from-white via-emerald-50/70 to-lime-100/60 shadow-lg shadow-emerald-500/20'
     }
+    if (props.variant === 'dca') {
+        return 'border-violet-300/50 bg-linear-to-br from-white via-violet-50/70 to-purple-100/60 shadow-lg shadow-violet-500/20'
+    }
     return 'border-slate-300/50 bg-linear-to-br from-white via-slate-50/70 to-gray-100/50 shadow-lg shadow-slate-500/10'
 })
 
 const headerBorderClass = computed(() => {
     if (props.variant === 'strategy') return 'border-emerald-200/60'
+    if (props.variant === 'dca') return 'border-violet-200/60'
     return 'border-slate-200/60'
 })
 
 const titleClass = computed(() => {
     if (props.variant === 'strategy') return 'text-emerald-700'
+    if (props.variant === 'dca') return 'text-violet-700'
     return 'text-slate-700'
 })
 
 const statsBgClass = computed(() => {
     if (props.variant === 'strategy') return 'bg-emerald-50/30'
+    if (props.variant === 'dca') return 'bg-violet-50/30'
     return 'bg-slate-50/40'
 })
 </script>
@@ -91,12 +97,29 @@ const statsBgClass = computed(() => {
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.totalInvested') }}</span>
                         <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats.totalInvested, 0)
-                            }}</span>
+                        }}</span>
                     </div>
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.totalProceeds') }}</span>
                         <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats.totalProceeds, 0)
-                            }}</span>
+                        }}</span>
+                    </div>
+                </template>
+                <template v-else-if="variant === 'dca'">
+                    <div>
+                        <span class="text-slate-500 block">{{ t('performanceMetrics.totalTrades') }}</span>
+                        <span class="font-medium text-slate-900">{{ metrics.tradeStats?.totalTrades ?? '-' }}</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-500 block">{{ t('performanceMetrics.buySell') }}</span>
+                        <span class="font-medium">
+                            <span class="text-green-600">{{ metrics.tradeStats?.buyCount ?? '-' }}</span> /
+                            <span class="text-slate-400">0</span>
+                        </span>
+                    </div>
+                    <div class="col-span-2">
+                        <span class="text-slate-500 block">{{ t('performanceMetrics.strategyDescription') }}</span>
+                        <span class="font-medium text-slate-900">{{ t('performanceMetrics.dcaDescription') }}</span>
                     </div>
                 </template>
                 <template v-else>
@@ -114,7 +137,7 @@ const statsBgClass = computed(() => {
                     <div class="col-span-2">
                         <span class="text-slate-500 block">{{ t('performanceMetrics.strategyDescription') }}</span>
                         <span class="font-medium text-slate-900">{{ t('performanceMetrics.benchmarkDescription')
-                        }}</span>
+                            }}</span>
                     </div>
                 </template>
             </div>
