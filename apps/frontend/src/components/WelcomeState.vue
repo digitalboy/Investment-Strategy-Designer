@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useLanguageStore } from '@/stores/language'
 import { useI18n } from 'vue-i18n'
 import { Button } from '@/components/ui/button'
 import {
@@ -16,6 +17,7 @@ import {
 
 const authStore = useAuthStore()
 const { t } = useI18n()
+const languageStore = useLanguageStore()
 
 const slides = computed(() => [
     {
@@ -74,6 +76,12 @@ const countDownVal = ref(10)
 const countUpVal = ref(0)
 
 const currentSlide = computed(() => slides.value[currentSlideIndex.value]!)
+
+const titleClass = computed(() =>
+    languageStore.isEnglish
+        ? 'text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tighter leading-[1.1] animate-slide-in-stagger'
+        : 'text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] animate-slide-in-stagger'
+)
 
 const startAutoAdvance = () => {
     const timer = setInterval(() => {
@@ -189,12 +197,11 @@ const resumeAutoAdvance = () => {
                             :class="['relative inline-flex rounded-full h-2 w-2', currentSlide.id === 'risk' ? 'bg-red-500' : 'bg-lime-500']"></span>
                     </span>
                     <span class="text-xs font-bold text-slate-600 tracking-wide uppercase">{{ currentSlide.badge
-                        }}</span>
+                    }}</span>
                 </div>
 
                 <!-- Main Headline -->
-                <h1
-                    class="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] animate-slide-in-stagger">
+                <h1 :class="titleClass">
                     <span class="block text-slate-900">{{ currentSlide.title[0] }}</span>
                     <span class="bg-clip-text text-transparent bg-gradient-to-r from-[#84cc16] to-[#059669]">
                         {{ currentSlide.title[1] }}
