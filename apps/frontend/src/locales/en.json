@@ -572,11 +572,12 @@
   },
   "performanceMetrics": {
     "totalReturn": "Total Return",
-    "annualizedReturn": "Annualized Return",
+    "annualizedReturn": "Ann. Return",
     "maxDrawdown": "Max Drawdown",
     "sharpeRatio": "Sharpe Ratio",
     "totalTrades": "Total Trades",
     "buySell": "Buy/Sell",
+    "weeklyAmount": "Per Trade",
     "totalInvested": "Total Invested",
     "totalProceeds": "Total Proceeds",
     "strategyDescription": "Strategy Description",

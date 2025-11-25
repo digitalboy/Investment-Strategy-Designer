@@ -49,7 +49,7 @@ const statsBgClass = computed(() => {
 
 <template>
     <Card :class="[cardClasses, 'py-1 px-1 gap-0']">
-        <CardHeader :class="['px-3 pt-2 pb-0 border-b', headerBorderClass]">
+        <CardHeader :class="['px-3 pt-2 pb-0 mb-0 border-b', headerBorderClass]">
             <CardTitle :class="['text-sm font-semibold flex items-center justify-between', titleClass]">
                 <span>{{ title }}</span>
                 <span v-if="symbol"
@@ -57,6 +57,10 @@ const statsBgClass = computed(() => {
                     {{ symbol }}
                 </span>
             </CardTitle>
+            <p v-if="variant === 'benchmark' || variant === 'dca'" class="text-xs text-slate-500 mt-0">
+                {{ variant === 'dca' ? t('performanceMetrics.dcaDescription') :
+                    t('performanceMetrics.benchmarkDescription') }}
+            </p>
         </CardHeader>
         <CardContent class="p-3">
             <!-- Metrics Row -->
@@ -97,12 +101,12 @@ const statsBgClass = computed(() => {
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.totalInvested') }}</span>
                         <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats.totalInvested, 0)
-                        }}</span>
+                            }}</span>
                     </div>
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.totalProceeds') }}</span>
                         <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats.totalProceeds, 0)
-                        }}</span>
+                            }}</span>
                     </div>
                 </template>
                 <template v-else-if="variant === 'dca'">
@@ -111,16 +115,19 @@ const statsBgClass = computed(() => {
                         <span class="font-medium text-slate-900">{{ metrics.tradeStats?.totalTrades ?? '-' }}</span>
                     </div>
                     <div>
-                        <span class="text-slate-500 block">{{ t('performanceMetrics.buySell') }}</span>
-                        <span class="font-medium">
-                            <span class="text-green-600">{{ metrics.tradeStats?.buyCount ?? '-' }}</span> /
-                            <span class="text-slate-400">0</span>
-                        </span>
+                        <span class="text-slate-500 block">{{ t('performanceMetrics.weeklyAmount') }}</span>
+                        <span class="font-medium text-violet-600">${{
+                            metrics.tradeStats?.buyCount && metrics.tradeStats?.totalInvested
+                                ? formatNumber(metrics.tradeStats.totalInvested / metrics.tradeStats.buyCount, 2)
+                                : '-'
+                        }}</span>
                     </div>
-                    <div class="col-span-2">
-                        <span class="text-slate-500 block">{{ t('performanceMetrics.strategyDescription') }}</span>
-                        <span class="font-medium text-slate-900">{{ t('performanceMetrics.dcaDescription') }}</span>
+                    <div>
+                        <span class="text-slate-500 block">{{ t('performanceMetrics.totalInvested') }}</span>
+                        <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats?.totalInvested, 0)
+                            }}</span>
                     </div>
+                    <div></div>
                 </template>
                 <template v-else>
                     <div>
@@ -134,11 +141,12 @@ const statsBgClass = computed(() => {
                             <span class="text-slate-400">0</span>
                         </span>
                     </div>
-                    <div class="col-span-2">
-                        <span class="text-slate-500 block">{{ t('performanceMetrics.strategyDescription') }}</span>
-                        <span class="font-medium text-slate-900">{{ t('performanceMetrics.benchmarkDescription')
+                    <div>
+                        <span class="text-slate-500 block">{{ t('performanceMetrics.totalInvested') }}</span>
+                        <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats?.totalInvested, 0)
                             }}</span>
                     </div>
+                    <div></div>
                 </template>
             </div>
         </CardContent>

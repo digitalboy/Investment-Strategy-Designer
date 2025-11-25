@@ -177,7 +177,7 @@
     "backtestChart": {
       "myStrategy": "我的策略",
       "buyAndHold": "买入并持有",
-      "weeklyDCA": "智能周定投",
+      "weeklyDCA": "周定投",
       "etfPrice": "ETF 价格",
       "buy": "买入",
       "sell": "卖出"
@@ -314,7 +314,7 @@
     "description": "查看策略的历史回测表现、收益率对比及详细交易数据。",
     "strategyCardTitle": "我的策略",
     "benchmarkCardTitle": "基准：买入并持有",
-    "dcaCardTitle": "基准：智能周定投",
+    "dcaCardTitle": "基准：周定投",
     "noData": "暂无数据",
     "runBacktest": "请运行回测以查看结果",
     "dataError": "数据格式错误: 无法解析性能指标",
@@ -581,6 +581,7 @@
     "sharpeRatio": "夏普比率",
     "totalTrades": "交易次数",
     "buySell": "买/卖",
+    "weeklyAmount": "每次买入",
     "totalInvested": "总投入",
     "totalProceeds": "总回款",
     "strategyDescription": "策略说明",
