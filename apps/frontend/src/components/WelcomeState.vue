@@ -79,9 +79,29 @@ const currentSlide = computed(() => slides.value[currentSlideIndex.value]!)
 
 const titleClass = computed(() =>
     languageStore.isEnglish
-        ? 'text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tighter leading-[1.1] animate-slide-in-stagger'
-        : 'text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] animate-slide-in-stagger'
+        ? 'text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tighter leading-[1.5] animate-slide-in-stagger'
+        : 'text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.5] animate-slide-in-stagger'
 )
+
+const titleStyle = computed(() =>
+    languageStore.isEnglish
+        ? { fontFamily: '"Fjalla One", sans-serif' }
+        : {}
+)
+
+// Different vertical offsets for each slide to create magazine-style variety
+const visualOffsets = {
+    dashboard: 'mt-8',
+    triggers: 'mt-16',
+    builder: 'mt-4',
+    speed: 'mt-12',
+    analytics: 'mt-6',
+    risk: 'mt-20'
+}
+
+const visualOffsetClass = computed(() => {
+    return visualOffsets[currentSlide.value.visualType as keyof typeof visualOffsets] || 'mt-8'
+})
 
 const startAutoAdvance = () => {
     const timer = setInterval(() => {
@@ -200,16 +220,17 @@ const resumeAutoAdvance = () => {
                     }}</span>
                 </div>
 
-                <!-- Main Headline -->
-                <h1 :class="titleClass">
-                    <span class="block text-slate-900">{{ currentSlide.title[0] }}</span>
-                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-[#84cc16] to-[#059669]">
+                <!-- Main Headline - Magazine Style (can be overlapped by right image) -->
+                <h1 :class="titleClass" :style="titleStyle" class="relative z-0">
+                    <span class="block text-slate-900 whitespace-nowrap">{{ currentSlide.title[0] }}</span>
+                    <span
+                        class="block bg-clip-text text-transparent bg-gradient-to-r from-[#84cc16] to-[#059669] whitespace-nowrap">
                         {{ currentSlide.title[1] }}
                     </span>
                 </h1>
 
-                <!-- Subheadline -->
-                <p class="text-lg text-slate-600 leading-relaxed max-w-lg animate-slide-in-stagger">
+                <!-- Subheadline - Fixed height for 4 lines -->
+                <p class="text-lg text-slate-600 leading-relaxed max-w-lg animate-slide-in-stagger h-28 line-clamp-4">
                     {{ currentSlide.desc }}
                 </p>
 
@@ -232,12 +253,12 @@ const resumeAutoAdvance = () => {
                 </div>
             </div>
 
-            <!-- RIGHT COLUMN: Dynamic 3D Visual Showcase -->
-            <div class="relative hidden lg:flex items-center justify-center perspective-container group cursor-pointer"
+            <!-- RIGHT COLUMN: Dynamic 3D Visual Showcase - Overlaps title like magazine cover -->
+            <div class="relative hidden lg:flex items-start justify-center perspective-container group cursor-pointer z-10 -ml-20"
                 style="perspective: 2000px;" @mouseenter="pauseAutoAdvance" @mouseleave="resumeAutoAdvance">
 
-                <!-- The 3D Wrapper -->
-                <div class="relative w-full max-w-[600px] aspect-[4/3] transition-all duration-700 ease-out transform preserve-3d group-hover:rotate-x-0 group-hover:rotate-y-0 group-hover:scale-100"
+                <!-- The 3D Wrapper with dynamic offset and transparency -->
+                <div :class="['relative w-full max-w-[600px] aspect-[4/3] transition-all duration-700 ease-out transform preserve-3d group-hover:rotate-x-0 group-hover:rotate-y-0 group-hover:scale-100 opacity-90 hover:opacity-100', visualOffsetClass]"
                     style="transform: rotateY(-12deg) rotateX(5deg) scale(0.95);">
 
                     <!-- Background Glow -->

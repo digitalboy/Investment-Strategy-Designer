@@ -57,7 +57,7 @@
       },
       "builder": {
         "badge": "✨ Intent-Driven Construction",
-        "title": "Say goodbye to obscure parameters, as simple as fill-in-the-blanks",
+        "title": "No code needed, just fill in blanks",
         "desc": "No programming knowledge needed. Natural language interaction: 'If drops 15%, buy $1000'. WYSIWYG, strategy configuration never more intuitive."
       },
       "backtest": {

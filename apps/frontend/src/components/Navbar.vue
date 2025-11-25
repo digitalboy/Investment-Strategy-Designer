@@ -42,7 +42,7 @@ const handleLogout = () => {
                             class="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center text-white font-bold">
                             Q
                         </div>
-                        <span class="font-bold text-xl tracking-tight text-slate-800">QuantStrategy</span>
+                        <span class="font-bold text-xl tracking-tight text-slate-800">VESTLab QuantStrategy</span>
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
