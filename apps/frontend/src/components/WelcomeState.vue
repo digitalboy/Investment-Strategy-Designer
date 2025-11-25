@@ -16,276 +16,222 @@ const handleStart = async () => {
 </script>
 
 <template>
-    <!-- Hero Section -->
-    <div class="relative overflow-hidden">
-        <!-- Background decoration -->
-        <div class="absolute -top-24 -left-24 w-96 h-96 bg-lime-100 rounded-full blur-3xl opacity-50 -z-10"></div>
-        <div class="absolute top-1/2 -right-24 w-64 h-64 bg-emerald-100 rounded-full blur-3xl opacity-50 -z-10"></div>
+    <!-- Hero Section Container -->
+    <div
+        class="relative min-h-screen flex items-center overflow-hidden bg-slate-50 font-sans selection:bg-lime-200 selection:text-emerald-900">
 
-        <div class="py-16 text-center space-y-10 max-w-5xl mx-auto px-4">
-            <!-- Main Title & Tagline -->
-            <div class="space-y-6">
+        <!-- Global Background Decoration (Light Grid) -->
+        <div class="absolute inset-0 z-0 pointer-events-none opacity-20"
+            style="background-image: linear-gradient(#cbd5e1 1px, transparent 1px), linear-gradient(90deg, #cbd5e1 1px, transparent 1px); background-size: 40px 40px;">
+        </div>
+
+        <!-- Blob Glow Effects -->
+        <div
+            class="absolute -top-24 -left-24 w-96 h-96 bg-lime-200 rounded-full blur-[100px] opacity-40 -z-10 animate-pulse">
+        </div>
+        <div
+            class="absolute top-1/2 right-0 w-[500px] h-[500px] bg-emerald-200 rounded-full blur-[120px] opacity-30 -z-10">
+        </div>
+
+        <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center relative z-10 py-12 lg:py-0">
+
+            <!-- LEFT COLUMN: Copywriting -->
+            <div class="space-y-8 text-left">
+                <!-- Badge -->
                 <div
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-lime-50 border border-lime-200 rounded-full text-lime-700 font-semibold text-sm mb-4 animate-fade-in">
-                    <span class="w-2 h-2 bg-lime-500 rounded-full animate-pulse"></span>
-                    VestLab ETF 策略设计器
+                    class="inline-flex items-center gap-2 px-3 py-1 bg-white border border-lime-200 rounded-full shadow-sm animate-fade-in-up">
+                    <span class="relative flex h-2 w-2">
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-lime-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-lime-500"></span>
+                    </span>
+                    <span class="text-xs font-bold text-slate-600 tracking-wide uppercase">VestLab ETF 策略设计器</span>
                 </div>
 
-                <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-tight">
-                    <span
-                        class="bg-clip-text text-transparent bg-linear-to-r from-slate-900 via-slate-800 to-slate-900">
-                        拒绝凭感觉，
-                    </span>
-                    <br>
-                    <span
-                        class="bg-clip-text text-transparent bg-linear-to-r from-lime-600 via-emerald-600 to-lime-600">
+                <!-- Main Headline -->
+                <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1]">
+                    <span class="block text-slate-900">拒绝凭感觉，</span>
+                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-[#84cc16] to-[#059669]">
                         用数据说话
                     </span>
                 </h1>
 
-                <p class="text-lg md:text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed font-medium">
-                    将您的"抄底直觉"转化为可验证的投资策略<br class="hidden sm:block">
-                    <span class="text-emerald-600 font-semibold">无需写代码</span>，几秒钟内完成<span
-                        class="text-lime-600 font-semibold">十年历史回测</span>
+                <!-- Subheadline -->
+                <p class="text-lg text-slate-600 leading-relaxed max-w-lg">
+                    将您的"抄底直觉"转化为可验证的投资策略。
+                    <span class="text-emerald-700 font-semibold bg-emerald-50 px-1 rounded">无需代码</span>，
+                    利用全球边缘网络，几秒钟内完成
+                    <span class="text-lime-700 font-semibold bg-lime-50 px-1 rounded">十年历史回测</span>。
                 </p>
-            </div>
 
-            <!-- CTA Button -->
-            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-                <Button size="lg"
-                    class="group h-16 px-10 text-lg font-semibold bg-linear-to-r from-lime-600 to-emerald-600 hover:from-lime-700 hover:to-emerald-700 text-white shadow-xl shadow-lime-200/50 rounded-2xl transition-all hover:scale-105 hover:shadow-2xl hover:shadow-emerald-300/50"
-                    @click="handleStart">
-                    <i class="fa-brands fa-google mr-3 text-xl"></i>
-                    立即开始验证您的策略
-                    <i class="fa-solid fa-arrow-right ml-3 group-hover:translate-x-1 transition-transform"></i>
-                </Button>
-            </div>
+                <!-- CTA Actions -->
+                <div class="flex flex-col sm:flex-row gap-4 pt-2">
+                    <Button size="lg"
+                        class="h-14 px-8 text-base font-bold bg-gradient-to-r from-[#84cc16] to-[#059669] hover:from-[#65a30d] hover:to-[#047857] text-white shadow-xl shadow-lime-200/50 rounded-xl transition-all hover:scale-105 hover:shadow-2xl hover:shadow-emerald-300/50 active:scale-95 flex items-center gap-3"
+                        @click="handleStart">
+                        <i class="fa-brands fa-google text-lg"></i>
+                        立即开始验证
+                        <i class="fa-solid fa-arrow-right opacity-80"></i>
+                    </Button>
 
-            <!-- Trust Indicators -->
-            <div class="flex flex-wrap justify-center items-center gap-8 pt-8 text-sm text-slate-500">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-bolt text-lime-600"></i>
-                    <span>秒级回测响应</span>
+                    <Button size="lg" variant="outline"
+                        class="h-14 px-8 text-base font-bold bg-white border-2 border-slate-100 text-slate-600 hover:border-emerald-200 hover:text-emerald-700 hover:bg-emerald-50/50 rounded-xl transition-all"
+                        @click="handleStart">
+                        查看演示 DEMO
+                    </Button>
                 </div>
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-shield-halved text-emerald-600"></i>
-                    <span>全球边缘网络</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-chart-line text-purple-600"></i>
-                    <span>十年历史数据</span>
-                </div>
-            </div>
-        </div>
 
-        <!-- Core Values Section -->
-        <div class="max-w-6xl mx-auto px-4 py-16 space-y-12">
-            <div class="text-center space-y-3">
-                <h2 class="text-3xl md:text-4xl font-bold text-slate-900">
-                    我们的投资哲学
-                </h2>
-                <p class="text-slate-600 text-lg max-w-2xl mx-auto">
-                    不仅提供工具，更倡导一种理性的投资方式
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Value 1: Signal over Schedule -->
+                <!-- Trust Indicators (Aligned Left) -->
                 <div
-                    class="group relative bg-white/80 backdrop-blur-sm p-8 rounded-3xl border-2 border-slate-100 hover:border-lime-300 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-                    <div
-                        class="absolute top-0 right-0 w-32 h-32 bg-lime-100 rounded-full blur-3xl opacity-0 group-hover:opacity-40 transition-opacity -z-10">
-                    </div>
-                    <div
-                        class="h-14 w-14 rounded-2xl bg-linear-to-br from-lime-500 to-emerald-500 text-white flex items-center justify-center mb-6 shadow-lg shadow-lime-200 group-hover:scale-110 transition-transform">
-                        <i class="fa-solid fa-signal text-2xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-3 flex items-center gap-2">
-                        🎯 信号驱动，而非日历驱动
-                    </h3>
-                    <p class="text-slate-600 leading-relaxed mb-4">
-                        传统定投是"到时间就买"，无论贵贱。我们主张<strong class="text-lime-700">智能定投</strong>——当市场发出"打折"信号时果断出手。
-                    </p>
-                    <p class="text-sm text-emerald-700 font-medium">
-                        让每一分钱都花在刀刃上
-                    </p>
-                </div>
-
-                <!-- Value 2: Simplicity in Complexity -->
-                <div
-                    class="group relative bg-white/80 backdrop-blur-sm p-8 rounded-3xl border-2 border-slate-100 hover:border-emerald-300 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-                    <div
-                        class="absolute top-0 right-0 w-32 h-32 bg-emerald-100 rounded-full blur-3xl opacity-0 group-hover:opacity-40 transition-opacity -z-10">
-                    </div>
-                    <div
-                        class="h-14 w-14 rounded-2xl bg-linear-to-br from-emerald-500 to-teal-500 text-white flex items-center justify-center mb-6 shadow-lg shadow-emerald-200 group-hover:scale-110 transition-transform">
-                        <i class="fa-solid fa-wand-magic-sparkles text-2xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-3 flex items-center gap-2">
-                        🧠 化繁为简，人人可用
-                    </h3>
-                    <p class="text-slate-600 leading-relaxed mb-4">
-                        量化交易不应是程序员的专利。我们将复杂算法封装在<strong class="text-emerald-700">自然语言</strong>交互中。
-                    </p>
-                    <p class="text-sm text-teal-700 font-medium">
-                        "如果跌了15%，就买入1000元" —— 就这么简单
-                    </p>
-                </div>
-
-                <!-- Value 3: Honest Benchmarking -->
-                <div
-                    class="group relative bg-white/80 backdrop-blur-sm p-8 rounded-3xl border-2 border-slate-100 hover:border-purple-300 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-                    <div
-                        class="absolute top-0 right-0 w-32 h-32 bg-purple-100 rounded-full blur-3xl opacity-0 group-hover:opacity-40 transition-opacity -z-10">
-                    </div>
-                    <div
-                        class="h-14 w-14 rounded-2xl bg-linear-to-br from-purple-500 to-indigo-500 text-white flex items-center justify-center mb-6 shadow-lg shadow-purple-200 group-hover:scale-110 transition-transform">
-                        <i class="fa-solid fa-scale-balanced text-2xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-900 mb-3 flex items-center gap-2">
-                        ⚖️ 诚实对比，理性归因
-                    </h3>
-                    <p class="text-slate-600 leading-relaxed mb-4">
-                        策略好不好，比过才知道。我们将您的策略与<strong class="text-purple-700">买入并持有</strong>进行同台竞技。
-                    </p>
-                    <p class="text-sm text-indigo-700 font-medium">
-                        不仅看收益率，更看最大回撤
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Key Features Grid -->
-        <div class="max-w-6xl mx-auto px-4 pb-16 space-y-8">
-            <div class="text-center space-y-3">
-                <h2 class="text-3xl md:text-4xl font-bold text-slate-900">
-                    核心功能亮点
-                </h2>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Feature 1: Intent-Based Builder -->
-                <div
-                    class="bg-linear-to-br from-lime-50 to-emerald-50 p-6 rounded-2xl border border-lime-200/50 hover:shadow-lg transition-all hover:scale-105">
-                    <div
-                        class="h-12 w-12 rounded-xl bg-white text-lime-600 flex items-center justify-center mb-4 shadow-sm">
-                        <i class="fa-solid fa-wand-sparkles text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-slate-900 mb-2">✨ 意图导向构建</h3>
-                    <p class="text-sm text-slate-700 leading-relaxed">
-                        告别晦涩参数，像填空题一样配置策略
-                    </p>
-                </div>
-
-                <!-- Feature 2: Lightning-Fast Backtest -->
-                <div
-                    class="bg-linear-to-br from-sky-50 to-blue-50 p-6 rounded-2xl border border-sky-200/50 hover:shadow-lg transition-all hover:scale-105">
-                    <div
-                        class="h-12 w-12 rounded-xl bg-white text-sky-600 flex items-center justify-center mb-4 shadow-sm">
-                        <i class="fa-solid fa-bolt text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-slate-900 mb-2">🚀 极速回测引擎</h3>
-                    <p class="text-sm text-slate-700 leading-relaxed">
-                        基于全球边缘网络，秒级完成十年回测
-                    </p>
-                </div>
-
-                <!-- Feature 3: Visual Analytics -->
-                <div
-                    class="bg-linear-to-br from-purple-50 to-pink-50 p-6 rounded-2xl border border-purple-200/50 hover:shadow-lg transition-all hover:scale-105">
-                    <div
-                        class="h-12 w-12 rounded-xl bg-white text-purple-600 flex items-center justify-center mb-4 shadow-sm">
-                        <i class="fa-solid fa-chart-line text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-slate-900 mb-2">📊 深度可视化报告</h3>
-                    <p class="text-sm text-slate-700 leading-relaxed">
-                        净值曲线对比，买卖点标记，一目了然
-                    </p>
-                </div>
-
-                <!-- Feature 4: Smart Risk Control -->
-                <div
-                    class="bg-linear-to-br from-orange-50 to-amber-50 p-6 rounded-2xl border border-orange-200/50 hover:shadow-lg transition-all hover:scale-105">
-                    <div
-                        class="h-12 w-12 rounded-xl bg-white text-orange-600 flex items-center justify-center mb-4 shadow-sm">
-                        <i class="fa-solid fa-shield-halved text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-slate-900 mb-2">🛡️ 智能风控</h3>
-                    <p class="text-sm text-slate-700 leading-relaxed">
-                        冷却期机制，防止下跌途中打光子弹
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <!-- User Journey Section -->
-        <div class="max-w-4xl mx-auto px-4 pb-16">
-            <div
-                class="bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-10 md:p-12 text-white shadow-2xl relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-64 h-64 bg-lime-500 rounded-full blur-3xl opacity-10"></div>
-                <div class="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500 rounded-full blur-3xl opacity-10"></div>
-
-                <div class="relative space-y-8">
-                    <h2 class="text-3xl md:text-4xl font-bold mb-6">
-                        您的投资旅程
-                    </h2>
-
-                    <div class="space-y-6">
-                        <div class="flex gap-4">
-                            <div
-                                class="flex-shrink-0 w-10 h-10 rounded-full bg-lime-500 text-white font-bold flex items-center justify-center shadow-lg shadow-lime-500/50">
-                                1
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-lg mb-1">定义想法</h4>
-                                <p class="text-slate-300">您觉得 QQQ 每次跌 10% 都是机会？</p>
-                            </div>
+                    class="flex flex-wrap items-center gap-x-8 gap-y-4 pt-4 text-sm font-medium text-slate-500 border-t border-slate-200/60 mt-8 w-full">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-lime-100 flex items-center justify-center text-lime-600">
+                            <i class="fa-solid fa-bolt"></i>
                         </div>
-
-                        <div class="flex gap-4">
-                            <div
-                                class="flex-shrink-0 w-10 h-10 rounded-full bg-emerald-500 text-white font-bold flex items-center justify-center shadow-lg shadow-emerald-500/50">
-                                2
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-lg mb-1">构建策略</h4>
-                                <p class="text-slate-300">在设计器中输入规则：IF 从高点回撤 10% THEN 买入 $1000</p>
-                            </div>
+                        <span>秒级回测</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div
+                            class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                            <i class="fa-solid fa-database"></i>
                         </div>
-
-                        <div class="flex gap-4">
-                            <div
-                                class="flex-shrink-0 w-10 h-10 rounded-full bg-sky-500 text-white font-bold flex items-center justify-center shadow-lg shadow-sky-500/50">
-                                3
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-lg mb-1">验证历史</h4>
-                                <p class="text-slate-300">一键运行，看看过去 10 年这么做的结果如何</p>
-                            </div>
+                        <span>十年数据</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                            <i class="fa-solid fa-chart-simple"></i>
                         </div>
+                        <span>可视化报告</span>
+                    </div>
+                </div>
+            </div>
 
-                        <div class="flex gap-4">
-                            <div
-                                class="flex-shrink-0 w-10 h-10 rounded-full bg-purple-500 text-white font-bold flex items-center justify-center shadow-lg shadow-purple-500/50">
-                                4
+            <!-- RIGHT COLUMN: 3D Visual Showcase -->
+            <!-- Perspective Container -->
+            <div class="relative hidden lg:flex items-center justify-center perspective-container group cursor-pointer"
+                style="perspective: 2000px;">
+
+                <!-- The 3D Wrapper (Tilts by default, straightens on hover) -->
+                <div class="relative w-full max-w-[600px] aspect-[4/3] transition-all duration-700 ease-out transform preserve-3d group-hover:rotate-x-0 group-hover:rotate-y-0 group-hover:scale-100"
+                    style="transform: rotateY(-15deg) rotateX(5deg) scale(0.95);">
+
+                    <!-- Background Glow behind cards -->
+                    <div
+                        class="absolute inset-0 bg-gradient-to-tr from-lime-400 to-emerald-500 rounded-[2rem] opacity-20 blur-3xl -z-10">
+                    </div>
+
+                    <!-- Main Dashboard Card (Center) -->
+                    <div
+                        class="absolute inset-0 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col transition-all duration-500 group-hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)]">
+                        <!-- Mock Header -->
+                        <div
+                            class="h-14 border-b border-slate-100 flex items-center justify-between px-6 bg-slate-50/50">
+                            <div class="flex gap-2">
+                                <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                                <div class="w-3 h-3 rounded-full bg-amber-400"></div>
+                                <div class="w-3 h-3 rounded-full bg-green-400"></div>
                             </div>
-                            <div>
-                                <h4 class="font-bold text-lg mb-1">增强信心</h4>
-                                <p class="text-slate-300">看着数据，您不再恐慌下跌，而是期待机会</p>
+                            <div class="text-xs font-mono text-slate-400">Strategy_Builder_v1.0</div>
+                        </div>
+                        <!-- Mock Content -->
+                        <div class="p-6 flex-1 flex flex-col gap-4">
+                            <!-- Chart Area -->
+                            <div
+                                class="h-32 w-full bg-gradient-to-r from-lime-50 to-emerald-50 rounded-lg border border-lime-100 relative overflow-hidden">
+                                <svg class="absolute bottom-0 w-full h-full text-emerald-500 opacity-20"
+                                    viewBox="0 0 400 100" preserveAspectRatio="none">
+                                    <path fill="currentColor"
+                                        d="M0,80 Q50,90 100,50 T200,60 T300,20 T400,40 V100 H0 Z" />
+                                </svg>
+                                <svg class="absolute bottom-0 w-full h-full" fill="none" stroke="#059669"
+                                    stroke-width="2">
+                                    <path d="M0,80 Q50,90 100,50 T200,60 T300,20 T400,40" />
+                                </svg>
+                            </div>
+                            <!-- Metrics Row -->
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="bg-slate-50 p-3 rounded-lg">
+                                    <div class="text-[10px] text-slate-400">年化收益</div>
+                                    <div class="text-lg font-bold text-emerald-600">+22.4%</div>
+                                </div>
+                                <div class="bg-slate-50 p-3 rounded-lg">
+                                    <div class="text-[10px] text-slate-400">夏普比率</div>
+                                    <div class="text-lg font-bold text-slate-700">1.82</div>
+                                </div>
+                                <div class="bg-slate-50 p-3 rounded-lg">
+                                    <div class="text-[10px] text-slate-400">最大回撤</div>
+                                    <div class="text-lg font-bold text-slate-700">-12.5%</div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="pt-6">
-                        <Button size="lg" variant="outline"
-                            class="h-14 px-8 text-lg bg-white/10 hover:bg-white/20 text-white border-white/30 backdrop-blur-sm rounded-xl transition-all hover:scale-105"
-                            @click="handleStart">
-                            开始您的第一个策略
-                            <i class="fa-solid fa-arrow-right ml-2"></i>
-                        </Button>
+                    <!-- Floating Card 1: Buy Signal (Top Left) -->
+                    <div class="absolute -top-6 -left-12 w-48 bg-white/90 backdrop-blur-md rounded-xl p-4 shadow-xl border border-emerald-100 transform transition-transform duration-700 ease-out group-hover:translate-x-4 group-hover:translate-y-4"
+                        style="transform: translateZ(40px);">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div
+                                class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                                <i class="fa-solid fa-arrow-trend-up text-xs"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold text-slate-700">买入信号触发</div>
+                                <div class="text-[10px] text-slate-400">QQQ 回撤 > 10%</div>
+                            </div>
+                        </div>
+                        <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-emerald-500 w-3/4"></div>
+                        </div>
                     </div>
+
+                    <!-- Floating Card 2: Strategy Config (Bottom Right) -->
+                    <div class="absolute -bottom-8 -right-8 w-56 bg-[#1f2937] text-white rounded-xl p-4 shadow-2xl shadow-slate-900/20 transform transition-transform duration-700 ease-out group-hover:-translate-x-4 group-hover:-translate-y-4"
+                        style="transform: translateZ(60px);">
+                        <div class="text-xs font-mono text-slate-400 mb-2">// 策略逻辑</div>
+                        <div class="space-y-2 font-mono text-xs">
+                            <div class="flex gap-2">
+                                <span class="text-purple-400">IF</span>
+                                <span class="text-white">Drawdown</span>
+                                <span class="text-lime-400">> 15%</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <span class="text-purple-400">THEN</span>
+                                <span class="text-emerald-400">BUY $1000</span>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex items-center justify-between">
+                            <span class="text-[10px] bg-slate-700 px-2 py-0.5 rounded text-slate-300">Python 3.9</span>
+                            <i class="fa-solid fa-code text-slate-500 text-xs"></i>
+                        </div>
+                    </div>
+
                 </div>
             </div>
+
         </div>
     </div>
 </template>
+
+<style scoped>
+/* 3D 效果必备的 CSS */
+.preserve-3d {
+    transform-style: preserve-3d;
+}
+
+/* 如果您没有安装 animate.css，这里补充简单的淡入动画 */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 20px, 0);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.8s ease-out;
+}
+</style>
