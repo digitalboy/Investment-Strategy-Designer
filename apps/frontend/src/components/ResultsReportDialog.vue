@@ -87,7 +87,7 @@ const currentSymbol = computed(() => result.value?.metadata?.symbol || store.con
                         <PerformanceMetricCard :title="t('resultsReportDialog.benchmarkCardTitle')"
                             :metrics="result.performance.benchmark" variant="benchmark" />
 
-                        <!-- Benchmark Card: Smart Weekly DCA -->
+                        <!-- Benchmark Card: Weekly DCA -->
                         <PerformanceMetricCard v-if="result.performance.dca"
                             :title="t('resultsReportDialog.dcaCardTitle')" :metrics="result.performance.dca"
                             variant="dca" />

@@ -179,8 +179,12 @@
       "buyAndHold": "买入并持有",
       "weeklyDCA": "周定投",
       "etfPrice": "ETF 价格",
+      "accountNetValue": "账户净值",
       "buy": "买入",
-      "sell": "卖出"
+      "sell": "卖出",
+      "shares": "份额",
+      "atPrice": "@ $",
+      "reason": "原因"
     },
     "triggerList": {
       "title": "触发器面板",

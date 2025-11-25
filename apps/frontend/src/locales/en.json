@@ -177,10 +177,14 @@
     "backtestChart": {
       "myStrategy": "My Strategy",
       "buyAndHold": "Buy and Hold",
-      "weeklyDCA": "Smart Weekly DCA",
+      "weeklyDCA": "Weekly DCA",
       "etfPrice": "ETF Price",
+      "accountNetValue": "Account Net Value",
       "buy": "Buy",
-      "sell": "Sell"
+      "sell": "Sell",
+      "shares": "shares",
+      "atPrice": "@ $",
+      "reason": "Reason"
     },
     "triggerList": {
       "title": "Trigger Panel",
@@ -314,7 +318,7 @@
     "description": "View the historical backtest performance, return comparisons, and detailed trading data of the strategy.",
     "strategyCardTitle": "My Strategy",
     "benchmarkCardTitle": "Benchmark: Buy & Hold",
-    "dcaCardTitle": "Benchmark: Smart Weekly DCA",
+    "dcaCardTitle": "Benchmark: Weekly DCA",
     "noData": "No data available",
     "runBacktest": "Run a backtest to view results",
     "dataError": "Data format error: Unable to parse performance metrics",

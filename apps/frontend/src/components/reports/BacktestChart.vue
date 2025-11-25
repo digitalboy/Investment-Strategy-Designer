@@ -75,7 +75,7 @@ const chartData = computed(() => {
                 label: t('strategy.backtestChart.myStrategy'),
                 backgroundColor: '#4f46e5',
                 borderColor: '#4f46e5',
-                borderWidth: 1.0,
+                borderWidth: 2,
                 data: props.result.charts.strategyEquity,
                 tension: 0.1,
                 pointRadius: 0,
@@ -113,7 +113,6 @@ const chartData = computed(() => {
                 tension: 0.1,
                 pointRadius: 0,
                 yAxisID: 'y1',
-                hidden: true,
                 order: 4
             },
             {
@@ -145,7 +144,7 @@ const chartData = computed(() => {
     }
 })
 
-const chartOptions = {
+const chartOptions = computed(() => ({
     responsive: true,
     maintainAspectRatio: false,
     interaction: {
@@ -162,10 +161,10 @@ const chartOptions = {
                     const label = context.dataset.label || '';
                     const raw = context.raw;
 
-                    if (label === '买入' || label === '卖出') {
+                    if (label === t('strategy.backtestChart.buy') || label === t('strategy.backtestChart.sell')) {
                         const amount = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(raw.amount);
                         const qty = raw.quantity.toFixed(2);
-                        return `${label}: ${amount} (${qty} 份额 @ $${raw.price?.toFixed(2) ?? '—'})`;
+                        return `${label}: ${amount} (${qty} ${t('strategy.backtestChart.shares')} ${t('strategy.backtestChart.atPrice')}${raw.price?.toFixed(2) ?? '—'})`;
                     }
 
                     let valueLabel = label;
@@ -179,8 +178,8 @@ const chartOptions = {
                 },
                 afterBody: function (context: any) {
                     const point = context[0];
-                    if ((point.dataset.label === '买入' || point.dataset.label === '卖出') && point.raw.reason) {
-                        return `原因: ${point.raw.reason}`;
+                    if ((point.dataset.label === t('strategy.backtestChart.buy') || point.dataset.label === t('strategy.backtestChart.sell')) && point.raw.reason) {
+                        return `${t('strategy.backtestChart.reason')}: ${point.raw.reason}`;
                     }
                     return '';
                 }
@@ -194,7 +193,7 @@ const chartOptions = {
             position: 'left' as const,
             title: {
                 display: true,
-                text: '账户净值 ($)'
+                text: t('strategy.backtestChart.accountNetValue') + ' ($)'
             },
             ticks: {
                 callback: function (value: any) {
@@ -208,7 +207,7 @@ const chartOptions = {
             position: 'right' as const,
             title: {
                 display: true,
-                text: 'ETF 价格 ($)'
+                text: t('strategy.backtestChart.etfPrice') + ' ($)'
             },
             grid: {
                 drawOnChartArea: false,
@@ -220,7 +219,7 @@ const chartOptions = {
             }
         }
     }
-}
+}))
 </script>
 
 <template>
