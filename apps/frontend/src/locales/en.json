@@ -44,6 +44,38 @@
     "marketOverview": "Market Overview"
   },
   "welcome": {
+    "slides": {
+      "intro": {
+        "badge": "VestLab ETF Strategy Designer",
+        "title": "Reject gut feelings, speak with data",
+        "desc": "Transform your 'bottom-picking intuition' into verifiable investment strategies. No coding required, complete 10-year historical backtests in seconds using global edge networks."
+      },
+      "triggers": {
+        "badge": "♾️ Infinite Possibilities Triggers",
+        "title": "Simple building blocks, complex logic assembly",
+        "desc": "Built-in 50+ technical indicators including RSI, MACD, moving averages. Support 'AND/OR' multi-logic nesting. Whether simple dollar-cost averaging or complex grid trading, implement like building blocks."
+      },
+      "builder": {
+        "badge": "✨ Intent-Driven Construction",
+        "title": "Say goodbye to obscure parameters, as simple as fill-in-the-blanks",
+        "desc": "No programming knowledge needed. Natural language interaction: 'If drops 15%, buy $1000'. WYSIWYG, strategy configuration never more intuitive."
+      },
+      "backtest": {
+        "badge": "🚀 Lightning-Fast Backtest Engine",
+        "title": "Ten years of market data, verified in seconds",
+        "desc": "Millisecond computation based on Cloudflare's global edge network. Reject long waits, get instant data feedback for your inspiration."
+      },
+      "analytics": {
+        "badge": "📊 Deep Visualization",
+        "title": "A picture is worth a thousand words, review every decision",
+        "desc": "Compare NAV curves, mark buy/sell points, visualize max drawdown. See not just how much you earned, but how you earned it, distinguish luck from skill."
+      },
+      "risk": {
+        "badge": "🛡️ Smart Risk Control",
+        "title": "Advance to attack, retreat to defend",
+        "desc": "Built-in cooldown mechanism and dynamic position management. Prevent burning through bullets too early during downturns, find the optimal risk-reward balance."
+      }
+    },
     "backtest": {
       "description": "Generate real-time NAV curves with professional metrics like Sharpe ratio and max drawdown to intuitively evaluate strategy performance."
     },
@@ -89,7 +121,8 @@
     "noAccountYet": "No account yet?",
     "alreadyHaveAccount": "Already have an account?",
     "signUp": "Sign Up",
-    "loginRequired": "Please log in first"
+    "loginRequired": "Please log in first",
+    "startDesigning": "Start Designing Now"
   },
   "navbar": {
     "dashboard": "Dashboard",
