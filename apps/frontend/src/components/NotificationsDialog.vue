@@ -4,15 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import { Bell, Check } from 'lucide-vue-next'
 import { useDateFormatter } from '@/lib/useDateFormatter'
-
-export interface NotificationItem {
-    id: string
-    title: string
-    content: string
-    timestamp: string
-    read: boolean
-    type?: 'info' | 'success' | 'warning' | 'error'
-}
+import type { NotificationItem } from '@/services/notificationService'
 
 const props = defineProps<{
     open: boolean
@@ -69,7 +61,8 @@ const { formatDate } = useDateFormatter()
                                 </h4>
                                 <span class="text-[10px] text-slate-400 shrink-0 ml-2">{{ formatDate(item.timestamp) }}</span>
                             </div>
-                            <p class="text-xs text-slate-600 leading-relaxed line-clamp-2">
+                            <!-- Pre-wrap ensures newlines from the backend are respected -->
+                            <p class="text-xs text-slate-600 leading-relaxed line-clamp-2 whitespace-pre-wrap">
                                 {{ item.content }}
                             </p>
                         </div>

@@ -14,14 +14,23 @@ export const useLanguageStore = defineStore('language', {
     },
 
     initLanguage() {
-      // 从 localStorage 中获取用户偏好语言
+      // 1. 优先从 localStorage 获取用户手动设置的偏好
       const savedLang = localStorage.getItem('preferred-language') as 'zh' | 'en' | null;
 
       if (savedLang && (savedLang === 'zh' || savedLang === 'en')) {
         this.currentLanguage = savedLang;
-      } else {
-        // 如果没有保存的语言偏好，则使用默认值（zh）
+        return;
+      }
+
+      // 2. 如果没有保存的偏好，则检测浏览器语言
+      const browserLang = navigator.language.toLowerCase();
+      
+      // 检查是否为中文 (zh, zh-CN, zh-TW, etc.)
+      if (browserLang.startsWith('zh')) {
         this.currentLanguage = 'zh';
+      } else {
+        // 其他所有语言默认使用英语
+        this.currentLanguage = 'en';
       }
     }
   },
