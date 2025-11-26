@@ -30,7 +30,7 @@ export const useStrategyStore = defineStore('strategy', () => {
     const commentsLoading = ref(false)
 
     // Metadata for the currently loaded strategy (if any)
-    const currentStrategyMetadata = ref<{ id: string; userId: string; isPublic: boolean; isOwner: boolean; name?: string } | null>(null)
+    const currentStrategyMetadata = ref<{ id: string; userId: string; isPublic: boolean; notificationsEnabled: boolean; isOwner: boolean; name?: string } | null>(null)
     const currentStrategyName = ref('')
     const currentStrategyDescription = ref('')
 
@@ -133,7 +133,8 @@ export const useStrategyStore = defineStore('strategy', () => {
                 name,
                 description,
                 config: config.value,
-                isPublic
+                isPublic,
+                notificationsEnabled: true // Default to true for new strategies
             }
 
             // Attach performance metrics if available from the latest backtest
@@ -163,6 +164,7 @@ export const useStrategyStore = defineStore('strategy', () => {
         id: string | { id: string }
         name?: string
         isPublic?: boolean
+        notificationsEnabled?: boolean
         withConfig?: boolean
         skipBacktest?: boolean
     }
@@ -179,7 +181,7 @@ export const useStrategyStore = defineStore('strategy', () => {
 
     const updateStrategy = async (options: UpdateStrategyOptions) => {
         console.log('updateStrategy called with options:', options)
-        const { name, isPublic, withConfig = true, skipBacktest = false } = options
+        const { name, isPublic, notificationsEnabled, withConfig = true, skipBacktest = false } = options
         const id = resolveStrategyId(options.id)
         console.log('Resolved strategy ID:', id, 'Type:', typeof id)
         isLoading.value = true
@@ -228,6 +230,10 @@ export const useStrategyStore = defineStore('strategy', () => {
                 payload.isPublic = isPublic
             }
 
+            if (typeof notificationsEnabled === 'boolean') {
+                payload.notificationsEnabled = notificationsEnabled
+            }
+
             // Attach performance metrics if available from the latest backtest
             if (backtestResult.value?.performance?.strategy) {
                 console.log('Attaching metrics to update payload:', backtestResult.value.performance.strategy)
@@ -254,8 +260,14 @@ export const useStrategyStore = defineStore('strategy', () => {
                 currentStrategyMetadata.value = {
                     ...currentStrategyMetadata.value,
                     name: resolvedName || currentStrategyMetadata.value.name,
-                    isPublic: typeof isPublic === 'boolean' ? isPublic : currentStrategyMetadata.value.isPublic
+                    isPublic: typeof isPublic === 'boolean' ? isPublic : currentStrategyMetadata.value.isPublic,
+                    notificationsEnabled: typeof notificationsEnabled === 'boolean' ? notificationsEnabled : currentStrategyMetadata.value.notificationsEnabled
                 }
+            } else {
+                // For new strategies (no metadata yet), we might want to init defaults if we were creating metadata here,
+                // but createStrategy happens via saveStrategy which reloads or sets metadata.
+                // Actually, saveStrategy doesn't set metadata directly, it usually re-fetches or lets UI handle it.
+                // But let's ensure saveStrategy sets the default if it constructs payload.
             }
         } catch (e: any) {
             error.value = e.message || 'Failed to update strategy'
@@ -472,6 +484,7 @@ export const useStrategyStore = defineStore('strategy', () => {
                     id: response.data.id,
                     userId: response.data.user_id || response.data.userId, // Handle potential casing diffs
                     isPublic: response.data.isPublic || response.data.is_public,
+                    notificationsEnabled: !!response.data.notificationsEnabled, // New field
                     isOwner: !!response.data.isOwner,
                     name: response.data.name || response.data.title
                 }

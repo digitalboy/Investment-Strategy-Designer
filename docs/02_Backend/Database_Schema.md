@@ -44,6 +44,7 @@ D1 用于持久化存储用户账户信息和用户保存的策略。由于 SQLi
     description TEXT,               -- 策略描述
     config TEXT NOT NULL,           -- [核心] JSON 字符串，存储完整的策略定义
     is_public INTEGER DEFAULT 0,    -- 0: 私有, 1: 公开 (为未来社区功能预留)
+    notifications_enabled INTEGER DEFAULT 0, -- [新增] 0: 关闭通知, 1: 开启通知
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -60,14 +61,36 @@ D1 用于持久化存储用户账户信息和用户保存的策略。由于 SQLi
   | `name`         | TEXT    | 策略名称                                                                      |
   | `description`  | TEXT    | 策略描述 (可选)                                                               |
   | `config`       | TEXT    | 策略配置 JSON (包含 ETF, 触发器等)                                            |
-  | `is_public`    | INTEGER | **[新增]** 0: 私有, 1: 公开                                                   |
+  | `is_public`    | INTEGER | 0: 私有, 1: 公开                                                              |
+  | `notifications_enabled`| INTEGER | **[新增]** 0: 关闭, 1: 开启每日监控通知                                       |
   | `metrics_json` | TEXT    | **[新增]** 缓存的关键指标 (CAGR, Sharpe 等)，用于排行榜快速排序，无需实时回测 |
   | `created_at`   | INTEGER | 创建时间戳                                                                    |
   | `updated_at`   | INTEGER | 更新时间戳                                                                    |
 
   - **关于 `config` 字段**: 这是一个巨大的 JSON 对象，包含了 `etfSymbol`, `initialCapital`, 和 `triggers` 数组。我们不在 SQL 层面拆分触发器，因为回测时总是需要读取完整的配置。
 
-##### **1.3. 评论表 (`comments`) [新增]**
+##### **1.3. 策略状态表 (`strategy_states`) [新增]**
+
+用于记录实盘监控中每个策略触发器的“最后触发时间”，实现独立的冷却期控制。
+
+- **SQL 定义**:
+
+  ```sql
+  CREATE TABLE IF NOT EXISTS strategy_states (
+    strategy_id TEXT PRIMARY KEY,   -- 主键，关联 strategies.id
+    last_execution_state TEXT,      -- [核心] JSON 字符串，存储每个触发器的最后执行日期
+    updated_at TEXT NOT NULL,       -- 最后更新时间
+    FOREIGN KEY (strategy_id) REFERENCES strategies(id) ON DELETE CASCADE
+  );
+  ```
+
+  | 字段名                 | 类型 | 说明                                                                 |
+  | :--------------------- | :--- | :------------------------------------------------------------------- |
+  | `strategy_id`          | TEXT | 主键，关联策略表                                                     |
+  | `last_execution_state` | TEXT | 格式: `{ "trigger_0": "2025-11-25", "trigger_2": "2025-10-01" }` |
+  | `updated_at`           | TEXT | 状态最后更新时间                                                     |
+
+##### **1.4. 评论表 (`comments`) [新增]**
 
 用于存储策略的评论和回复。
 
@@ -169,6 +192,7 @@ export interface StrategyEntity {
   description?: string;
   config: string; // 注意：在数据库中是 JSON string，取出来后需要 JSON.parse
   is_public: number; // 0 or 1
+  notifications_enabled: number; // [新增] 0 or 1
   created_at: string;
   updated_at: string;
 }

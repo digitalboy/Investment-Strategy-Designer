@@ -13,7 +13,9 @@
     "loading": "加载中...",
     "error": "错误",
     "success": "成功",
-    "notification": "通知",
+    "notification": "消息通知",
+    "noNotifications": "暂无新消息",
+    "markAllRead": "全部已读",
     "description": "无需编写代码，通过直观的\"如果...那么...\"规则，构建、回测并优化您的量化交易策略。让数据驱动您的投资决策。",
     "documentation": "文档",
     "backtest": "可视化回测",
@@ -160,7 +162,11 @@
       "triggers": "个触发器",
       "public": "公开",
       "private": "私有",
-      "settings": "设置"
+      "settings": "设置",
+      "notifications": "每日监控",
+      "notificationsOn": "已开启",
+      "notificationsOff": "已关闭",
+      "notificationsTooltip": "开启后，将在每个交易日收盘后检查信号，若触发则发送邮件通知"
     },
     "executionGuide": {
       "title": "执行指南",

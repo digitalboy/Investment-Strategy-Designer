@@ -14,6 +14,7 @@ export interface StrategyEntity {
     description?: string;
     config: string;       // JSON string
     is_public: number;    // 0 or 1
+    notifications_enabled: number; // 0 or 1
     view_count: number;
     like_count: number;
     clone_count: number;
@@ -30,6 +31,7 @@ export interface StrategySummaryDTO {
     description?: string;
     updatedAt: string;
     isPublic: boolean;
+    notificationsEnabled?: boolean;
     etfSymbol?: string;
     stats: {
         views: number;
@@ -149,4 +151,5 @@ export interface UpdateStrategyDTO {
     description?: string;
     config?: StrategyConfig;
     isPublic?: boolean;
+    notificationsEnabled?: boolean;
 }

@@ -32,6 +32,7 @@ const store = useStrategyStore()
 const result = computed(() => store.backtestResult)
 const resultTitle = computed(() => store.currentStrategyName || store.currentStrategyMetadata?.name || '策略')
 const currentSymbol = computed(() => result.value?.metadata?.symbol || store.config.etfSymbol || '标的')
+const strategyTriggerCount = computed(() => store.config.triggers?.length || 0) // New computed property
 </script>
 
 <template>
@@ -81,7 +82,7 @@ const currentSymbol = computed(() => result.value?.metadata?.symbol || store.con
                         <!-- Strategy Card -->
                         <PerformanceMetricCard :title="t('resultsReportDialog.strategyCardTitle')"
                             :metrics="result.performance.strategy" variant="strategy"
-                            :symbol="result.metadata.symbol" />
+                            :symbol="result.metadata.symbol" :triggerCount="strategyTriggerCount" />
 
                         <!-- Benchmark Card: Buy & Hold -->
                         <PerformanceMetricCard :title="t('resultsReportDialog.benchmarkCardTitle')"

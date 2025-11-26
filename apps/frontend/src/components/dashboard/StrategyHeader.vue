@@ -11,7 +11,7 @@ import { getStrategyNameLength } from '@/lib/utils'
 
 const props = defineProps<{
     title: string
-    metadata: { id: string; isOwner: boolean; isPublic: boolean; name?: string } | null
+    metadata: { id: string; isOwner: boolean; isPublic: boolean; notificationsEnabled: boolean; name?: string } | null
     config: StrategyConfig
     triggerCount: number
     isLoading: boolean
@@ -23,6 +23,7 @@ const emit = defineEmits<{
     'edit-setup': []
     'update-name': [name: string]
     'update-visibility': [isPublic: boolean]
+    'update-notifications': [enabled: boolean] // New emit
 }>()
 
 const { t } = useI18n()
@@ -42,6 +43,13 @@ const isPublicChecked = computed({
     get: () => props.metadata?.isPublic ?? false,
     set: (checked: boolean) => {
         emit('update-visibility', checked)
+    }
+})
+
+const isNotificationsChecked = computed({
+    get: () => props.metadata?.notificationsEnabled ?? false,
+    set: (checked: boolean) => {
+        emit('update-notifications', checked)
     }
 })
 
@@ -152,7 +160,8 @@ const finishEditingName = () => {
                     <!-- Visibility Toggle -->
                     <div v-if="metadata?.isOwner"
                         class="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20">
-                        <div class="flex items-center gap-2">
+                        <!-- Public Switch -->
+                        <div class="flex items-center gap-2 pr-3 border-r border-white/10">
                             <svg v-if="isPublicChecked" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -163,12 +172,31 @@ const finishEditingName = () => {
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                             </svg>
-                            <span class="text-xs font-medium text-white/90">{{ isPublicChecked ?
+                            <span class="text-xs font-medium text-white/90 hidden sm:inline">{{ isPublicChecked ?
                                 t('strategy.header.public') : t('strategy.header.private')
                             }}</span>
+                            <Switch v-model="isPublicChecked" :disabled="isLoading"
+                                class="data-[state=checked]:bg-white/60 data-[state=unchecked]:bg-white/20 border-0 scale-75 origin-right" />
                         </div>
-                        <Switch v-model="isPublicChecked" :disabled="isLoading"
-                            class="data-[state=checked]:bg-white/60 data-[state=unchecked]:bg-white/20 border-0" />
+
+                        <!-- Notifications Switch -->
+                        <div class="flex items-center gap-2" :title="t('strategy.header.notificationsTooltip')">
+                            <svg v-if="isNotificationsChecked" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            <svg v-else class="h-4 w-4 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            <span class="text-xs font-medium text-white/90 hidden sm:inline">{{ isNotificationsChecked ?
+                                t('strategy.header.notificationsOn') : t('strategy.header.notificationsOff')
+                            }}</span>
+                            <Switch v-model="isNotificationsChecked" :disabled="isLoading"
+                                class="data-[state=checked]:bg-emerald-400 data-[state=unchecked]:bg-white/20 border-0 scale-75 origin-right" />
+                        </div>
                     </div>
 
                     <div class="h-8 w-px bg-white/20 mx-2 hidden md:block" v-if="canAdjustSetup"></div>

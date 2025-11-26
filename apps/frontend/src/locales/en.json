@@ -13,7 +13,9 @@
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",
-    "notification": "Notification",
+    "notification": "Notifications",
+    "noNotifications": "No new notifications",
+    "markAllRead": "Mark all as read",
     "description": "Build, backtest, and optimize your quantitative trading strategies without coding, using intuitive \"if...then...\" rules. Let data drive your investment decisions.",
     "documentation": "Documentation",
     "backtest": "Visual Backtesting",
@@ -160,7 +162,11 @@
       "triggers": "triggers",
       "public": "Public",
       "private": "Private",
-      "settings": "Settings"
+      "settings": "Settings",
+      "notifications": "Daily Monitor",
+      "notificationsOn": "On",
+      "notificationsOff": "Off",
+      "notificationsTooltip": "When enabled, checks signals after market close daily and sends email if triggered"
     },
     "executionGuide": {
       "title": "Execution Guide",

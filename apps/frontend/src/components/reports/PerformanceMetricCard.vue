@@ -11,6 +11,7 @@ const props = defineProps<{
     metrics: PerformanceMetrics
     variant: 'strategy' | 'benchmark' | 'dca'
     symbol?: string
+    triggerCount?: number // New prop
 }>()
 
 const formatNumber = (num: number | null | undefined, decimals = 2) => {
@@ -60,6 +61,9 @@ const statsBgClass = computed(() => {
             <p v-if="variant === 'benchmark' || variant === 'dca'" class="text-xs text-slate-500 mt-0">
                 {{ variant === 'dca' ? t('performanceMetrics.dcaDescription') :
                     t('performanceMetrics.benchmarkDescription') }}
+            </p>
+            <p v-else-if="variant === 'strategy' && triggerCount !== undefined" class="text-xs text-slate-500 mt-0">
+                {{ triggerCount }} {{ t('strategy.header.triggers') }}
             </p>
         </CardHeader>
         <CardContent class="p-3">

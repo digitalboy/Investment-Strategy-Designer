@@ -61,19 +61,28 @@ const handleNameUpdate = async (newName: string) => {
 const handleVisibilityUpdate = async (isPublic: boolean) => {
     if (!currentStrategyMetadata.value) return
 
-    console.log('Updating visibility to backend:', {
-        id: currentStrategyMetadata.value.id,
-        isPublic: isPublic
-    })
     try {
         await store.updateStrategy({
             id: currentStrategyMetadata.value.id,
             isPublic: isPublic,
             skipBacktest: true
         })
-        console.log('Visibility updated successfully')
     } catch (e) {
         console.error('Failed to update visibility:', e)
+    }
+}
+
+const handleNotificationsUpdate = async (enabled: boolean) => {
+    if (!currentStrategyMetadata.value) return
+
+    try {
+        await store.updateStrategy({
+            id: currentStrategyMetadata.value.id,
+            notificationsEnabled: enabled,
+            skipBacktest: true
+        })
+    } catch (e) {
+        console.error('Failed to update notifications:', e)
     }
 }
 
@@ -344,7 +353,7 @@ const handleDelete = async () => {
         <StrategyHeader :title="strategyTitle" :metadata="currentStrategyMetadata" :config="config"
             :trigger-count="triggers.length" :is-loading="isLoading" :can-adjust-setup="canAdjustSetup"
             @back="$emit('back')" @edit-setup="$emit('edit-setup')" @update-name="handleNameUpdate"
-            @update-visibility="handleVisibilityUpdate" />
+            @update-visibility="handleVisibilityUpdate" @update-notifications="handleNotificationsUpdate" />
 
         <div class="flex flex-col gap-6 xl:flex-row">
             <!-- Trigger List Panel -->
