@@ -116,6 +116,19 @@ const chartData = computed(() => {
                 order: 4
             },
             {
+                label: 'VIX',
+                backgroundColor: '#ef4444',
+                borderColor: '#ef4444',
+                borderWidth: 1.0,
+                borderDash: [5, 5],
+                data: props.result.charts.vixData || [],
+                tension: 0.1,
+                pointRadius: 0,
+                yAxisID: 'y2',
+                order: 5,
+                hidden: false // Always show VIX as an important market sentiment reference
+            },
+            {
                 label: t('strategy.backtestChart.buy'),
                 data: buyPoints,
                 backgroundColor: '#16a34a',
@@ -216,6 +229,21 @@ const chartOptions = computed(() => ({
                 callback: function (value: any) {
                     return '$' + value;
                 }
+            }
+        },
+        y2: {
+            type: 'linear' as const,
+            display: true,
+            position: 'right' as const,
+            title: {
+                display: true,
+                text: 'VIX'
+            },
+            grid: {
+                drawOnChartArea: false,
+            },
+            ticks: {
+                color: '#ef4444'
             }
         }
     }

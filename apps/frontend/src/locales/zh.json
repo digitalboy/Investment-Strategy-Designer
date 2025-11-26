@@ -219,7 +219,8 @@
         "newHigh": "价格创 {days} 日新高",
         "newLow": "价格创 {days} 日新低",
         "periodReturn": "{days} 日内{direction}超过 {percentage}%",
-        "maCross": "价格{direction} MA{period}"
+        "maCross": "价格{direction} MA{period}",
+        "vix": "VIX 指数 {operator} {threshold}"
       },
       "actions": {
         "buy": "买入",
@@ -400,7 +401,8 @@
     "groups": {
       "buyLow": "📉 逢低买入（抄底）",
       "trendFollowing": "🚀 趋势跟随（追涨）",
-      "technicalIndicators": "📊 技术指标"
+      "technicalIndicators": "📊 技术指标",
+      "marketSentiment": "🌐 市场情绪指标"
     },
     "conditions": {
       "drawdownFromPeak": {
@@ -438,6 +440,10 @@
       "maCross": {
         "label": "均线交叉",
         "description": "短期均线与长期均线交叉"
+      },
+      "vix": {
+        "label": "VIX 恐慌指数",
+        "description": "市场波动性和情绪的衡量"
       }
     },
     "descriptions": {
@@ -503,6 +509,15 @@
         },
         "period": "{period}",
         "middle": "日均线时。"
+      },
+      "vix": {
+        "prefix": "当 VIX 指数",
+        "operator": {
+          "above": "高于",
+          "below": "低于"
+        },
+        "threshold": "{threshold}",
+        "suffix": "时。"
       }
     },
     "operators": {
@@ -562,6 +577,7 @@
         "periodReturn": "当价格在过去 {days} 天累计{direction}超过 {percentage}%",
         "rsi": "当 RSI({period}) {operator} {threshold}",
         "maCross": "当价格 {direction} {period} 日均线",
+        "vix": "当 VIX 指数 {operator} {threshold}",
         "default": "配置触发条件"
       },
       "actions": {

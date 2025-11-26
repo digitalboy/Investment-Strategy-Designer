@@ -124,6 +124,11 @@ const conditionSummary = computed(() => {
                 direction: params.direction === 'above' ? t('triggerConditionForm.directions.above') : t('triggerConditionForm.directions.below'),
                 period: params.period
             })
+        case 'vix':
+            return t('triggerBuilderDialog.summaries.conditions.vix', {
+                threshold: params.threshold,
+                operator: params.operator === 'above' ? t('triggerConditionForm.operators.above') : t('triggerConditionForm.operators.below')
+            })
         default:
             return t('triggerBuilderDialog.summaries.conditions.default')
     }
@@ -260,6 +265,15 @@ const handleSave = () => {
                 params: {
                     period: Number(conditionParams.value.period),
                     direction: conditionParams.value.direction,
+                },
+            }
+            break
+        case 'vix':
+            condition = {
+                type: 'vix',
+                params: {
+                    threshold: Number(conditionParams.value.threshold),
+                    operator: conditionParams.value.operator,
                 },
             }
             break

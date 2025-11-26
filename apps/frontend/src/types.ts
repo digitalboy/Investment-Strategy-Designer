@@ -82,7 +82,8 @@ export type TriggerCondition =
     | { type: 'newLow'; params: { days: number } }
     | { type: 'periodReturn'; params: { days: number; percentage: number; direction: 'up' | 'down' } }
     | { type: 'rsi'; params: { period: number; threshold: number; operator: 'above' | 'below' } }
-    | { type: 'maCross'; params: { period: number; direction: 'above' | 'below' } };
+    | { type: 'maCross'; params: { period: number; direction: 'above' | 'below' } }
+    | { type: 'vix'; params: { threshold: number; operator: 'above' | 'below' } };
 
 export interface TriggerAction {
     type: 'buy' | 'sell';
@@ -108,6 +109,7 @@ export interface BacktestResultDTO {
         benchmarkEquity: number[];
         dcaEquity: number[];           // 周定投净值曲线
         underlyingPrice: number[];
+        vixData?: number[];
     };
     trades: Trade[];
 }

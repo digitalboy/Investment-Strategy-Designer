@@ -92,6 +92,16 @@ const translatedTriggerGroups = computed(() => [
             },
         ],
     },
+    {
+        label: t('triggerConditionForm.groups.marketSentiment'),
+        items: [
+            {
+                value: 'vix' as TriggerOptionKey,
+                label: t('triggerConditionForm.conditions.vix.label'),
+                description: t('triggerConditionForm.conditions.vix.description')
+            },
+        ],
+    },
 ])
 
 // We can mutate props.params properties directly if it is a reactive object passed from parent,
@@ -240,6 +250,24 @@ const translatedTriggerGroups = computed(() => [
                     <Input type="number" v-model="params.period"
                         class="w-16 h-8 text-center bg-white border border-slate-200" />
                     {{ t('triggerConditionForm.descriptions.maCross.middle') }}
+                </p>
+            </template>
+
+            <template v-else-if="conditionType === 'vix'">
+                <p class="leading-7 flex flex-wrap items-center gap-2">
+                    {{ t('triggerConditionForm.descriptions.vix.prefix') }}
+                    <Select v-model="params.operator" class="w-32">
+                        <SelectTrigger class="h-8 text-xs">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="above">{{ t('triggerConditionForm.operators.above') }}</SelectItem>
+                            <SelectItem value="below">{{ t('triggerConditionForm.operators.below') }}</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Input type="number" v-model="params.threshold"
+                        class="w-16 h-8 text-center bg-white border border-slate-200" />
+                    {{ t('triggerConditionForm.descriptions.vix.suffix') }}
                 </p>
             </template>
         </div>

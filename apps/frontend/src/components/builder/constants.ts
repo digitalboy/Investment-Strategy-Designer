@@ -25,6 +25,12 @@ export const triggerGroups = [
             { value: 'maCross', label: '均线交叉', description: '短期均线与长期均线交叉' },
         ],
     },
+    {
+        label: '🌐 市场情绪指标',
+        items: [
+            { value: 'vix', label: 'VIX 恐慌指数', description: '市场波动性和情绪的衡量' },
+        ],
+    },
 ] as const
 
 export const baseConditionDefaults = {
@@ -35,6 +41,7 @@ export const baseConditionDefaults = {
     newLow: { days: 60 },
     periodReturn: { days: 30, percentage: 10, direction: 'up' },
     maCross: { period: 20, direction: 'above' },
+    vix: { threshold: 30, operator: 'above' }, // New VIX default
 }
 
 export const conditionMap = {
@@ -47,6 +54,7 @@ export const conditionMap = {
     periodReturn_down: { type: 'periodReturn', defaults: { ...baseConditionDefaults.periodReturn, direction: 'down' } },
     rsi: { type: 'rsi', defaults: baseConditionDefaults.rsi },
     maCross: { type: 'maCross', defaults: baseConditionDefaults.maCross },
+    vix: { type: 'vix', defaults: baseConditionDefaults.vix }, // New VIX condition
 } as const
 
 export type TriggerOptionKey = keyof typeof conditionMap
@@ -69,6 +77,8 @@ export const getConditionKeyFromTrigger = (condition: TriggerCondition): Trigger
             return 'rsi'
         case 'maCross':
             return 'maCross'
+        case 'vix': // New VIX condition
+            return 'vix'
         default:
             return 'drawdownFromPeak'
     }

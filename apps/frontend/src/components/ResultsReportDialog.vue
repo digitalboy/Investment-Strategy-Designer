@@ -125,3 +125,9 @@ const currentSymbol = computed(() => result.value?.metadata?.symbol || store.con
         </DialogContent>
     </Dialog>
 </template>
+
+<style scoped>
+:deep([data-slot="dialog-close"]) {
+    opacity: 0;
+}
+</style>

@@ -219,7 +219,8 @@
         "newHigh": "Price makes {days}-day new high",
         "newLow": "Price makes {days}-day new low",
         "periodReturn": "Price has {direction} more than {percentage}% in the past {days} days",
-        "maCross": "Price {direction} the {period}-day moving average"
+        "maCross": "Price {direction} the {period}-day moving average",
+        "vix": "VIX index {operator} {threshold}"
       },
       "actions": {
         "buy": "Buy",
@@ -400,7 +401,8 @@
     "groups": {
       "buyLow": "📉 Buy Low (Bottom Fishing)",
       "trendFollowing": "🚀 Trend Following (Momentum)",
-      "technicalIndicators": "📊 Technical Indicators"
+      "technicalIndicators": "📊 Technical Indicators",
+      "marketSentiment": "🌐 Market Sentiment Indicators"
     },
     "conditions": {
       "drawdownFromPeak": {
@@ -438,6 +440,10 @@
       "maCross": {
         "label": "Moving Average Crossover",
         "description": "Short-term MA crosses long-term MA"
+      },
+      "vix": {
+        "label": "VIX Fear & Greed Index",
+        "description": "Measure of market volatility and investor sentiment"
       }
     },
     "descriptions": {
@@ -499,6 +505,15 @@
         },
         "period": "{period}",
         "suffix": "-day moving average."
+      },
+      "vix": {
+        "prefix": "When the VIX index is",
+        "operator": {
+          "above": "above",
+          "below": "below"
+        },
+        "threshold": "{threshold}",
+        "suffix": "."
       }
     },
     "operators": {
@@ -558,6 +573,7 @@
         "periodReturn": "When the price has {direction} more than {percentage}% in the past {days} days",
         "rsi": "When RSI({period}) is {operator} {threshold}",
         "maCross": "When the price {direction} the {period}-day moving average",
+        "vix": "When the VIX index is {operator} {threshold}",
         "default": "Configure trigger condition"
       },
       "actions": {

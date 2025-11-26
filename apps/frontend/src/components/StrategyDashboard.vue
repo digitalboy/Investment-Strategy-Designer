@@ -206,6 +206,14 @@ const describeTrigger = (trigger: Trigger) => {
                 })
                 break
             }
+            case 'vix': {
+                const op = c.params.operator === 'above' ? t('common.above') : t('common.below')
+                conditionText = t('strategy.triggers.conditions.vix', {
+                    operator: op,
+                    threshold: c.params.threshold
+                })
+                break
+            }
             default:
                 conditionText = t('strategy.triggers.unknownCondition')
         }

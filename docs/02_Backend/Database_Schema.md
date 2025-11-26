@@ -216,6 +216,13 @@ export type TriggerCondition =
   | {
       type: "maCross";
       params: { period: number; direction: "above" | "below" };
+    }
+  | {
+      type: "vix";
+      params: {
+        threshold: number; // 阈值 (例如 30)
+        operator: "above" | "below"; // 方向
+      };
     };
 
 // 动作定义

@@ -19,6 +19,7 @@
 - **单 Key 全量存储**：每个 ETF 对应一个 JSON 对象，包含 `symbol`、`lastUpdated`、`lastTradeDate`、`nextFetchTime` 以及 `data` 数组。20 年日线（<200KB）完全在 KV 的 25MB 限制内。
 - **切片在内存完成**：读取 KV 后在 Worker 内按 `start/end` 裁剪数组再返回，避免多次 IO 与拼接逻辑。
 - **可选热点列表**：新增 `HOT_ETFS` key，供 Cron 任务遍历并预热热门标的。
+- **指数数据支持 (VIX)**：系统将指数（Symbol 如 `^VIX`）视为普通 ETF 处理。它们共享相同的 Key 结构（`MARKET:^VIX`）和 SWR 刷新逻辑。鉴于 VIX 是全局高频使用的上下文数据，建议将其默认加入 `HOT_ETFS` 列表以保证 Cron 任务每日预热。
 
 示例结构：
 
@@ -84,6 +85,9 @@ export async function getEtfData(
 - **日期越界/未来日期**：请求区间超过今日或起止反转时直接截断或返回校验错误。
 - **第二天/延迟行情**：增量刷新任务在开盘后多次尝试拉取；如 Yahoo 当日仍无数据，则沿用上一有效收盘价，并标记 `isSynthetic` 供前端展示提示。
 - **数据缺失/停牌**：对缺值做平滑处理或跳过，记录日志以便排查。
+- **指数特殊性 (VIX)**：
+  - **Volume**: VIX 的成交量通常是 0 或者不可靠。在回测引擎中，如果用户尝试基于 VIX 的成交量做策略，应该返回警告或忽略。
+  - **复权**: VIX 没有分红，也没有拆股。虽然不需要复权，但沿用“定期全量覆盖”策略也是无害的。
 
 ## 8. 前后端协作要点
 
@@ -112,5 +116,3 @@ export async function getEtfData(
 1. **ExecutionContext 传递**：在 Hono/Workers 中通过 `c.executionCtx` 传入服务层，内部使用 `ctx.waitUntil(...)`，避免旧式 `event.waitUntil` 带来的兼容问题。
 2. **历史数据复权**：定期执行全量覆盖，确保拆股/分红后的历史价格被纠正；否则回测曲线会出现不合理断层。
 3. **刷新失败托底**：`refreshIncremental` 捕获 Yahoo API 异常时不要写入空数据，保留旧缓存并记日志；旧数据优于无数据。
-
-该方案以“存全量 + 软过期刷新”为基准，快速上线，同时保留未来扩展空间。
