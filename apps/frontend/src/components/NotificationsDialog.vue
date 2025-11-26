@@ -6,7 +6,8 @@ import { Bell, Check } from 'lucide-vue-next'
 import { useDateFormatter } from '@/lib/useDateFormatter'
 import type { NotificationItem } from '@/services/notificationService'
 
-const props = defineProps<{
+// Directly define and destructure the props
+const { open, notifications } = defineProps<{
     open: boolean
     notifications: NotificationItem[]
 }>()
@@ -19,6 +20,22 @@ const emit = defineEmits<{
 
 const { t } = useI18n({ useScope: 'global' })
 const { formatDate } = useDateFormatter()
+
+
+
+
+
+
+
+// Explicitly use props to avoid TS6133 warning, although it's used in template.
+
+
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+
+
+// const _ = props.notifications;
 
 </script>
 

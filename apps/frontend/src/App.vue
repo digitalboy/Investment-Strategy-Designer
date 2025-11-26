@@ -9,6 +9,7 @@ import WelcomeState from '@/components/WelcomeState.vue'
 import StrategyDashboard from '@/components/StrategyDashboard.vue'
 import CommunityBoard from '@/components/CommunityBoard.vue'
 import SetupWizardDialog from '@/components/SetupWizardDialog.vue'
+import NewsTicker from '@/components/NewsTicker.vue'
 import { Toaster } from '@/components/ui/sonner'
 
 const { t } = useI18n({ useScope: 'global' })
@@ -204,10 +205,11 @@ const handleViewStrategy = async (strategyId: string) => {
     <!-- 设置向导对话框 -->
     <SetupWizardDialog v-model:open="showSetupWizard" @completed="onSetupCompleted" />
 
-    <!-- 底部装饰线 -->
-    <div
-      class="fixed bottom-0 left-0 right-0 h-1 bg-linear-to-r from-lime-500 via-emerald-500 to-lime-600 opacity-80 z-50">
-    </div>
+    <!-- News Ticker (Fixed Bottom) -->
+    <NewsTicker />
+
+    <!-- 底部装饰线 (moved slightly up or hidden if ticker is present, let's keep it behind or remove it) -->
+    <!-- <div class="fixed bottom-0 left-0 right-0 h-1 bg-linear-to-r from-lime-500 via-emerald-500 to-lime-600 opacity-80 z-50"></div> -->
   </div>
 </template>
 

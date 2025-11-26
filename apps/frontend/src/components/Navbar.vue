@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useNotificationStore } from '@/stores/notification'
@@ -64,7 +64,7 @@ const handleMarkAllRead = () => {
 const handleItemClick = (id: string) => {
     notificationStore.markAsRead(id)
     // If metadata has strategyId, we could navigate
-    const item = notifications.value.find(n => n.id === id)
+    // const item = notifications.value.find(n => n.id === id)
     /* 
     // Navigation logic example:
     if (item?.metadata?.strategyId) {
