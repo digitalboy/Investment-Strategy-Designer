@@ -455,70 +455,43 @@
     "descriptions": {
       "drawdownFromPeak": {
         "prefix": "When the price falls more than",
-        "percentage": "{percentage}%",
-        "from": "from the highest point in the past",
-        "days": "{days} days",
-        "suffix": "."
+        "middle": "% from the highest point in the past",
+        "suffix": "days."
       },
       "newHigh": {
         "prefix": "When the price breaks above the highest price in the past",
-        "days": "{days} days",
-        "suffix": "."
+        "middle": "days."
       },
       "newLow": {
         "prefix": "When the price breaks below the lowest price in the past",
-        "days": "{days} days",
-        "suffix": "."
+        "middle": "days."
       },
       "priceStreak": {
         "prefix": "When the price closes",
+        "middle": "consecutive",
         "direction": {
-          "up": "📈 higher",
-          "down": "📉 lower"
-        },
-        "for": "for",
-        "consecutive": "consecutive",
-        "units": {
-          "day": "trading days",
-          "week": "weeks"
+          "up": "higher",
+          "down": "lower"
         },
         "suffix": "."
       },
       "periodReturn": {
         "prefix": "When the price has",
-        "direction": {
-          "up": "risen",
-          "down": "fallen"
-        },
-        "moreThan": "more than {percentage}% in the past {days} days."
+        "middle": "more than",
+        "moreThan": "% in the past",
+        "suffix": "days."
       },
       "rsi": {
         "prefix": "When RSI(",
-        "period": "{period}",
         "middle": ") is",
-        "operator": {
-          "above": "above",
-          "below": "below"
-        },
-        "threshold": "{threshold}",
         "suffix": "."
       },
       "maCross": {
         "prefix": "When the price",
-        "direction": {
-          "above": "crosses above",
-          "below": "crosses below"
-        },
-        "period": "{period}",
-        "suffix": "-day moving average."
+        "middle": "-day moving average."
       },
       "vix": {
         "prefix": "When the VIX index is",
-        "operator": {
-          "above": "above",
-          "below": "below"
-        },
-        "threshold": "{threshold}",
         "suffix": "."
       }
     },
@@ -594,6 +567,10 @@
         "enabled": "Then do not execute again for {days} days",
         "disabled": "No cooldown period set"
       }
+    },
+    "preview": {
+      "title": "💡 Strategy Preview",
+      "template": "{condition}, the system will {action}.{cooldown}."
     }
   },
   "performanceMetrics": {

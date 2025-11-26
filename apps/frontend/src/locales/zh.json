@@ -455,74 +455,43 @@
     "descriptions": {
       "drawdownFromPeak": {
         "prefix": "当价格从过去",
-        "days": "{days}",
         "middle": "天的最高点，下跌超过",
-        "percentage": "{percentage}%",
-        "suffix": "时。"
+        "suffix": "% 时。"
       },
       "newHigh": {
         "prefix": "当价格突破过去",
-        "days": "{days}",
         "middle": "天的最高价时。"
       },
       "newLow": {
         "prefix": "当价格跌破过去",
-        "days": "{days}",
         "middle": "天的最低价时。"
       },
       "priceStreak": {
         "prefix": "当价格连续",
-        "count": "{count}",
         "middle": "个",
-        "unit": {
-          "day": "交易日",
-          "week": "周"
-        },
         "direction": {
-          "up": "📈 上涨",
-          "down": "📉 下跌"
+          "up": "上涨",
+          "down": "下跌"
         },
         "suffix": "时。"
       },
       "periodReturn": {
         "prefix": "当价格在过去",
-        "days": "{days}",
         "middle": "天内累计",
-        "direction": {
-          "up": "上涨",
-          "down": "下跌"
-        },
         "moreThan": "超过",
-        "percentage": "{percentage}%",
-        "suffix": "时。"
+        "suffix": "% 时。"
       },
       "rsi": {
         "prefix": "当 RSI(",
-        "period": "{period}",
         "middle": ")",
-        "operator": {
-          "above": "高于",
-          "below": "低于"
-        },
-        "threshold": "{threshold}",
         "suffix": "时。"
       },
       "maCross": {
         "prefix": "当价格",
-        "direction": {
-          "above": "向上穿越",
-          "below": "向下穿越"
-        },
-        "period": "{period}",
         "middle": "日均线时。"
       },
       "vix": {
         "prefix": "当 VIX 指数",
-        "operator": {
-          "above": "高于",
-          "below": "低于"
-        },
-        "threshold": "{threshold}",
         "suffix": "时。"
       }
     },
@@ -598,6 +567,10 @@
         "enabled": "随后 {days} 天内不再重复执行",
         "disabled": "不设置冷却期"
       }
+    },
+    "preview": {
+      "title": "💡 策略预览",
+      "template": "{condition}，系统将 {action}。{cooldown}。"
     }
   },
   "performanceMetrics": {

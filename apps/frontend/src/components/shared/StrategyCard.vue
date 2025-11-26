@@ -12,15 +12,17 @@ import { toast } from 'vue-sonner'
 const { t } = useI18n({ useScope: 'global' })
 const { formatDate } = useDateFormatter()
 const authStore = useAuthStore()
-const { strategy, rank, showAuthor, manageMode } = withDefaults(defineProps<{
+const {
+    strategy,
+    rank,
+    showAuthor = true, // Set default directly
+    manageMode = false // Set default directly
+} = defineProps<{
     strategy: StrategySummaryDTO
     rank?: number
     showAuthor?: boolean
     manageMode?: boolean
-}>(), {
-    showAuthor: true,
-    manageMode: false
-})
+}>()
 
 const emit = defineEmits<{
     click: []
