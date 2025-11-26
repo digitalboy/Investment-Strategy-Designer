@@ -132,13 +132,13 @@ watch(localAmount, value => {
 </script>
 
 <template>
-    <section class="rounded-2xl border border-slate-200 bg-white/80 shadow-sm p-4 space-y-4">
+    <section class="w-full rounded-2xl border border-slate-200 bg-white/80 shadow-sm p-4 space-y-4">
         <header class="flex flex-wrap items-center justify-between gap-3">
             <h3 class="text-lg font-semibold text-slate-900">{{ t('triggerActionForm.then') }}</h3>
             <span class="text-xs text-slate-500">{{ t('triggerActionForm.description') }}</span>
         </header>
 
-        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div class="space-y-2 rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
                 <Label class="text-xs text-slate-500">{{ t('triggerActionForm.action') }}</Label>
                 <Select v-model="localActionType">
@@ -165,7 +165,7 @@ watch(localAmount, value => {
                 </Select>
             </div>
             <div
-                class="space-y-2 rounded-xl border border-slate-100 bg-white p-3 shadow-sm md:col-span-2 xl:col-span-1">
+                class="space-y-2 rounded-xl border border-slate-100 bg-white p-3 shadow-sm sm:col-span-2 lg:col-span-1">
                 <Label class="text-xs text-slate-500">{{ t('triggerActionForm.value') }}</Label>
                 <div class="relative">
                     <Input type="number" v-model="localAmount" class="h-10 pr-10" :min="actionAmountLimits.min"
@@ -175,7 +175,7 @@ watch(localAmount, value => {
                 </div>
             </div>
             <div
-                class="rounded-xl border border-slate-100 bg-slate-50/80 p-3 text-xs text-slate-500 shadow-sm md:col-span-2 xl:col-span-3">
+                class="rounded-xl border border-slate-100 bg-slate-50/80 p-3 text-xs text-slate-500 shadow-sm sm:col-span-2 lg:col-span-3">
                 {{ actionValueHint }}
             </div>
         </div>

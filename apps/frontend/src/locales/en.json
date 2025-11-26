@@ -132,7 +132,10 @@
     "community": "Community",
     "reports": "Reports",
     "settings": "Settings",
-    "profile": "Profile"
+    "profile": "Profile",
+    "contactAuthor": "Contact Author",
+    "contactAuthorDescription": "Reach out for feedback or questions.",
+    "close": "Close"
   },
   "strategy": {
     "title": "Investment Strategy",

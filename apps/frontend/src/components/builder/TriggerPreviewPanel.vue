@@ -11,8 +11,7 @@ defineProps<{
 </script>
 
 <template>
-    <aside
-        class="h-fit w-full rounded-2xl border border-emerald-100 bg-linear-to-br from-emerald-50 to-white p-5 lg:sticky lg:top-4 lg:w-72">
+    <aside class="h-fit w-full rounded-2xl border border-emerald-100 bg-linear-to-br from-emerald-50 to-white p-5">
         <p class="text-xs font-semibold tracking-wide text-emerald-600">{{ t('triggerBuilderDialog.preview.title') }}
         </p>
         <p class="mt-2 text-sm leading-6 text-emerald-900">

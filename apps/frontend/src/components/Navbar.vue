@@ -16,6 +16,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Globe, Bell } from 'lucide-vue-next'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Info } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 
 const { t } = useI18n({ useScope: 'global' })
@@ -27,6 +29,7 @@ const { notifications, unreadCount } = storeToRefs(notificationStore)
 
 // Notification State
 const showNotifications = ref(false)
+const showContactDialog = ref(false)
 
 // Poll for notifications periodically
 onMounted(() => {
@@ -102,10 +105,11 @@ const handleLogout = () => {
                 </div>
                 <div class="flex items-center gap-4">
                     <!-- Notifications Bell -->
-                    <div v-if="authStore.user" class="relative cursor-pointer p-1 rounded-full hover:bg-slate-100 transition-colors"
+                    <div v-if="authStore.user"
+                        class="relative cursor-pointer p-1 rounded-full hover:bg-slate-100 transition-colors"
                         @click="handleNotificationClick">
                         <Bell class="h-5 w-5 text-slate-600" />
-                        <span 
+                        <span
                             class="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-white ring-2 ring-white transition-all"
                             :class="unreadCount > 0 ? 'bg-red-500' : 'bg-slate-400'">
                             {{ unreadCount > 9 ? '9+' : unreadCount }}
@@ -116,6 +120,11 @@ const handleLogout = () => {
                         <Globe class="h-4 w-4 text-slate-500" />
                         <LanguageSelector />
                     </div>
+
+                    <button type="button" class="p-1 rounded-full hover:bg-slate-100 text-slate-500"
+                        @click="showContactDialog = true" aria-label="Contact author">
+                        <Info class="h-5 w-5" />
+                    </button>
 
                     <div v-if="authStore.isLoading" class="h-8 w-8 rounded-full bg-slate-200 animate-pulse"></div>
 
@@ -156,11 +165,29 @@ const handleLogout = () => {
         </div>
 
         <!-- Notifications Dialog -->
-        <NotificationsDialog 
-            v-model:open="showNotifications" 
-            :notifications="notifications"
-            @mark-all-read="handleMarkAllRead"
-            @click-item="handleItemClick"
-        />
+        <NotificationsDialog v-model:open="showNotifications" :notifications="notifications"
+            @mark-all-read="handleMarkAllRead" @click-item="handleItemClick" />
+
+        <Dialog v-model:open="showContactDialog">
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{{ t('navbar.contactAuthor') }}</DialogTitle>
+                    <DialogDescription>
+                        {{ t('navbar.contactAuthorDescription') }}
+                    </DialogDescription>
+                </DialogHeader>
+                <div class="space-y-2 text-sm text-slate-700">
+                    <p><span class="font-semibold">姓名：</span>David Zhang</p>
+                    <p><span class="font-semibold">邮箱：</span>digitalboyzone@gamil.com</p>
+                    <p><span class="font-semibold">X 账号：</span><a href="https://x.com/freethisslave" target="_blank"
+                            rel="noreferrer" class="text-emerald-600 underline">https://x.com/freethisslave</a></p>
+                    <p><span class="font-semibold">wechat：</span>digitalboy</p>
+                </div>
+                <DialogFooter>
+                    <Button variant="secondary" size="sm" @click="showContactDialog = false">{{ t('navbar.close')
+                        }}</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </nav>
 </template>

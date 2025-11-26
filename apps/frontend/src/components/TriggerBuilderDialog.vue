@@ -318,98 +318,105 @@ const primaryButtonLabel = computed(() => (isEditing.value ? t('triggerBuilderDi
                 <DialogDescription>{{ t('triggerBuilderDialog.description') }}</DialogDescription>
             </DialogHeader>
 
-            <Stepper v-slot="stepper" v-model="activeStep" orientation="vertical" class="w-full">
-                <div class="flex flex-col gap-5 py-2 lg:flex-row">
-                    <div class="w-full space-y-4 lg:w-64">
-                        <StepperItem v-for="(step, index) in stepItems" :key="step.step" :step="step.step"
-                            v-slot="{ state }" class="block">
-                            <StepperTrigger as-child class="flex-1 items-stretch p-0 text-left">
-                                <button type="button" :data-state="state"
-                                    class="w-full rounded-2xl border border-slate-200 bg-white px-3 py-4 text-left transition hover:border-emerald-300 focus:outline-none data-[state=active]:border-emerald-500 data-[state=active]:bg-emerald-50">
-                                    <div class="flex items-center gap-3">
-                                        <span :data-state="state"
-                                            class="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-sm font-semibold text-slate-600 transition data-[state=active]:border-emerald-500 data-[state=active]:text-emerald-600 data-[state=completed]:border-emerald-500 data-[state=completed]:bg-emerald-500 data-[state=completed]:text-white">
-                                            <Check v-if="state === 'completed'" class="h-4 w-4" />
-                                            <Circle v-else-if="state === 'active'" class="h-4 w-4" />
-                                            <Dot v-else class="h-4 w-4 text-slate-400" />
-                                        </span>
-                                        <div class="flex flex-col">
-                                            <StepperTitle class="text-sm font-medium text-slate-900">
-                                                {{ step.title }}
-                                            </StepperTitle>
-                                            <StepperDescription class="text-xs text-slate-500">
-                                                {{ step.description }}
-                                            </StepperDescription>
+            <Stepper v-slot="stepper" v-model="activeStep" orientation="vertical" class="block w-full">
+                <div class="flex flex-col gap-5 py-2">
+                    <div class="flex flex-col gap-5 lg:flex-row lg:items-start">
+                        <div class="w-full shrink-0 space-y-4 lg:w-64">
+                            <StepperItem v-for="(step, index) in stepItems" :key="step.step" :step="step.step"
+                                v-slot="{ state }" class="block">
+                                <StepperTrigger as-child class="p-0 text-left">
+                                    <button type="button" :data-state="state"
+                                        class="w-full rounded-2xl border border-slate-200 bg-white px-3 py-4 text-left transition hover:border-emerald-300 focus:outline-none data-[state=active]:border-emerald-500 data-[state=active]:bg-emerald-50">
+                                        <div class="flex items-center gap-3">
+                                            <span :data-state="state"
+                                                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 text-sm font-semibold text-slate-600 transition data-[state=active]:border-emerald-500 data-[state=active]:text-emerald-600 data-[state=completed]:border-emerald-500 data-[state=completed]:bg-emerald-500 data-[state=completed]:text-white">
+                                                <Check v-if="state === 'completed'" class="h-4 w-4" />
+                                                <Circle v-else-if="state === 'active'" class="h-4 w-4" />
+                                                <Dot v-else class="h-4 w-4 text-slate-400" />
+                                            </span>
+                                            <div class="flex flex-col">
+                                                <StepperTitle class="text-sm font-medium text-slate-900">
+                                                    {{ step.title }}
+                                                </StepperTitle>
+                                                <StepperDescription class="text-xs text-slate-500">
+                                                    {{ step.description }}
+                                                </StepperDescription>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </StepperTrigger>
+                                <StepperSeparator v-if="index < stepItems.length - 1"
+                                    class="ml-6 h-8 w-px bg-slate-200 lg:ml-8" />
+                            </StepperItem>
+
+                            <TriggerPreviewPanel :conditionSummary="conditionSummary" :actionSummary="actionSummary"
+                                :cooldownSummary="cooldownSummary" class="hidden lg:block" />
+                        </div>
+
+                        <div class="flex-1 min-w-0 space-y-5">
+                            <!-- Step 1: Condition -->
+                            <div ref="stepOneRef" v-show="activeStep === 1">
+                                <TriggerConditionForm v-model:selectedKey="selectedConditionKey"
+                                    :conditionType="conditionType" :params="conditionParams" class="w-full" />
+                            </div>
+
+                            <!-- Step 2: Action -->
+                            <div ref="stepTwoRef" v-show="activeStep === 2" :style="stepPanelMinStyle">
+                                <TriggerActionForm v-model:actionType="actionType" v-model:valueType="actionValueType"
+                                    v-model:amount="actionAmount" class="w-full" />
+                            </div>
+
+                            <!-- Step 3: Cooldown -->
+                            <section ref="stepThreeRef" v-show="activeStep === 3"
+                                class="w-full rounded-2xl border border-slate-200 bg-white/80 shadow-sm p-4 space-y-4"
+                                :style="stepPanelMinStyle">
+                                <header class="flex flex-wrap items-center justify-between gap-3">
+                                    <h3 class="text-lg font-semibold text-slate-900">{{
+                                        t('triggerBuilderDialog.cooldown.title') }}</h3>
+                                    <label class="flex items-center gap-2 text-sm text-slate-600">
+                                        <input type="checkbox" v-model="enableCooldown" class="accent-emerald-600" />
+                                        {{ t('triggerBuilderDialog.cooldown.enable') }}
+                                    </label>
+                                </header>
+
+                                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                                    :class="{ 'opacity-50 pointer-events-none': !enableCooldown }">
+                                    <div class="space-y-2 rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
+                                        <Label class="text-xs text-slate-500">{{ t('triggerBuilderDialog.cooldown.days')
+                                        }}</Label>
+                                        <div class="relative">
+                                            <Input type="number" v-model="cooldownDays" class="h-10 pr-10" />
+                                            <span class="absolute right-3 top-2.5 text-xs text-slate-500">{{
+                                                t('triggerBuilderDialog.cooldown.unit') }}</span>
                                         </div>
                                     </div>
-                                </button>
-                            </StepperTrigger>
-                            <StepperSeparator v-if="index < stepItems.length - 1"
-                                class="ml-6 h-8 w-px bg-slate-200 lg:ml-8" />
-                        </StepperItem>
-                    </div>
-
-                    <div class="flex-1 min-w-0 space-y-5">
-                        <!-- Step 1: Condition -->
-                        <div ref="stepOneRef" v-show="activeStep === 1">
-                            <TriggerConditionForm v-model:selectedKey="selectedConditionKey"
-                                :conditionType="conditionType" :params="conditionParams" />
-                        </div>
-
-                        <!-- Step 2: Action -->
-                        <div ref="stepTwoRef" v-show="activeStep === 2" :style="stepPanelMinStyle">
-                            <TriggerActionForm v-model:actionType="actionType" v-model:valueType="actionValueType"
-                                v-model:amount="actionAmount" />
-                        </div>
-
-                        <!-- Step 3: Cooldown -->
-                        <section ref="stepThreeRef" v-show="activeStep === 3"
-                            class="rounded-2xl border border-slate-200 bg-white/80 shadow-sm p-4 space-y-4"
-                            :style="stepPanelMinStyle">
-                            <header class="flex flex-wrap items-center justify-between gap-3">
-                                <h3 class="text-lg font-semibold text-slate-900">{{
-                                    t('triggerBuilderDialog.cooldown.title') }}</h3>
-                                <label class="flex items-center gap-2 text-sm text-slate-600">
-                                    <input type="checkbox" v-model="enableCooldown" class="accent-emerald-600" />
-                                    {{ t('triggerBuilderDialog.cooldown.enable') }}
-                                </label>
-                            </header>
-
-                            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3"
-                                :class="{ 'opacity-50 pointer-events-none': !enableCooldown }">
-                                <div class="space-y-2 rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
-                                    <Label class="text-xs text-slate-500">{{ t('triggerBuilderDialog.cooldown.days')
-                                        }}</Label>
-                                    <div class="relative">
-                                        <Input type="number" v-model="cooldownDays" class="h-10 pr-10" />
-                                        <span class="absolute right-3 top-2.5 text-xs text-slate-500">{{
-                                            t('triggerBuilderDialog.cooldown.unit') }}</span>
+                                    <div
+                                        class="rounded-xl border border-slate-100 bg-slate-50/80 p-3 text-xs text-slate-500 shadow-sm sm:col-span-1 lg:col-span-2">
+                                        {{ t('triggerBuilderDialog.cooldown.description') }}
                                     </div>
                                 </div>
-                                <div
-                                    class="rounded-xl border border-slate-100 bg-slate-50/80 p-3 text-xs text-slate-500 shadow-sm md:col-span-1 xl:col-span-2">
-                                    {{ t('triggerBuilderDialog.cooldown.description') }}
-                                </div>
-                            </div>
-                        </section>
+                            </section>
 
-                        <div class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4">
-                            <Button variant="outline" size="sm" :disabled="stepper.isPrevDisabled"
-                                @click="stepper.prevStep()">
-                                {{ t('triggerBuilderDialog.buttons.previous') }}
-                            </Button>
-                            <Button v-if="!stepper.isLastStep" size="sm" :disabled="stepper.isNextDisabled"
-                                @click="stepper.nextStep()">
-                                {{ t('triggerBuilderDialog.buttons.next') }}
-                            </Button>
-                            <span v-else class="text-xs text-slate-500">{{ t('triggerBuilderDialog.buttons.complete', {
-                                button: primaryButtonLabel
-                            }) }}</span>
+                            <div
+                                class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-4">
+                                <Button variant="outline" size="sm" :disabled="stepper.isPrevDisabled"
+                                    @click="stepper.prevStep()">
+                                    {{ t('triggerBuilderDialog.buttons.previous') }}
+                                </Button>
+                                <Button v-if="!stepper.isLastStep" size="sm" :disabled="stepper.isNextDisabled"
+                                    @click="stepper.nextStep()">
+                                    {{ t('triggerBuilderDialog.buttons.next') }}
+                                </Button>
+                                <span v-else class="text-xs text-slate-500">{{
+                                    t('triggerBuilderDialog.buttons.complete', {
+                                        button: primaryButtonLabel
+                                    }) }}</span>
+                            </div>
                         </div>
                     </div>
 
                     <TriggerPreviewPanel :conditionSummary="conditionSummary" :actionSummary="actionSummary"
-                        :cooldownSummary="cooldownSummary" />
+                        :cooldownSummary="cooldownSummary" class="lg:hidden" />
                 </div>
             </Stepper>
 

@@ -132,7 +132,10 @@
     "community": "社区",
     "reports": "报告",
     "settings": "设置",
-    "profile": "个人资料"
+    "profile": "个人资料",
+    "contactAuthor": "联系作者",
+    "contactAuthorDescription": "欢迎反馈或提问。",
+    "close": "关闭"
   },
   "strategy": {
     "title": "投资策略",
