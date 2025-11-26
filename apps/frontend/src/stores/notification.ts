@@ -1,19 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import axios from '@/lib/api'
 import { useAuthStore } from './auth'
+import { notificationService, type NotificationItem } from '@/services/notificationService'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://investment-strategy-designer-backend.digitalboyzone.workers.dev/api/v1'
-
-export interface NotificationItem {
-    id: string
-    title: string
-    content: string
-    type: 'signal' | 'system'
-    read: boolean
-    timestamp: string
-    metadata?: Record<string, any>
-}
+export type { NotificationItem }
 
 export const useNotificationStore = defineStore('notification', () => {
     const notifications = ref<NotificationItem[]>([])
@@ -42,21 +32,16 @@ export const useNotificationStore = defineStore('notification', () => {
         }
 
         try {
-            const response = await axios.get(`${API_BASE_URL}/notifications`, {
-                params: { page: page.value, limit },
-                headers: { 'Authorization': `Bearer ${token}` }
-            })
-
-            const { items, unreadCount: count, hasMore: more } = response.data
+            const data = await notificationService.getNotifications(token, page.value, limit)
             
             if (reset) {
-                notifications.value = items
+                notifications.value = data.items
             } else {
-                notifications.value.push(...items)
+                notifications.value.push(...data.items)
             }
             
-            unreadCount.value = count
-            hasMore.value = more
+            unreadCount.value = data.unreadCount
+            hasMore.value = data.hasMore
             page.value++
         } catch (error) {
             console.error('Failed to fetch notifications:', error)
@@ -80,14 +65,10 @@ export const useNotificationStore = defineStore('notification', () => {
         if (!token) return
 
         try {
-            await axios.put(
-                `${API_BASE_URL}/notifications/${id}/read`,
-                {},
-                { headers: { 'Authorization': `Bearer ${token}` } }
-            )
+            await notificationService.markAsRead(token, id)
         } catch (error) {
             console.error('Failed to mark notification as read:', error)
-            // Revert optimistic update if needed, but usually fine to ignore for read status
+            // Revert optimistic update if needed
         }
     }
 
@@ -103,11 +84,7 @@ export const useNotificationStore = defineStore('notification', () => {
         if (!token) return
 
         try {
-            await axios.put(
-                `${API_BASE_URL}/notifications/read-all`,
-                {},
-                { headers: { 'Authorization': `Bearer ${token}` } }
-            )
+            await notificationService.markAllRead(token)
         } catch (error) {
             console.error('Failed to mark all as read:', error)
         }

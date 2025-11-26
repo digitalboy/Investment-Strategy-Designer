@@ -1,10 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { StrategyConfig, Trigger, BacktestResultDTO, StrategySummaryDTO, CommentEntity } from '@/types'
-import axios from '@/lib/api'
 import { useAuthStore } from './auth'
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://investment-strategy-designer-backend.digitalboyzone.workers.dev/api/v1'
+import { strategyService } from '@/services/strategyService'
 
 export const useStrategyStore = defineStore('strategy', () => {
     // State
@@ -59,27 +57,19 @@ export const useStrategyStore = defineStore('strategy', () => {
         const authStore = useAuthStore()
 
         try {
-            const headers: Record<string, string> = {}
-            if (authStore.token) {
-                headers['Authorization'] = `Bearer ${authStore.token}`
-            }
-
-            const response = await axios.post(
-                `${API_BASE_URL}/backtest`,
-                config.value,
-                { headers }
-            )
+            const result = await strategyService.runBacktest(config.value, authStore.token)
 
             // Normalize response data to handle potential structure mismatch
-            const result = response.data
-            if (result.performance && !result.performance.strategy && typeof result.performance.totalReturn === 'number') {
+            // Note: Using 'any' to bypass strict type check on raw API response for normalization check
+            const rawResult = result as any
+            if (rawResult.performance && !rawResult.performance.strategy && typeof rawResult.performance.totalReturn === 'number') {
                 console.warn('Received flat performance structure, normalizing...')
-                result.performance = {
+                rawResult.performance = {
                     strategy: {
-                        totalReturn: result.performance.totalReturn,
-                        annualizedReturn: result.performance.cagr || result.performance.annualizedReturn || 0,
-                        maxDrawdown: result.performance.maxDrawdown,
-                        sharpeRatio: result.performance.sharpeRatio
+                        totalReturn: rawResult.performance.totalReturn,
+                        annualizedReturn: rawResult.performance.cagr || rawResult.performance.annualizedReturn || 0,
+                        maxDrawdown: rawResult.performance.maxDrawdown,
+                        sharpeRatio: rawResult.performance.sharpeRatio
                     },
                     benchmark: {
                         totalReturn: 0,
@@ -125,10 +115,6 @@ export const useStrategyStore = defineStore('strategy', () => {
                 }
             }
 
-            const headers = {
-                'Authorization': `Bearer ${token}`
-            }
-
             const payload: any = {
                 name,
                 description,
@@ -146,11 +132,7 @@ export const useStrategyStore = defineStore('strategy', () => {
                 console.warn('Backtest result exists but strategy performance metrics are missing', backtestResult.value)
             }
 
-            await axios.post(
-                `${API_BASE_URL}/strategies`,
-                payload,
-                { headers }
-            )
+            await strategyService.createStrategy(payload, token)
         } catch (e: any) {
             error.value = e.message || 'Failed to save strategy'
             console.error(e)
@@ -209,10 +191,6 @@ export const useStrategyStore = defineStore('strategy', () => {
                 }
             }
 
-            const headers = {
-                'Authorization': `Bearer ${token}`
-            }
-
             const payload: Record<string, unknown> = {}
 
             if (withConfig) {
@@ -244,13 +222,9 @@ export const useStrategyStore = defineStore('strategy', () => {
             console.log('Final update payload:', JSON.stringify(payload, null, 2))
             console.log('Strategy ID for URL:', id, typeof id)
 
-            const response = await axios.put(
-                `${API_BASE_URL}/strategies/${id}`,
-                payload,
-                { headers }
-            )
+            const responseData = await strategyService.updateStrategy(id, payload, token)
 
-            const resolvedName = response.data?.name ?? (typeof name === 'string' ? name : undefined)
+            const resolvedName = responseData?.name ?? (typeof name === 'string' ? name : undefined)
 
             if (resolvedName) {
                 currentStrategyName.value = resolvedName
@@ -292,10 +266,7 @@ export const useStrategyStore = defineStore('strategy', () => {
         }
 
         try {
-            await axios.delete(
-                `${API_BASE_URL}/strategies/${id}`,
-                { headers: { 'Authorization': `Bearer ${token}` } }
-            )
+            await strategyService.deleteStrategy(id, token)
 
             if (currentStrategyMetadata.value?.id === id) {
                 reset()
@@ -314,8 +285,7 @@ export const useStrategyStore = defineStore('strategy', () => {
         error.value = null
 
         try {
-            const response = await axios.get(`${API_BASE_URL}/strategies?scope=public&sort=${sortBy}`)
-            publicStrategies.value = response.data
+            publicStrategies.value = await strategyService.getPublicStrategies(sortBy)
         } catch (e: any) {
             error.value = e.message || 'Failed to fetch public strategies'
             console.error(e)
@@ -333,11 +303,7 @@ export const useStrategyStore = defineStore('strategy', () => {
         if (!token) return
 
         try {
-            const response = await axios.get(
-                `${API_BASE_URL}/strategies?scope=mine`,
-                { headers: { 'Authorization': `Bearer ${token}` } }
-            )
-            userStrategies.value = response.data
+            userStrategies.value = await strategyService.getUserStrategies(token)
         } catch (e: any) {
             error.value = e.message || 'Failed to fetch user strategies'
             console.error(e)
@@ -353,11 +319,7 @@ export const useStrategyStore = defineStore('strategy', () => {
         if (!token) throw new Error('Must be logged in to like')
 
         try {
-            await axios.post(
-                `${API_BASE_URL}/strategies/${strategyId}/like`,
-                {},
-                { headers: { 'Authorization': `Bearer ${token}` } }
-            )
+            await strategyService.toggleLike(strategyId, token)
             // Optimistically update UI or refetch
         } catch (e) {
             console.error('Failed to toggle like', e)
@@ -374,22 +336,15 @@ export const useStrategyStore = defineStore('strategy', () => {
         console.log('📖 fetchComments: strategyId =', strategyId, 'page = 1')
 
         try {
-            const response = await axios.get(`${API_BASE_URL}/strategies/${strategyId}/comments`, {
-                params: { page: 1, limit: commentsLimit.value }
-            })
-            currentStrategyComments.value = response.data
+            const comments = await strategyService.getComments(strategyId, 1, commentsLimit.value)
+            currentStrategyComments.value = comments
 
-            console.log('✅ Fetched', response.data.length, 'comments, limit =', commentsLimit.value)
+            console.log('✅ Fetched', comments.length, 'comments, limit =', commentsLimit.value)
 
             // If we got fewer comments than limit, it means we reached the end
-            // Note: This is an approximation because the response includes replies.
-            // However, since we paginate on roots, checking result count vs limit isn't 100% accurate 
-            // for "has more roots", but if we got 0 results, we definitely have no more.
-            // A better way would be if backend returned metadata. 
-            // For now, if result is empty, stop.
-            if (response.data.length === 0 || response.data.length < commentsLimit.value) {
+            if (comments.length === 0 || comments.length < commentsLimit.value) {
                 hasMoreComments.value = false
-                console.log('🛑 No more comments available (got', response.data.length, ')')
+                console.log('🛑 No more comments available (got', comments.length, ')')
             } else {
                 console.log('➕ More comments may be available')
             }
@@ -414,19 +369,17 @@ export const useStrategyStore = defineStore('strategy', () => {
         console.log('📖 Loading page', nextPage, 'for strategy', strategyId)
 
         try {
-            const response = await axios.get(`${API_BASE_URL}/strategies/${strategyId}/comments`, {
-                params: { page: nextPage, limit: commentsLimit.value }
-            })
+            const comments = await strategyService.getComments(strategyId, nextPage, commentsLimit.value)
 
-            console.log('✅ Loaded page', nextPage, ':', response.data.length, 'comments')
+            console.log('✅ Loaded page', nextPage, ':', comments.length, 'comments')
 
-            if (response.data.length === 0 || response.data.length < commentsLimit.value) {
+            if (comments.length === 0 || comments.length < commentsLimit.value) {
                 hasMoreComments.value = false
                 console.log('🛑 No more comments available')
             }
 
-            if (response.data.length > 0) {
-                currentStrategyComments.value.push(...response.data)
+            if (comments.length > 0) {
+                currentStrategyComments.value.push(...comments)
                 commentsPage.value = nextPage
                 console.log('📝 Total comments now:', currentStrategyComments.value.length)
             }
@@ -444,20 +397,12 @@ export const useStrategyStore = defineStore('strategy', () => {
         const authStore = useAuthStore()
 
         try {
-            const headers: Record<string, string> = {}
             const token = await authStore.getFreshToken()
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`
-            }
-
-            const response = await axios.get(
-                `${API_BASE_URL}/strategies/${strategyId}`,
-                { headers }
-            )
+            const data = await strategyService.getStrategy(strategyId, token)
 
             // Update config with the loaded strategy's config
-            if (response.data && response.data.config) {
-                let loadedConfig = response.data.config
+            if (data && data.config) {
+                let loadedConfig = data.config
 
                 // Handle potential double-stringified config
                 if (typeof loadedConfig === 'string') {
@@ -478,19 +423,19 @@ export const useStrategyStore = defineStore('strategy', () => {
             }
 
             // Store metadata
-            if (response.data) {
-                currentStrategyName.value = response.data.name || response.data.title || ''
+            if (data) {
+                currentStrategyName.value = data.name || data.title || ''
                 currentStrategyMetadata.value = {
-                    id: response.data.id,
-                    userId: response.data.user_id || response.data.userId, // Handle potential casing diffs
-                    isPublic: response.data.isPublic || response.data.is_public,
-                    notificationsEnabled: !!response.data.notificationsEnabled, // New field
-                    isOwner: !!response.data.isOwner,
-                    name: response.data.name || response.data.title
+                    id: data.id,
+                    userId: data.user_id || data.userId, // Handle potential casing diffs
+                    isPublic: data.isPublic || data.is_public,
+                    notificationsEnabled: !!data.notificationsEnabled, // New field
+                    isOwner: !!data.isOwner,
+                    name: data.name || data.title
                 }
             }
 
-            return response.data
+            return data
         } catch (e: any) {
             error.value = e.message || 'Failed to load strategy'
             console.error(e)
@@ -507,12 +452,8 @@ export const useStrategyStore = defineStore('strategy', () => {
         if (!token) throw new Error('Must be logged in to comment')
 
         try {
-            const response = await axios.post(
-                `${API_BASE_URL}/strategies/${strategyId}/comments`,
-                { content, parentId },
-                { headers: { 'Authorization': `Bearer ${token}` } }
-            )
-            currentStrategyComments.value.unshift(response.data)
+            const newComment = await strategyService.addComment(strategyId, content, parentId, token)
+            currentStrategyComments.value.unshift(newComment)
         } catch (e) {
             console.error('Failed to add comment', e)
             throw e

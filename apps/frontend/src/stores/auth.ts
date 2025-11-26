@@ -7,9 +7,7 @@ import {
     type User
 } from 'firebase/auth'
 import { auth, googleProvider } from '@/lib/firebase'
-import axios from '@/lib/api'
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://investment-strategy-designer-backend.digitalboyzone.workers.dev/api/v1'
+import { authService } from '@/services/authService'
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref<User | null>(null)
@@ -24,9 +22,7 @@ export const useAuthStore = defineStore('auth', () => {
                 token.value = await currentUser.getIdToken()
                 // Sync user with backend
                 try {
-                    await axios.post(`${API_BASE_URL}/users/sync`, {}, {
-                        headers: { 'Authorization': `Bearer ${token.value}` }
-                    })
+                    await authService.syncUser(token.value)
                 } catch (e) {
                     console.error('Failed to sync user:', e)
                 }
