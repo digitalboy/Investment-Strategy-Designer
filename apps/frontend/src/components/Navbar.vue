@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
+import { useNotificationStore } from '@/stores/notification'
 import LanguageSelector from '@/components/LanguageSelector.vue'
-import NotificationsDialog, { type NotificationItem } from '@/components/NotificationsDialog.vue'
+import NotificationsDialog from '@/components/NotificationsDialog.vue'
 import { Button } from '@/components/ui/button'
 import {
     DropdownMenu,
@@ -15,44 +16,62 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Globe, Bell } from 'lucide-vue-next'
+import { storeToRefs } from 'pinia'
 
 const { t } = useI18n({ useScope: 'global' })
 const emit = defineEmits(['navigate-home'])
 
 const authStore = useAuthStore()
+const notificationStore = useNotificationStore()
+const { notifications, unreadCount } = storeToRefs(notificationStore)
 
 // Notification State
 const showNotifications = ref(false)
-const notifications = ref<NotificationItem[]>([
-    {
-        id: '1',
-        title: '策略回测完成',
-        content: '您的策略 "QQQ 趋势增强" 已完成回测，年化回报率 15.2%。',
-        timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 mins ago
-        read: false
-    },
-    {
-        id: '2',
-        title: '新功能上线',
-        content: '我们上线了实盘信号监控功能，快去策略详情页开启吧！',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
-        read: false
-    }
-])
 
-const notificationCount = computed(() => notifications.value.filter(n => !n.read).length)
+// Poll for notifications periodically
+onMounted(() => {
+    if (authStore.isAuthenticated) {
+        notificationStore.fetchNotifications(true)
+    }
+    // Simple polling every 5 minutes
+    setInterval(() => {
+        if (authStore.isAuthenticated) {
+            notificationStore.fetchNotifications(true)
+        }
+    }, 5 * 60 * 1000)
+})
+
+watch(() => authStore.isAuthenticated, (isAuthenticated) => {
+    if (isAuthenticated) {
+        notificationStore.fetchNotifications(true)
+    } else {
+        notificationStore.$reset() // Reset store if available or manually clear
+        notifications.value = []
+        unreadCount.value = 0
+    }
+})
 
 const handleNotificationClick = () => {
     showNotifications.value = true
+    // Optionally re-fetch on open to be sure
+    notificationStore.fetchNotifications(true)
 }
 
 const handleMarkAllRead = () => {
-    notifications.value.forEach(n => n.read = true)
+    notificationStore.markAllRead()
 }
 
 const handleItemClick = (id: string) => {
+    notificationStore.markAsRead(id)
+    // If metadata has strategyId, we could navigate
     const item = notifications.value.find(n => n.id === id)
-    if (item) item.read = true
+    /* 
+    // Navigation logic example:
+    if (item?.metadata?.strategyId) {
+        showNotifications.value = false
+        // navigate logic here if needed, e.g. emit event or use router
+    } 
+    */
 }
 
 const handleLogin = async () => {
@@ -88,8 +107,8 @@ const handleLogout = () => {
                         <Bell class="h-5 w-5 text-slate-600" />
                         <span 
                             class="absolute top-0 right-0 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-white ring-2 ring-white transition-all"
-                            :class="notificationCount > 0 ? 'bg-red-500' : 'bg-slate-400'">
-                            {{ notificationCount > 9 ? '9+' : notificationCount }}
+                            :class="unreadCount > 0 ? 'bg-red-500' : 'bg-slate-400'">
+                            {{ unreadCount > 9 ? '9+' : unreadCount }}
                         </span>
                     </div>
 
