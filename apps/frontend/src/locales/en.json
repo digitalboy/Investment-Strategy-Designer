@@ -349,6 +349,7 @@
       "peak": "Peak",
       "valley": "Valley",
       "recovery": "Recovery",
+      "recoveryBadge": "✅ {days} days",
       "days": "{days} days",
       "recovered": "Recovered",
       "underwater": "Underwater"

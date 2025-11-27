@@ -21,7 +21,7 @@ const emit = defineEmits<{
 	select: [event: DrawdownEvent | null]
 }>()
 
-const { t } = useI18n({ useScope: 'global' })
+const { t, locale } = useI18n({ useScope: 'global' })
 
 // Ensure we only take top 5 if API returns more
 const topDrawdowns = computed(() => props.drawdowns.slice(0, 5))
@@ -39,7 +39,11 @@ const getRankColor = (rank: number) => {
 
 const formatSimpleDate = (dateStr: string) => {
 	const date = new Date(dateStr)
-	return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+	return new Intl.DateTimeFormat(locale.value || 'en', {
+		year: 'numeric',
+		month: 'short',
+		day: 'numeric',
+	}).format(date)
 }
 
 // 处理点击事件，切换选中状态

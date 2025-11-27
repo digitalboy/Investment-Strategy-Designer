@@ -349,6 +349,7 @@
       "peak": "峰值",
       "valley": "谷底",
       "recovery": "恢复",
+      "recoveryBadge": "✅ {days} 天",
       "days": "{days} 天",
       "recovered": "已恢复",
       "underwater": "未恢复"
