@@ -135,12 +135,24 @@ export class BacktestEngine {
 		// 准备图表数据
 		const chartData = this.prepareChartData(filteredData, executionState.accountHistory, strategy.initialCapital, context);
 
+		// 准备净值曲线数据用于回撤分析
+		const equityCurve = chartData.dates.map((date, i) => ({
+			date,
+			value: chartData.strategyEquity[i]
+		}));
+
+		// 计算最大回撤事件
+		const topDrawdowns = PerformanceAnalyzer.calculateTopDrawdowns(equityCurve);
+
 		return {
 			metadata: {
 				symbol: strategy.etfSymbol,
 				period: `${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}`,
 			},
 			performance,
+			analysis: {
+				topDrawdowns
+			},
 			charts: chartData,
 			trades: accountState.tradeHistory
 		};

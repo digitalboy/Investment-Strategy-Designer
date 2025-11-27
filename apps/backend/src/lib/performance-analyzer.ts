@@ -283,4 +283,99 @@ export class PerformanceAnalyzer {
 		const weekNumber = 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
 		return `${date.getFullYear()}-W${weekNumber.toString().padStart(2, '0')}`;
 	}
+
+	/**
+	 * 计算历史前 N 大回撤事件
+	 * @param equityCurve 策略净值曲线 (日期和对应价值)
+	 * @param topN 返回前几名 (默认 5)
+	 */
+	static calculateTopDrawdowns(equityCurve: { date: string; value: number }[], topN: number = 5): import('../types').DrawdownEvent[] {
+		const events: import('../types').DrawdownEvent[] = [];
+
+		let runningMax = -Infinity;
+		let peakDate = '';
+
+		// 临时存储当前正在发生的回撤
+		let currentEvent: Partial<import('../types').DrawdownEvent> | null = null;
+
+		for (const point of equityCurve) {
+			const price = point.value;
+			const date = point.date;
+
+			if (price >= runningMax) {
+				// --- 场景 A: 创新高 (或者持平) ---
+
+				// 1. 如果之前有正在进行的回撤，说明今天“回本”了
+				if (currentEvent) {
+					currentEvent.recoveryDate = date;
+					currentEvent.isRecovered = true;
+					// 计算恢复天数
+					const peak = new Date(currentEvent.peakDate!);
+					const recovery = new Date(date);
+					currentEvent.daysToRecover = Math.ceil((recovery.getTime() - peak.getTime()) / (1000 * 3600 * 24));
+
+					// 只有回撤幅度超过一定阈值 (例如 1%) 才记录，过滤噪音
+					if (currentEvent.depthPercent! < -1.0) {
+						// 强制类型转换，因为我们知道这些字段一定存在
+						events.push(currentEvent as import('../types').DrawdownEvent);
+					}
+					currentEvent = null;
+				}
+
+				// 2. 更新新的峰值
+				runningMax = price;
+				peakDate = date;
+
+			} else {
+				// --- 场景 B: 处于回撤中 (水下) ---
+
+				const depth = ((price - runningMax) / runningMax) * 100;
+
+				if (!currentEvent) {
+					// 刚开始跌，初始化事件
+					currentEvent = {
+						rank: 0, // 稍后排序填充
+						depthPercent: depth,
+						peakDate: peakDate,
+						peakPrice: runningMax,
+						valleyDate: date,
+						valleyPrice: price,
+						recoveryDate: null,
+						isRecovered: false,
+						daysToRecover: 0 // 暂时未定
+					};
+				} else {
+					// 已经在跌了，检查是不是跌得更深了
+					if (depth < currentEvent.depthPercent!) {
+						currentEvent.depthPercent = depth;
+						currentEvent.valleyDate = date;
+						currentEvent.valleyPrice = price;
+					}
+				}
+			}
+		}
+
+		// --- 收尾: 处理直到回测结束还没回本的最后一次回撤 ---
+		if (currentEvent) {
+			// 计算截止到回测结束日期的天数
+			const lastDate = equityCurve[equityCurve.length - 1].date;
+			const peak = new Date(currentEvent.peakDate!);
+			const last = new Date(lastDate);
+			currentEvent.daysToRecover = Math.ceil((last.getTime() - peak.getTime()) / (1000 * 3600 * 24));
+
+			if (currentEvent.depthPercent! < -1.0) {
+				events.push(currentEvent as import('../types').DrawdownEvent);
+			}
+		}
+
+		// --- 排序与排名 ---
+		// 按跌幅从小到大排序 (例如 -50% 排在 -10% 前面)
+		const sortedEvents = events.sort((a, b) => a.depthPercent - b.depthPercent);
+
+		// 取前 N 名并标记 Rank
+		return sortedEvents.slice(0, topN).map((e, index) => ({
+			...e,
+			rank: index + 1
+		}));
+	}
 }

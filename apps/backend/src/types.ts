@@ -182,6 +182,9 @@ export interface BacktestResultDTO {
 		benchmark: PerformanceMetrics;
 		dca: PerformanceMetrics;       // 周定投基准
 	};
+	analysis: {
+		topDrawdowns: DrawdownEvent[];
+	};
 	charts: {
 		dates: string[];
 		strategyEquity: number[];
@@ -191,6 +194,18 @@ export interface BacktestResultDTO {
 		vixData?: number[];
 	};
 	trades: Trade[];
+}
+
+export interface DrawdownEvent {
+	rank: number;
+	depthPercent: number;
+	peakDate: string;
+	peakPrice: number;
+	valleyDate: string;
+	valleyPrice: number;
+	recoveryDate: string | null;
+	daysToRecover: number;
+	isRecovered: boolean;
 }
 
 export interface Trade {
