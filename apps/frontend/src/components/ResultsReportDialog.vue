@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted, watch, ref } from 'vue'
 import { useStrategyStore } from '@/stores/strategy'
 import {
 	Dialog,
@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import PerformanceMetricCard from './reports/PerformanceMetricCard.vue'
 import BacktestChart from './reports/BacktestChart.vue'
 import DrawdownAnalysisCard from './reports/DrawdownAnalysisCard.vue'
+import type { DrawdownEvent } from '@/types'
 
 const { t } = useI18n({ useScope: 'global' })
 const props = defineProps<{
@@ -21,12 +22,19 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:open'])
 
+// 选中的回撤事件，用于图表高亮显示
+const selectedDrawdown = ref<DrawdownEvent | null>(null)
+
 onMounted(() => {
 	console.log('ResultsReportDialog mounted')
 })
 
 watch(() => props.open, (isOpen) => {
 	console.log('ResultsReportDialog open changed:', isOpen)
+	// 对话框关闭时清除选中状态
+	if (!isOpen) {
+		selectedDrawdown.value = null
+	}
 })
 
 const store = useStrategyStore()
@@ -53,7 +61,7 @@ const strategyTriggerCount = computed(() => store.config.triggers?.length || 0)
 					<span>{{ resultTitle }}</span>
 					<span class="opacity-60 font-light">|</span>
 					<span class="bg-white/20 px-2 py-0.5 rounded text-sm backdrop-blur-sm font-mono">{{ currentSymbol
-						}}</span>
+					}}</span>
 				</DialogTitle>
 				<DialogDescription class="text-sm mt-1 text-emerald-100 font-medium opacity-90">
 					{{ t('resultsReportDialog.description') }}
@@ -91,12 +99,14 @@ const strategyTriggerCount = computed(() => store.config.triggers?.length || 0)
 					<div class="flex flex-col xl:flex-row gap-4 flex-1 min-h-[500px]">
 						<!-- Main Chart (Takes remaining space) -->
 						<div class="flex-1 min-h-[400px] xl:min-h-0 h-full">
-							<BacktestChart :result="result" class="h-full" />
+							<BacktestChart :result="result" :selectedDrawdown="selectedDrawdown" class="h-full" />
 						</div>
 
 						<!-- Drawdown Analysis (Sidebar) -->
 						<div class="xl:w-80 2xl:w-96 shrink-0 h-full min-h-[400px] xl:min-h-0">
-							<DrawdownAnalysisCard :drawdowns="result.analysis?.topDrawdowns || []" class="h-full" />
+							<DrawdownAnalysisCard :drawdowns="result.analysis?.topDrawdowns || []"
+								:selectedDrawdown="selectedDrawdown" @select="selectedDrawdown = $event"
+								class="h-full" />
 						</div>
 					</div>
 				</div>

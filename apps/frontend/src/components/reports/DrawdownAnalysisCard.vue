@@ -14,6 +14,11 @@ import type { DrawdownEvent } from '@/types'
 
 const props = defineProps<{
 	drawdowns: DrawdownEvent[]
+	selectedDrawdown?: DrawdownEvent | null
+}>()
+
+const emit = defineEmits<{
+	select: [event: DrawdownEvent | null]
 }>()
 
 const { t } = useI18n({ useScope: 'global' })
@@ -36,6 +41,20 @@ const formatSimpleDate = (dateStr: string) => {
 	const date = new Date(dateStr)
 	return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
 }
+
+// 处理点击事件，切换选中状态
+const handleSelect = (event: DrawdownEvent) => {
+	if (props.selectedDrawdown?.rank === event.rank) {
+		emit('select', null) // 取消选中
+	} else {
+		emit('select', event) // 选中
+	}
+}
+
+// 判断是否选中
+const isSelected = (event: DrawdownEvent) => {
+	return props.selectedDrawdown?.rank === event.rank
+}
 </script>
 
 <template>
@@ -54,8 +73,9 @@ const formatSimpleDate = (dateStr: string) => {
 
 			<Accordion v-else type="single" collapsible default-value="item-0" class="w-full">
 				<AccordionItem v-for="(event, index) in topDrawdowns" :key="index" :value="`item-${index}`"
-					class="border-b border-slate-50 last:border-0">
-					<AccordionTrigger class="px-4 py-3 hover:bg-slate-50/50 transition-colors group">
+					class="border-b border-slate-50 last:border-0"
+					:class="{ 'bg-rose-50/50 ring-1 ring-rose-200': isSelected(event) }">
+					<AccordionTrigger class="px-4 py-3 hover:bg-slate-50/50 transition-colors group" @click="handleSelect(event)">
 						<div class="flex items-center justify-between w-full pr-2">
 							<div class="flex items-center gap-3">
 								<Badge variant="outline"

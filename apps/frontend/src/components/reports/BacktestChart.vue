@@ -3,14 +3,16 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Line } from 'vue-chartjs'
 import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement } from 'chart.js'
-import type { BacktestResultDTO } from '@/types'
+import annotationPlugin from 'chartjs-plugin-annotation'
+import type { BacktestResultDTO, DrawdownEvent } from '@/types'
 
 const { t } = useI18n()
 
-ChartJS.register(Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement)
+ChartJS.register(Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement, annotationPlugin)
 
 const props = defineProps<{
     result: BacktestResultDTO
+    selectedDrawdown?: DrawdownEvent | null
 }>()
 
 const chartData = computed(() => {
@@ -157,6 +159,115 @@ const chartData = computed(() => {
     }
 })
 
+// 生成 annotation 配置
+const drawdownAnnotations = computed(() => {
+    if (!props.selectedDrawdown) return {}
+
+    const dd = props.selectedDrawdown
+    const dates = props.result.charts.dates || []
+
+    // 找到日期索引（用于x轴定位）
+    const peakIdx = dates.findIndex(d => d === dd.peakDate.split('T')[0])
+    const valleyIdx = dates.findIndex(d => d === dd.valleyDate.split('T')[0])
+    const recoveryIdx = dd.recoveryDate ? dates.findIndex(d => d === dd.recoveryDate!.split('T')[0]) : -1
+
+    const annotations: Record<string, any> = {}
+
+    // 回撤区域 (峰值到谷底) - 红色半透明区域
+    if (peakIdx >= 0 && valleyIdx >= 0) {
+        annotations.drawdownBox = {
+            type: 'box',
+            xMin: dates[peakIdx],
+            xMax: dates[valleyIdx],
+            backgroundColor: 'rgba(239, 68, 68, 0.15)',
+            borderColor: 'rgba(239, 68, 68, 0.5)',
+            borderWidth: 1,
+            borderDash: [4, 4],
+        }
+    }
+
+    // 恢复区域 (谷底到恢复) - 绿色半透明区域
+    if (valleyIdx >= 0 && recoveryIdx >= 0) {
+        annotations.recoveryBox = {
+            type: 'box',
+            xMin: dates[valleyIdx],
+            xMax: dates[recoveryIdx],
+            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+            borderColor: 'rgba(34, 197, 94, 0.4)',
+            borderWidth: 1,
+            borderDash: [4, 4],
+        }
+    }
+
+    // 峰值标记线
+    if (peakIdx >= 0) {
+        annotations.peakLine = {
+            type: 'line',
+            xMin: dates[peakIdx],
+            xMax: dates[peakIdx],
+            borderColor: '#16a34a',
+            borderWidth: 2,
+            borderDash: [6, 3],
+            label: {
+                display: true,
+                content: `📈 $${dd.peakPrice.toFixed(0)}`,
+                position: 'start',
+                backgroundColor: 'rgba(22, 163, 74, 0.9)',
+                color: '#fff',
+                font: { size: 11, weight: 'bold' },
+                padding: 4,
+                borderRadius: 4,
+            }
+        }
+    }
+
+    // 谷底标记线
+    if (valleyIdx >= 0) {
+        annotations.valleyLine = {
+            type: 'line',
+            xMin: dates[valleyIdx],
+            xMax: dates[valleyIdx],
+            borderColor: '#dc2626',
+            borderWidth: 2,
+            borderDash: [6, 3],
+            label: {
+                display: true,
+                content: `📉 ${dd.depthPercent.toFixed(1)}%`,
+                position: 'center',
+                backgroundColor: 'rgba(220, 38, 38, 0.9)',
+                color: '#fff',
+                font: { size: 11, weight: 'bold' },
+                padding: 4,
+                borderRadius: 4,
+            }
+        }
+    }
+
+    // 恢复标记线
+    if (recoveryIdx >= 0) {
+        annotations.recoveryLine = {
+            type: 'line',
+            xMin: dates[recoveryIdx],
+            xMax: dates[recoveryIdx],
+            borderColor: '#0ea5e9',
+            borderWidth: 2,
+            borderDash: [6, 3],
+            label: {
+                display: true,
+                content: `✅ ${dd.daysToRecover}天`,
+                position: 'end',
+                backgroundColor: 'rgba(14, 165, 233, 0.9)',
+                color: '#fff',
+                font: { size: 11, weight: 'bold' },
+                padding: 4,
+                borderRadius: 4,
+            }
+        }
+    }
+
+    return annotations
+})
+
 const chartOptions = computed(() => ({
     responsive: true,
     maintainAspectRatio: false,
@@ -167,6 +278,9 @@ const chartOptions = computed(() => ({
     plugins: {
         legend: {
             position: 'top' as const,
+        },
+        annotation: {
+            annotations: drawdownAnnotations.value
         },
         tooltip: {
             callbacks: {
