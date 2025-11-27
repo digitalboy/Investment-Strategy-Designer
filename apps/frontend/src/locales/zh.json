@@ -322,7 +322,10 @@
     "example": "例如：QQQ 抄底策略",
     "descriptionPlaceholder": "简要描述策略逻辑",
     "descriptionLabel": "描述 (可选)",
-    "shareToCommunity": "公开分享到社区 (允许他人查看和点赞)",
+    "shareToCommunity": "公开分享到社区",
+    "keepPrivate": "仅自己可见",
+    "publicDescription": "允许其他用户查看和复制您的策略",
+    "privateDescription": "策略将保持私密，仅您可以访问",
     "cancel": "取消",
     "save": "保存",
     "saving": "保存中..."

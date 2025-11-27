@@ -322,7 +322,10 @@
     "example": "e.g., QQQ Bottom Fishing Strategy",
     "descriptionPlaceholder": "Briefly describe the strategy logic",
     "descriptionLabel": "Description (Optional)",
-    "shareToCommunity": "Share to community (allows others to view and like)",
+    "shareToCommunity": "Share to Community",
+    "keepPrivate": "Keep Private",
+    "publicDescription": "Allows other users to view and copy your strategy",
+    "privateDescription": "Strategy will remain private, only you can access it",
     "cancel": "Cancel",
     "save": "Save",
     "saving": "Saving..."

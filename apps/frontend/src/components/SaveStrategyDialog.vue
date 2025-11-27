@@ -136,22 +136,30 @@ const handleSave = async () => {
         </div>
 
         <!-- Public Toggle -->
-        <div class="flex items-center justify-between p-4 rounded-xl bg-white border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between p-4 rounded-xl border shadow-sm transition-colors"
+          :class="isPublic ? 'bg-emerald-50/50 border-emerald-200' : 'bg-red-50/50 border-red-200'">
           <div class="space-y-0.5">
-            <Label class="text-base font-medium text-slate-800 flex items-center gap-2">
-              <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <Label class="text-base font-medium flex items-center gap-2"
+              :class="isPublic ? 'text-emerald-800' : 'text-red-800'">
+              <svg v-if="isPublic" class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
                 </path>
               </svg>
-              {{ t('saveStrategyDialog.shareToCommunity') }}
+              <svg v-else class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                </path>
+              </svg>
+              {{ isPublic ? t('saveStrategyDialog.shareToCommunity') : t('saveStrategyDialog.keepPrivate') }}
             </Label>
-            <p class="text-xs text-slate-500 pl-6">
-              Allows other users to view and copy your strategy
+            <p class="text-xs pl-6" :class="isPublic ? 'text-emerald-600' : 'text-red-600'">
+              {{ isPublic ? t('saveStrategyDialog.publicDescription') : t('saveStrategyDialog.privateDescription') }}
             </p>
           </div>
           <Switch :checked="isPublic" @update:checked="isPublic = $event" class="
-              data-[state=checked]:bg-emerald-600 data-[state=unchecked]:bg-slate-200
+              data-[state=checked]:bg-emerald-600 data-[state=unchecked]:bg-red-500
               shadow-sm hover:shadow-md transition-shadow
               focus-visible:ring-offset-background
             " />
