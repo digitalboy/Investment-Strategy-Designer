@@ -1,175 +1,125 @@
-# 回测引擎核心算法与设计
+# 回测算法详解 (Backtest Algorithm)
 
-**版本**: 1.2 (VIX Enhanced)
-**最后更新**: 2025 年 11 月 27 日
-**状态**: VIX 逻辑增强
+## 1. 概述
+回测引擎是后端服务的核心组件，负责模拟策略在历史数据上的表现。
+它接收策略配置和历史市场数据，输出详细的性能指标、交易记录和图表数据。
 
-本文档详细论述了 ETF 投资策略设计器的回测引擎核心算法。它涵盖了从数据处理、信号生成到交易执行的完整生命周期。
+**位置**: `src/lib/backtest-engine.ts` 及相关辅助模块 (`position-sizer.ts`, `performance-analyzer.ts`)
 
-## 1. 算法概述
+## 2. 回测流程
 
-回测引擎的目标是模拟策略在历史市场数据上的表现。我们的设计哲学是**“基于事件的日线级回测”**。
+### 2.1 初始化
+1.  **资金池**: 创建 `AccountState` 对象，设置初始现金（例如 $10,000）。
+2.  **数据对齐**: 获取 ETF 历史数据 (OHLCV)，并根据策略配置的 `startDate` 和 `endDate` 进行切片。
+3.  **上下文准备**: 如果策略依赖 VIX 数据，将 VIX 数据与 ETF 数据按日期对齐。
 
-- **输入**: 
-  - `StrategyConfig`: 用户定义的策略配置。
-  - `ETFData`: 清洗后的 ETF 历史数据。
-  - `MarketContext` (可选): 市场上下文数据，如 VIX 恐慌指数，用于宏观择时策略。
-- **处理**: 按时间顺序遍历每一天，根据当日及历史数据判断是否触发交易信号。
-- **输出**: 包含资金曲线、交易记录和绩效指标的详细报告 (`BacktestResultDTO`)。
+### 2.2 时间步进循环 (Time-Stepping Loop)
+引擎按天遍历历史数据，每天执行以下步骤：
 
-## 2. 核心逻辑流程
+#### A. 盘前/开盘处理
+*   **执行待处理订单 (Pending Orders)**:
+    *   检查上一日产生的交易信号。
+    *   使用 **当日开盘价 (Open Price)** 执行买入或卖出操作。
+    *   更新现金和持仓数量。
+    *   *原因*: 模拟“见信号次日开盘操作”的真实交易场景。
 
-回测的核心是一个按日期推进的时间步进循环 (Time-Stepping Loop)。
+#### B. 盘中/收盘结算
+*   **更新账户价值**:
+    *   `Total Value = Cash + (Positions * Current Close Price)`
+*   **记录快照**: 保存当日的账户状态用于生成权益曲线。
 
-### 2.1 数据预处理
+#### C. 盘后/信号检测
+*   **指标计算**: 使用 `IndicatorEngine` 计算当日指标（如 RSI, 均线, 连涨天数）。
+*   **触发器检查**:
+    *   遍历策略中的每个 `Trigger`。
+    *   **冷却期检查**: 检查该规则上次触发距离今天是否满足冷却天数。
+    *   **条件判断**: 如果满足条件（例如 "RSI < 30"），生成一个 **待处理订单**。
+    *   *注意*: 信号基于 **当日收盘价 (Close Price)** 计算，操作将在 **次日开盘** 执行。
 
-1.  **排序**: 确保 ETF 数据严格按日期升序排列。
-2.  **过滤**: 根据策略设定的 `startDate` 和 `endDate` 截取数据片段。
-3.  **初始化**: 建立初始账户状态（现金 = 初始资本，持仓 = 0）。
-4.  **上下文构建**: 如果提供了 `MarketContext` (如 VIX 数据)，将其转换为 `Map` 结构以便于 O(1) 查找。
+## 3. 性能指标计算
 
-### 2.2 逐日回测循环 (The Loop)
+所有指标计算逻辑封装在 `src/lib/performance-analyzer.ts` 中。
 
-对于回测区间内的每一天 $T$：
+### 3.1 核心指标
+*   **总回报率 (Total Return)**: `(Final Value - Initial Capital) / Initial Capital * 100%`
+*   **年化回报率 (CAGR)**: `(Final / Initial) ^ (1 / Years) - 1`
+*   **最大回撤 (Max Drawdown)**: 历史净值曲线中从最高点下跌的最大百分比幅度的负值。
+*   **夏普比率 (Sharpe Ratio)**: `(Avg Daily Return - RiskFreeRate) / StdDev of Daily Returns * sqrt(252)` (假设无风险利率为0)。
 
-1.  **更新账户价值**:
+### 3.2 基准对比 (Benchmarks)
+为了评估策略优劣，我们计算两个基准：
+1.  **买入持有 (Buy & Hold)**: 假设第一天全仓买入 ETF 并持有至最后一天。
+2.  **周定投 (Weekly DCA)**: 假设将初始资金分成 N 份（N=总周数），每周一固定金额买入。
+    *   *算法细节*: 采用“资本耗尽模型”，确保回测结束时资金刚好投完，避免现金拖累导致的计算误差。
 
-    - 根据 $T$ 日收盘价 ($Close_T$) 更新持仓市值。
-    - $TotalValue_T = Cash + (Positions 	imes Close_T)$。
-    - 记录当日账户快照。
+## 4. 深度风险分析：Top Drawdowns (最大回撤事件)
 
-2.  **执行待处理订单 (Order Execution)**:
+除了计算单一的“最大回撤”数值外，我们还采用 **Underwater Algorithm (水下算法)** 识别策略历史上所有显著的回撤事件，并按跌幅排名。这能帮助用户了解策略在特定历史危机（如 2008 金融危机、2020 疫情熔断）中的具体表现及恢复时间。
 
-    - **目标逻辑**: 检查是否有 $T-1$ 日产生的交易信号。如果有，以 $T$ 日的 **开盘价 ($Open_T$)** 执行交易。这是消除“前视偏差”的关键。
+### 4.1 核心定义
 
-3.  **信号检测 (Signal Generation)**:
+一个完整的 **回撤事件 (Drawdown Event)** 包含三个关键节点：
+1.  **峰值 (Peak)**: 资金曲线创新高的日期（回撤开始）。
+2.  **谷底 (Valley)**: 在恢复创新高之前，净值跌得最深的那一天。
+3.  **恢复 (Recovery)**: 净值重新突破之前峰值的日期（回撤结束）。
+    *   *未恢复状态*: 如果回测结束时净值仍低于峰值，标记为 `isRecovered: false`。
 
-    - 基于 $T$ 日收盘数据 ($Close_T, High_T, Low_T$) 及历史窗口数据，计算技术指标（如 MA, RSI, 回撤幅度）。
-    - **获取上下文数据**:
-        *   从 `MarketContext` 中提取与当前回测日期对齐的 VIX 数据。
-        *   **重要**: 需要提取 VIX 的**历史序列**，而不仅仅是当天的值，以支持更复杂的 VIX 触发条件（如连续涨跌、N日新高/低）。
-    - 遍历策略中的所有触发器 (`Triggers`)。
-    - 若满足条件且不在冷却期内，生成交易信号。
+### 4.2 算法逻辑
 
-4.  **状态流转**:
-    - 更新触发器的“最后执行时间”。
-    - 将信号转换为待处理订单，传入 $T+1$ 日。
+算法以 $O(N)$ 复杂度遍历每日净值曲线：
 
-## 3. 详细机制
+1.  **初始化**: `runningMax = -Infinity`, `peakDate = null`, `currentDrawdown = null`.
+2.  **遍历每一天**:
+    *   **若当前净值 > `runningMax` (创新高)**:
+        *   如果存在 `currentDrawdown`:
+            *   标记该事件为已恢复 (`isRecovered = true`).
+            *   记录恢复日期 (`recoveryDate`) 和恢复耗时 (`daysToRecover`).
+            *   将事件存入结果列表（仅保留跌幅超过阈值 e.g. 1% 的事件）。
+        *   更新 `runningMax` 和 `peakDate`。
+        *   重置 `currentDrawdown`。
+    *   **若当前净值 < `runningMax` (回撤中)**:
+        *   计算当前跌幅: `depth = (Value - RunningMax) / RunningMax`.
+        *   **若为新回撤**: 初始化一个新的回撤事件对象。
+        *   **若为已有回撤**: 检查当前 `depth` 是否比记录的 `valleyDepth` 更深。如果是，更新 `valleyDate` 和 `valleyPrice`。
+3.  **收尾**: 遍历结束后，如果仍有 `currentDrawdown`（未恢复），计算截至回测结束日的耗时，标记为 `isRecovered: false` 并存入列表。
+4.  **排序**: 按 `depthPercent` 升序排序（负数越小越严重），取 Top 5 或 Top 10。
 
-### 3.1 触发器系统 (Trigger System)
+### 4.3 数据结构
 
-引擎支持模块化的触发条件，通过 `IndicatorEngine.checkTriggerCondition` 分发：
-
--   **Drawdown**: 从近期高点的回撤幅度。
--   **Price Streak**: 连续 N 天涨/跌。
--   **New High/Low**: 创 N 日新高/新低。
--   **MA Cross**: 均线交叉（金叉/死叉）。
--   **RSI**: 超买/超卖检测。
--   **VIX** (增强): 基于市场恐慌指数的判断。
-
-#### VIX 判断逻辑增强
-
-`vix` 触发器现在支持多种判断模式，不再局限于单一阈值判断。
-**参数结构**:
 ```typescript
-{
-    type: 'vix';
-    params: {
-        mode?: 'threshold' | 'streak' | 'breakout'; // 默认为 'threshold'
-
-        // Threshold mode (现有逻辑)
-        threshold?: number;
-        operator?: 'above' | 'below';
-
-        // Streak mode (新增) - VIX 连续上涨/下跌 N 天
-        streakDirection?: 'up' | 'down';
-        streakCount?: number;
-
-        // Breakout mode (新增) - VIX 创 N 天新高/新低
-        breakoutType?: 'high' | 'low';
-        breakoutDays?: number;
-    }
+interface DrawdownEvent {
+    rank: number;             // 排名 (1 = 最惨)
+    depthPercent: number;     // 跌幅百分比 (e.g., -35.42)
+    
+    peakDate: string;         // 峰值日期
+    peakPrice: number;        // 峰值时的净值
+    
+    valleyDate: string;       // 谷底日期
+    valleyPrice: number;      // 谷底时的净值
+    
+    recoveryDate: string | null; // 恢复日期 (null 表示尚未恢复)
+    daysToRecover: number;    // 恢复耗时 (天)
+    
+    isRecovered: boolean;     // 是否已爬出坑
 }
 ```
 
-**`IndicatorEngine.checkVIX` 逻辑**:
-该方法现在根据 `params.mode` 字段执行不同的判断逻辑。
+## 5. 仓位管理 (Position Sizing)
 
-1.  **`mode: 'threshold'` (默认)**:
-    *   判断 VIX 当前值是否高于/低于 `threshold`。
-    *   **输入**: `vixHistory: number[]` (取 `vixHistory` 的最新值作为 `currentVix`)。
-    *   **复用**: 现有逻辑。
+由 `src/lib/position-sizer.ts` 处理。
 
-2.  **`mode: 'streak'`**:
-    *   判断 VIX 是否连续 `streakCount` 天 `streakDirection` 上升/下跌。
-    *   **输入**: `vixHistory: number[]` (整个历史序列)。
-    *   **复用**: 将 `vixHistory` 临时包装成一个只包含 `c` 字段的 `ETFDataPoint[]` 数组，然后调用 `IndicatorEngine.checkPriceStreak`。
+*   **买入逻辑**:
+    *   `fixedAmount`: 固定金额 (例如每次买 $1000)。
+    *   `cashPercent`: 现金百分比 (例如用当前 50% 的现金买入)。
+    *   `totalValuePercent`: 目标总仓位 (例如加仓直至持仓占总资产的 80%)。
+    *   *保护机制*: 确保 `Amount to Spend <= Available Cash`。
 
-3.  **`mode: 'breakout'`**:
-    *   判断 VIX 是否在过去 `breakoutDays` 内创出新高/新低。
-    *   **输入**: `vixHistory: number[]` (整个历史序列)。
-    *   **复用**: 将 `vixHistory` 临时包装成一个只包含 `c` 字段的 `ETFDataPoint[]` 数组，然后调用 `IndicatorEngine.checkNewHigh` 或 `IndicatorEngine.checkNewLow`。
+*   **卖出逻辑**:
+    *   `fixedAmount`: 卖出价值 $X 的份额。
+    *   `positionPercent`: 卖出持仓的 X% (例如减仓一半)。
+    *   `totalValuePercent`: 减仓直至持仓价值占总资产的 X%。
 
-### 3.2 交易执行与资金管理
-
-交易动作定义了“买什么”和“卖多少”。
-
--   **买入 (Buy)**:
-    -   `fixedAmount`: 固定金额买入。
-    -   `cashPercent`: 使用当前现金的 X% 买入。
-    -   `totalValuePercent`: 目标仓位管理（例如：加仓至总资产的 50%）。
--   **卖出 (Sell)**:
-    -   `fixedAmount`: 卖出指定价值的份额。
-    -   `positionPercent`: 卖出当前持仓的 X%。
-    -   `totalValuePercent`: 减仓至总资产的 X%。
-
-## 4. 缺陷分析与修正方案 (Critical Fixes)
-
-为了确保回测结果的真实性，必须对当前算法进行以下核心修正。
-
-### 4.1 消除“穿越未来”偏差 (Look-ahead Bias)
-
--   **现状**: 在第 $T$ 日收盘后计算出信号，并立即以第 $T$ 日收盘价成交。
--   **修正方案**:
-    -   **信号生成**: 保持在 $T$ 日收盘后进行。
-    -   **交易执行**: 强制推迟到 $T+1$ 日。
-    -   **成交价格**: 使用 $T+1$ 日的 **Open Price**。
-
-### 4.2 卖出逻辑 Bug 修复
-
--   **修正**: `calculateSellQuantity` 中 `fixedAmount` 模式应计算为 `amount / currentPrice`，即“想卖出的金额除以当前单价”得到股数。
-
-## 5. 基准策略 (Benchmarks)
-
-系统内置两种基准策略用于对比分析。
-
-### 5.1 买入并持有 (Buy and Hold)
-在回测第一天用全部初始资金买入 ETF，并持有到最后一天。这是最基本的对比基准。
-
-### 5.2 周定投 (Weekly DCA - Capital Depletion Model)
-用于模拟一个**零择时、完全被动、但资金利用率最大化**的投资策略。
-
-#### 核心逻辑
-与用户可能设置的“每次固定投 100 元”不同，本基准采用**“资本耗尽模型”**。
-1.  **资金分配**:
-    -   扫描回测区间，统计总周数 ($N$)。
-    -   计算周定投额 ($A = 	ext{Initial Capital} / N$)。
-2.  **交易执行**:
-    -   在遍历每日数据时，检测 `Week Identifier` 变化（即每周第一个交易日）。
-    -   买入金额为 $A$。如果是最后一周，则买入剩余所有现金（消除浮点数误差）。
-3.  **意义**:
-    -   消除因“本金未花完”导致的现金拖累（Cash Drag）误差。
-    -   提供一个公平的“如果你把这笔钱平摊到每一周去买”的收益率对比标准。
-
-## 6. 未来演进 (Roadmap)
-
-### 6.1 交易摩擦 (Friction)
--   引入佣金 (`commission`) 和滑点 (`slippage`) 模型，使高频策略的成本更真实。
-
-### 6.2 现金流管理
--   **股息 (Dividends)**: 支持股息再投资或现金派发。
--   **闲置资金利息**: 为空仓部分的现金计算无风险收益 (Risk-Free Rate)。
-
-### 6.3 高级风控
--   **止损/止盈 (Stop Loss / Take Profit)**: 独立于入场信号的退出逻辑，支持移动止损 (Trailing Stop)。
+## 6. 局限性与假设
+*   **无滑点与手续费**: 假设成交价等于开盘价/收盘价，不扣除交易费用。
+*   **无分红再投资**: 数据源使用 Yahoo Finance 的 Adjusted Close (通常已包含分红调整)，但未显式模拟分红现金流。
+*   **T+0 结算**: 假设卖出后现金立即到账可用。
