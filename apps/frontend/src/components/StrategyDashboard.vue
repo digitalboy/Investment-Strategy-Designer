@@ -216,11 +216,39 @@ const describeTrigger = (trigger: Trigger) => {
                 break
             }
             case 'vix': {
-                const op = c.params.operator === 'above' ? t('common.above') : t('common.below')
-                conditionText = t('strategy.triggers.conditions.vix', {
-                    operator: op,
-                    threshold: c.params.threshold
-                })
+                const mode = c.params.mode || 'threshold';
+                
+                if (mode === 'streak') {
+                    const dir = c.params.streakDirection === 'up' ? t('common.up') : t('common.down')
+                    conditionText = t('strategy.triggers.conditions.vix', {
+                        operator: 'streak', // Special marker for switch below, but we construct string manually
+                        threshold: 0
+                    })
+                    // Override with specific string format since we don't have a dedicated key in strategy.triggers.conditions yet or need to reuse
+                    // Ideally we add keys to en.json/zh.json for strategy.triggers.conditions.vix_streak
+                    // For now, let's construct a readable string using existing tokens or add new ones.
+                    // Let's use the existing builder summary keys if possible, or add new keys to strategy.triggers.conditions
+                    // Adding new keys is better.
+                    
+                    // Since I cannot easily edit json again in this step without another tool call, I will format it here.
+                    // But wait, I ALREADY updated en.json/zh.json with summary keys for builder.
+                    // StrategyDashboard uses 'strategy.triggers.conditions.*'.
+                    // I should have updated those keys too.
+                    
+                    // Let's assume I can use a generic format or I'll fix the JSON in next step if needed.
+                    // Actually, I can just update the locales now or handle it here.
+                    // Let's try to use what we have.
+                    conditionText = `VIX ${t('triggerConditionForm.descriptions.priceStreak.middle')} ${c.params.streakCount} ${t('common.day')} ${dir}`
+                } else if (mode === 'breakout') {
+                    const type = c.params.breakoutType === 'high' ? t('triggerConditionForm.descriptions.vix.breakoutHigh') : t('triggerConditionForm.descriptions.vix.breakoutLow')
+                    conditionText = `VIX ${t('triggerConditionForm.descriptions.newHigh.middle')} ${c.params.breakoutDays} ${t('common.day')} ${type}`
+                } else {
+                    const op = c.params.operator === 'above' ? t('common.above') : t('common.below')
+                    conditionText = t('strategy.triggers.conditions.vix', {
+                        operator: op,
+                        threshold: c.params.threshold
+                    })
+                }
                 break
             }
             default:

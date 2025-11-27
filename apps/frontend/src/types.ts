@@ -85,7 +85,21 @@ export type TriggerCondition =
     | { type: 'periodReturn'; params: { days: number; percentage: number; direction: 'up' | 'down' } }
     | { type: 'rsi'; params: { period: number; threshold: number; operator: 'above' | 'below' } }
     | { type: 'maCross'; params: { period: number; direction: 'above' | 'below' } }
-    | { type: 'vix'; params: { threshold: number; operator: 'above' | 'below' } };
+    | {
+        type: 'vix';
+        params: {
+            mode?: 'threshold' | 'streak' | 'breakout';
+            // Threshold params
+            threshold?: number;
+            operator?: 'above' | 'below';
+            // Streak params
+            streakDirection?: 'up' | 'down';
+            streakCount?: number;
+            // Breakout params
+            breakoutType?: 'high' | 'low';
+            breakoutDays?: number;
+        }
+    };
 
 export interface TriggerAction {
     type: 'buy' | 'sell';

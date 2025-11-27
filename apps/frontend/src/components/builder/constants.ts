@@ -28,7 +28,9 @@ export const triggerGroups = [
     {
         label: '🌐 市场情绪指标',
         items: [
-            { value: 'vix', label: 'VIX 恐慌指数', description: '市场波动性和情绪的衡量' },
+            { value: 'vix', label: 'VIX 恐慌指数 (阈值)', description: 'VIX 高于或低于某值' },
+            { value: 'vix_streak', label: 'VIX 连续涨跌', description: 'VIX 连续多日上涨或下跌' },
+            { value: 'vix_breakout', label: 'VIX 创 N 日新高/低', description: 'VIX 突破近期高点或跌破低点' },
         ],
     },
 ] as const
@@ -41,7 +43,9 @@ export const baseConditionDefaults = {
     newLow: { days: 60 },
     periodReturn: { days: 30, percentage: 10, direction: 'up' },
     maCross: { period: 20, direction: 'above' },
-    vix: { threshold: 30, operator: 'above' }, // New VIX default
+    vix: { mode: 'threshold', threshold: 30, operator: 'above' },
+    vix_streak: { mode: 'streak', streakDirection: 'up', streakCount: 3 },
+    vix_breakout: { mode: 'breakout', breakoutType: 'high', breakoutDays: 60 },
 }
 
 export const conditionMap = {
@@ -54,7 +58,9 @@ export const conditionMap = {
     periodReturn_down: { type: 'periodReturn', defaults: { ...baseConditionDefaults.periodReturn, direction: 'down' } },
     rsi: { type: 'rsi', defaults: baseConditionDefaults.rsi },
     maCross: { type: 'maCross', defaults: baseConditionDefaults.maCross },
-    vix: { type: 'vix', defaults: baseConditionDefaults.vix }, // New VIX condition
+    vix: { type: 'vix', defaults: baseConditionDefaults.vix },
+    vix_streak: { type: 'vix', defaults: baseConditionDefaults.vix_streak },
+    vix_breakout: { type: 'vix', defaults: baseConditionDefaults.vix_breakout },
 } as const
 
 export type TriggerOptionKey = keyof typeof conditionMap
@@ -77,7 +83,9 @@ export const getConditionKeyFromTrigger = (condition: TriggerCondition): Trigger
             return 'rsi'
         case 'maCross':
             return 'maCross'
-        case 'vix': // New VIX condition
+        case 'vix':
+            if (condition.params?.mode === 'streak') return 'vix_streak'
+            if (condition.params?.mode === 'breakout') return 'vix_breakout'
             return 'vix'
         default:
             return 'drawdownFromPeak'

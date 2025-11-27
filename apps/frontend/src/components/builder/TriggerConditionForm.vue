@@ -100,6 +100,16 @@ const translatedTriggerGroups = computed(() => [
                 label: t('triggerConditionForm.conditions.vix.label'),
                 description: t('triggerConditionForm.conditions.vix.description')
             },
+            {
+                value: 'vix_streak' as TriggerOptionKey,
+                label: t('triggerConditionForm.conditions.vix_streak.label'),
+                description: t('triggerConditionForm.conditions.vix_streak.description')
+            },
+            {
+                value: 'vix_breakout' as TriggerOptionKey,
+                label: t('triggerConditionForm.conditions.vix_breakout.label'),
+                description: t('triggerConditionForm.conditions.vix_breakout.description')
+            },
         ],
     },
 ])
@@ -254,21 +264,59 @@ const translatedTriggerGroups = computed(() => [
             </template>
 
             <template v-else-if="conditionType === 'vix'">
-                <p class="leading-7 flex flex-wrap items-center gap-2">
-                    {{ t('triggerConditionForm.descriptions.vix.prefix') }}
-                    <Select v-model="params.operator" class="w-32">
-                        <SelectTrigger class="h-8 text-xs">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="above">{{ t('triggerConditionForm.operators.above') }}</SelectItem>
-                            <SelectItem value="below">{{ t('triggerConditionForm.operators.below') }}</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <Input type="number" v-model="params.threshold"
-                        class="w-16 h-8 text-center bg-white border border-slate-200" />
-                    {{ t('triggerConditionForm.descriptions.vix.suffix') }}
-                </p>
+                <template v-if="localSelectedKey === 'vix'">
+                    <p class="leading-7 flex flex-wrap items-center gap-2">
+                        {{ t('triggerConditionForm.descriptions.vix.prefix') }}
+                        <Select v-model="params.operator" class="w-32">
+                            <SelectTrigger class="h-8 text-xs">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="above">{{ t('triggerConditionForm.operators.above') }}</SelectItem>
+                                <SelectItem value="below">{{ t('triggerConditionForm.operators.below') }}</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Input type="number" v-model="params.threshold"
+                            class="w-16 h-8 text-center bg-white border border-slate-200" />
+                        {{ t('triggerConditionForm.descriptions.vix.suffix') }}
+                    </p>
+                </template>
+                <template v-else-if="localSelectedKey === 'vix_streak'">
+                    <p class="leading-7 flex flex-wrap items-center gap-2">
+                        {{ t('triggerConditionForm.descriptions.vix.streakPrefix') }}
+                        <Input type="number" v-model="params.streakCount"
+                            class="w-16 h-8 text-center bg-white border border-slate-200" />
+                        {{ t('triggerConditionForm.descriptions.vix.streakSuffix') }}
+                        <Select v-model="params.streakDirection" class="w-28">
+                            <SelectTrigger class="h-8 text-xs">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="up">{{ t('triggerConditionForm.directions.up') }}</SelectItem>
+                                <SelectItem value="down">{{ t('triggerConditionForm.directions.down') }}</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </p>
+                </template>
+                <template v-else-if="localSelectedKey === 'vix_breakout'">
+                    <p class="leading-7 flex flex-wrap items-center gap-2">
+                        {{ t('triggerConditionForm.descriptions.vix.breakoutPrefix') }}
+                        <Input type="number" v-model="params.breakoutDays"
+                            class="w-16 h-8 text-center bg-white border border-slate-200" />
+                        {{ t('triggerConditionForm.descriptions.vix.breakoutSuffix') }}
+                        <Select v-model="params.breakoutType" class="w-28">
+                            <SelectTrigger class="h-8 text-xs">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="high">{{ t('triggerConditionForm.descriptions.vix.breakoutHigh') }}
+                                </SelectItem>
+                                <SelectItem value="low">{{ t('triggerConditionForm.descriptions.vix.breakoutLow') }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </p>
+                </template>
             </template>
         </div>
     </section>

@@ -135,6 +135,10 @@
     "profile": "个人资料",
     "contactAuthor": "联系作者",
     "contactAuthorDescription": "欢迎反馈或提问。",
+    "contactNameLabel": "姓名：",
+    "contactEmailLabel": "邮箱：",
+    "contactXAccountLabel": "X 账号：",
+    "contactWechatLabel": "微信：",
     "close": "关闭"
   },
   "strategy": {
@@ -451,8 +455,16 @@
         "description": "短期均线与长期均线交叉"
       },
       "vix": {
-        "label": "VIX 恐慌指数",
-        "description": "市场波动性和情绪的衡量"
+        "label": "VIX 指数 (阈值)",
+        "description": "VIX 高于或低于某值"
+      },
+      "vix_streak": {
+        "label": "VIX 连续涨跌",
+        "description": "VIX 连续多日上涨或下跌"
+      },
+      "vix_breakout": {
+        "label": "VIX 创 N 日新高/低",
+        "description": "VIX 突破近期高点或跌破低点"
       }
     },
     "descriptions": {
@@ -495,7 +507,13 @@
       },
       "vix": {
         "prefix": "当 VIX 指数",
-        "suffix": "时。"
+        "suffix": "时。",
+        "streakPrefix": "当 VIX 连续",
+        "streakSuffix": "个交易日",
+        "breakoutPrefix": "当 VIX 创下",
+        "breakoutSuffix": "日",
+        "breakoutHigh": "新高",
+        "breakoutLow": "新低"
       }
     },
     "operators": {
@@ -556,6 +574,8 @@
         "rsi": "当 RSI({period}) {operator} {threshold}",
         "maCross": "当价格 {direction} {period} 日均线",
         "vix": "当 VIX 指数 {operator} {threshold}",
+        "vix_streak": "当 VIX 指数连续 {count} 天{direction}",
+        "vix_breakout": "当 VIX 指数创 {days} 天{type}",
         "default": "配置触发条件"
       },
       "actions": {

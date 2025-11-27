@@ -135,6 +135,10 @@
     "profile": "Profile",
     "contactAuthor": "Contact Author",
     "contactAuthorDescription": "Reach out for feedback or questions.",
+    "contactNameLabel": "Name:",
+    "contactEmailLabel": "Email:",
+    "contactXAccountLabel": "X account:",
+    "contactWechatLabel": "WeChat:",
     "close": "Close"
   },
   "strategy": {
@@ -451,8 +455,16 @@
         "description": "Short-term MA crosses long-term MA"
       },
       "vix": {
-        "label": "VIX Fear & Greed Index",
-        "description": "Measure of market volatility and investor sentiment"
+        "label": "VIX Fear Index (Threshold)",
+        "description": "VIX is above or below a value"
+      },
+      "vix_streak": {
+        "label": "VIX Streak",
+        "description": "VIX moves in same direction for N days"
+      },
+      "vix_breakout": {
+        "label": "VIX Breakout",
+        "description": "VIX makes N-day high or low"
       }
     },
     "descriptions": {
@@ -495,7 +507,13 @@
       },
       "vix": {
         "prefix": "When the VIX index is",
-        "suffix": "."
+        "suffix": ".",
+        "streakPrefix": "When VIX closes",
+        "streakSuffix": "consecutive days",
+        "breakoutPrefix": "When VIX makes a",
+        "breakoutSuffix": "-day",
+        "breakoutHigh": "new high",
+        "breakoutLow": "new low"
       }
     },
     "operators": {
@@ -556,6 +574,8 @@
         "rsi": "When RSI({period}) is {operator} {threshold}",
         "maCross": "When the price {direction} the {period}-day moving average",
         "vix": "When the VIX index is {operator} {threshold}",
+        "vix_streak": "When VIX closes {direction} for {count} consecutive days",
+        "vix_breakout": "When VIX makes a {days}-day {type}",
         "default": "Configure trigger condition"
       },
       "actions": {

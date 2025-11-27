@@ -1,8 +1,8 @@
 # 回测引擎核心算法与设计
 
-**版本**: 1.1 (Integrated)
-**最后更新**: 2025 年 11 月 26 日
-**状态**: 核心逻辑重构中
+**版本**: 1.2 (VIX Enhanced)
+**最后更新**: 2025 年 11 月 27 日
+**状态**: VIX 逻辑增强
 
 本文档详细论述了 ETF 投资策略设计器的回测引擎核心算法。它涵盖了从数据处理、信号生成到交易执行的完整生命周期。
 
@@ -45,7 +45,9 @@
 3.  **信号检测 (Signal Generation)**:
 
     - 基于 $T$ 日收盘数据 ($Close_T, High_T, Low_T$) 及历史窗口数据，计算技术指标（如 MA, RSI, 回撤幅度）。
-    - **获取上下文数据**: 尝试获取当日的外部数据（如 VIX 指数）。
+    - **获取上下文数据**:
+        *   从 `MarketContext` 中提取与当前回测日期对齐的 VIX 数据。
+        *   **重要**: 需要提取 VIX 的**历史序列**，而不仅仅是当天的值，以支持更复杂的 VIX 触发条件（如连续涨跌、N日新高/低）。
     - 遍历策略中的所有触发器 (`Triggers`)。
     - 若满足条件且不在冷却期内，生成交易信号。
 
@@ -57,41 +59,70 @@
 
 ### 3.1 触发器系统 (Trigger System)
 
-引擎支持模块化的触发条件，通过 `checkTriggerCondition` 分发：
+引擎支持模块化的触发条件，通过 `IndicatorEngine.checkTriggerCondition` 分发：
 
-- **Drawdown**: 从近期高点的回撤幅度。
-- **Price Streak**: 连续 N 天涨/跌。
-- **New High/Low**: 创 N 日新高/新低。
-- **MA Cross**: 均线交叉（金叉/死叉）。
-- **RSI**: 超买/超卖检测。
-- **VIX** (新增): 基于市场恐慌指数的判断。
+-   **Drawdown**: 从近期高点的回撤幅度。
+-   **Price Streak**: 连续 N 天涨/跌。
+-   **New High/Low**: 创 N 日新高/新低。
+-   **MA Cross**: 均线交叉（金叉/死叉）。
+-   **RSI**: 超买/超卖检测。
+-   **VIX** (增强): 基于市场恐慌指数的判断。
 
-#### VIX 判断逻辑示例
+#### VIX 判断逻辑增强
+
+`vix` 触发器现在支持多种判断模式，不再局限于单一阈值判断。
+**参数结构**:
 ```typescript
-private checkTriggerCondition(trigger: Trigger, ..., currentVix?: number): boolean {
-    if (trigger.condition.type === 'vix') {
-        // 守卫子句：如果策略依赖 VIX 但当天没有 VIX 数据，默认不触发
-        if (currentVix === undefined) return false;
-        return trigger.condition.params.operator === 'above' 
-            ? currentVix > trigger.condition.params.threshold
-            : currentVix < trigger.condition.params.threshold;
+{
+    type: 'vix';
+    params: {
+        mode?: 'threshold' | 'streak' | 'breakout'; // 默认为 'threshold'
+
+        // Threshold mode (现有逻辑)
+        threshold?: number;
+        operator?: 'above' | 'below';
+
+        // Streak mode (新增) - VIX 连续上涨/下跌 N 天
+        streakDirection?: 'up' | 'down';
+        streakCount?: number;
+
+        // Breakout mode (新增) - VIX 创 N 天新高/新低
+        breakoutType?: 'high' | 'low';
+        breakoutDays?: number;
     }
-    // ... 其他逻辑
 }
 ```
+
+**`IndicatorEngine.checkVIX` 逻辑**:
+该方法现在根据 `params.mode` 字段执行不同的判断逻辑。
+
+1.  **`mode: 'threshold'` (默认)**:
+    *   判断 VIX 当前值是否高于/低于 `threshold`。
+    *   **输入**: `vixHistory: number[]` (取 `vixHistory` 的最新值作为 `currentVix`)。
+    *   **复用**: 现有逻辑。
+
+2.  **`mode: 'streak'`**:
+    *   判断 VIX 是否连续 `streakCount` 天 `streakDirection` 上升/下跌。
+    *   **输入**: `vixHistory: number[]` (整个历史序列)。
+    *   **复用**: 将 `vixHistory` 临时包装成一个只包含 `c` 字段的 `ETFDataPoint[]` 数组，然后调用 `IndicatorEngine.checkPriceStreak`。
+
+3.  **`mode: 'breakout'`**:
+    *   判断 VIX 是否在过去 `breakoutDays` 内创出新高/新低。
+    *   **输入**: `vixHistory: number[]` (整个历史序列)。
+    *   **复用**: 将 `vixHistory` 临时包装成一个只包含 `c` 字段的 `ETFDataPoint[]` 数组，然后调用 `IndicatorEngine.checkNewHigh` 或 `IndicatorEngine.checkNewLow`。
 
 ### 3.2 交易执行与资金管理
 
 交易动作定义了“买什么”和“卖多少”。
 
-- **买入 (Buy)**:
-  - `fixedAmount`: 固定金额买入。
-  - `cashPercent`: 使用当前现金的 X% 买入。
-  - `totalValuePercent`: 目标仓位管理（例如：加仓至总资产的 50%）。
-- **卖出 (Sell)**:
-  - `fixedAmount`: 卖出指定价值的份额。
-  - `positionPercent`: 卖出当前持仓的 X%。
-  - `totalValuePercent`: 减仓至总资产的 X%。
+-   **买入 (Buy)**:
+    -   `fixedAmount`: 固定金额买入。
+    -   `cashPercent`: 使用当前现金的 X% 买入。
+    -   `totalValuePercent`: 目标仓位管理（例如：加仓至总资产的 50%）。
+-   **卖出 (Sell)**:
+    -   `fixedAmount`: 卖出指定价值的份额。
+    -   `positionPercent`: 卖出当前持仓的 X%。
+    -   `totalValuePercent`: 减仓至总资产的 X%。
 
 ## 4. 缺陷分析与修正方案 (Critical Fixes)
 
@@ -99,15 +130,15 @@ private checkTriggerCondition(trigger: Trigger, ..., currentVix?: number): boole
 
 ### 4.1 消除“穿越未来”偏差 (Look-ahead Bias)
 
-- **现状**: 在第 $T$ 日收盘后计算出信号，并立即以第 $T$ 日收盘价成交。
-- **修正方案**:
-  - **信号生成**: 保持在 $T$ 日收盘后进行。
-  - **交易执行**: 强制推迟到 $T+1$ 日。
-  - **成交价格**: 使用 $T+1$ 日的 **Open Price**。
+-   **现状**: 在第 $T$ 日收盘后计算出信号，并立即以第 $T$ 日收盘价成交。
+-   **修正方案**:
+    -   **信号生成**: 保持在 $T$ 日收盘后进行。
+    -   **交易执行**: 强制推迟到 $T+1$ 日。
+    -   **成交价格**: 使用 $T+1$ 日的 **Open Price**。
 
 ### 4.2 卖出逻辑 Bug 修复
 
-- **修正**: `calculateSellQuantity` 中 `fixedAmount` 模式应计算为 `amount / currentPrice`，即“想卖出的金额除以当前单价”得到股数。
+-   **修正**: `calculateSellQuantity` 中 `fixedAmount` 模式应计算为 `amount / currentPrice`，即“想卖出的金额除以当前单价”得到股数。
 
 ## 5. 基准策略 (Benchmarks)
 
@@ -122,23 +153,23 @@ private checkTriggerCondition(trigger: Trigger, ..., currentVix?: number): boole
 #### 核心逻辑
 与用户可能设置的“每次固定投 100 元”不同，本基准采用**“资本耗尽模型”**。
 1.  **资金分配**:
-    - 扫描回测区间，统计总周数 ($N$)。
-    - 计算周定投额 ($A = 	ext{Initial Capital} / N$)。
+    -   扫描回测区间，统计总周数 ($N$)。
+    -   计算周定投额 ($A = 	ext{Initial Capital} / N$)。
 2.  **交易执行**:
-    - 在遍历每日数据时，检测 `Week Identifier` 变化（即每周第一个交易日）。
-    - 买入金额为 $A$。如果是最后一周，则买入剩余所有现金（消除浮点数误差）。
+    -   在遍历每日数据时，检测 `Week Identifier` 变化（即每周第一个交易日）。
+    -   买入金额为 $A$。如果是最后一周，则买入剩余所有现金（消除浮点数误差）。
 3.  **意义**:
-    - 消除因“本金未花完”导致的现金拖累（Cash Drag）误差。
-    - 提供一个公平的“如果你把这笔钱平摊到每一周去买”的收益率对比标准。
+    -   消除因“本金未花完”导致的现金拖累（Cash Drag）误差。
+    -   提供一个公平的“如果你把这笔钱平摊到每一周去买”的收益率对比标准。
 
 ## 6. 未来演进 (Roadmap)
 
 ### 6.1 交易摩擦 (Friction)
-- 引入佣金 (`commission`) 和滑点 (`slippage`) 模型，使高频策略的成本更真实。
+-   引入佣金 (`commission`) 和滑点 (`slippage`) 模型，使高频策略的成本更真实。
 
 ### 6.2 现金流管理
-- **股息 (Dividends)**: 支持股息再投资或现金派发。
-- **闲置资金利息**: 为空仓部分的现金计算无风险收益 (Risk-Free Rate)。
+-   **股息 (Dividends)**: 支持股息再投资或现金派发。
+-   **闲置资金利息**: 为空仓部分的现金计算无风险收益 (Risk-Free Rate)。
 
 ### 6.3 高级风控
-- **止损/止盈 (Stop Loss / Take Profit)**: 独立于入场信号的退出逻辑，支持移动止损 (Trailing Stop)。
+-   **止损/止盈 (Stop Loss / Take Profit)**: 独立于入场信号的退出逻辑，支持移动止损 (Trailing Stop)。

@@ -125,6 +125,18 @@ const conditionSummary = computed(() => {
                 period: params.period
             })
         case 'vix':
+            if (selectedConditionKey.value === 'vix_streak') {
+                return t('triggerBuilderDialog.summaries.conditions.vix_streak', {
+                    count: params.streakCount,
+                    direction: params.streakDirection === 'up' ? t('triggerConditionForm.directions.up') : t('triggerConditionForm.directions.down')
+                })
+            }
+            if (selectedConditionKey.value === 'vix_breakout') {
+                return t('triggerBuilderDialog.summaries.conditions.vix_breakout', {
+                    days: params.breakoutDays,
+                    type: params.breakoutType === 'high' ? t('triggerConditionForm.descriptions.vix.breakoutHigh') : t('triggerConditionForm.descriptions.vix.breakoutLow')
+                })
+            }
             return t('triggerBuilderDialog.summaries.conditions.vix', {
                 threshold: params.threshold,
                 operator: params.operator === 'above' ? t('triggerConditionForm.operators.above') : t('triggerConditionForm.operators.below')
@@ -269,11 +281,26 @@ const handleSave = () => {
             }
             break
         case 'vix':
+            const isStreak = selectedConditionKey.value === 'vix_streak';
+            const isBreakout = selectedConditionKey.value === 'vix_breakout';
+            
             condition = {
                 type: 'vix',
                 params: {
-                    threshold: Number(conditionParams.value.threshold),
-                    operator: conditionParams.value.operator,
+                    // Common or mode-specific params
+                    mode: isStreak ? 'streak' : (isBreakout ? 'breakout' : 'threshold'),
+                    
+                    // Threshold params
+                    threshold: !isStreak && !isBreakout ? Number(conditionParams.value.threshold) : undefined,
+                    operator: !isStreak && !isBreakout ? conditionParams.value.operator : undefined,
+                    
+                    // Streak params
+                    streakDirection: isStreak ? conditionParams.value.streakDirection : undefined,
+                    streakCount: isStreak ? Number(conditionParams.value.streakCount) : undefined,
+                    
+                    // Breakout params
+                    breakoutType: isBreakout ? conditionParams.value.breakoutType : undefined,
+                    breakoutDays: isBreakout ? Number(conditionParams.value.breakoutDays) : undefined,
                 },
             }
             break
