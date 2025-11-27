@@ -58,3 +58,43 @@
 3.  **验证历史**：一键运行。系统告诉您：如果过去 10 年这么做，您的收益是 300%，比死拿多赚了 50%，且回撤更小。
 4.  **增强信心**：看着数据，您不再恐慌下跌，而是期待机会。
 
+
+### 宣传用金句
+
+# 金句清单（按出场顺序）
+
+1. 感觉是最昂贵的交易成本。
+2. 让每一分钱都花在刀刃上。
+3. 把「感觉」翻译成规则，再用历史投票。
+4. 日历驱动只会平滑上涨，却放大回撤。
+5. 信号 > 日历：只在市场盖章的打折日出击。
+6. 先验证，再下注；跑通之前不花一分钱。
+7. 好就是好，差就是差，数字从不拍马屁。
+8. 工具只负责验证历史，你负责执行纪律。
+9. 不是预测底部，而是等底部自己出示通行证。
+10. 同样的钱，买的更便宜，睡得更踏实，收益也更厚。
+11. 打折日不是末日，是日历定投者永远享受不到的馈赠。
+12. 把「我以为」升级成「我验证」，再把「我验证」变成「我执行」。
+13. 市场不缺波动，缺的是把波动转化为低成本筹码的耐心。
+14. 让错误发生在过去，让清醒留在当下。
+15. 浮起来的，才是值得下注的逻辑。
+
+# Golden Quotes (in order of appearance)
+
+1. Gut feeling is the most expensive trading cost.
+2. Let every dollar land on the cutting edge.
+3. Translate your "gut feel" into rules, then let history cast the vote.
+4. Calendar-driven investing smooths rallies but magnifies drawdowns.
+5. Signal > Schedule: strike only on market-stamped discount days.
+6. Validate first, bet later; don't spend a dime until the back-test is done.
+7. Good is good, bad is bad—numbers never flatter.
+8. Tools verify history; you enforce discipline.
+9. We don't predict the bottom; we wait for it to show its passport.
+10. Same money, cheaper entry, sounder sleep, fatter return.
+11. A discount day isn't doomsday—it's a gift calendar investors never receive.
+12. Upgrade "I think" to "I verify," then turn "I verify" into "I execute."
+13. Markets don't lack volatility; they lack the patience to turn volatility into low-cost chips.
+14. Let mistakes happen in the past, and let clarity stay in the present.
+15. Whatever floats up is the logic worth betting on.
+
+
