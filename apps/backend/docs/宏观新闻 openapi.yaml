@@ -1,0 +1,545 @@
+openapi: 3.1.0
+info:
+  title: "Global Economic News Hub API"
+  description: |
+    This is the backend API for the Global Economic News Hub. It provides endpoints for managing news topics, fetching news articles, and user authentication.
+    The API is built on Firebase Functions and uses Gemini for content aggregation and translation.
+  version: "1.0.0"
+servers:
+  - url: "https://us-central1-beike-e6301.cloudfunctions.net/api"
+    description: "Production Firebase Functions URL"
+
+paths:
+  # Health Check
+  /:
+    get:
+      summary: "API Health Check"
+      description: "A simple endpoint to verify that the API is running and responsive."
+      tags:
+        - "General"
+      responses:
+        "200":
+          description: "API is running."
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Global Economic News Hub API is running!"
+
+  # Topics
+  /topics:
+    get:
+      summary: "Get Active Topics"
+      description: "Retrieves a list of all active news topics. An active topic is one that has at least one subscriber. This is a public endpoint and does not require authentication."
+      tags:
+        - "Topics"
+      responses:
+        "200":
+          description: "A list of active topic strings."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  topics:
+                    type: array
+                    items:
+                      type: string
+                    example: ["gold", "oil", "cryptocurrency", "ai"]
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      summary: "Add a User Topic"
+      description: |
+        Adds a new news topic to the authenticated user's preferences.
+        The provided topic will be validated to ensure it's finance-related and then translated into English for standardization.
+      tags:
+        - "Topics"
+      security:
+        - firebaseAuth: []
+      requestBody:
+        required: true
+        description: "The topic to add. Can be in any language."
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - topic
+              properties:
+                topic:
+                  type: string
+                  description: "The user-provided topic name, e.g., '原油' or 'Artificial Intelligence'."
+                  example: "原油"
+      responses:
+        "201":
+          description: "Topic was added successfully."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Topic added successfully."
+                  topic:
+                    type: string
+                    description: "The translated English version of the topic."
+                    example: "oil"
+        "400":
+          description: "Bad Request. The request body is invalid or the topic is not valid."
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ErrorMissingTopic"
+                  - $ref: "#/components/schemas/ErrorTopicTooLong"
+                  - $ref: "#/components/schemas/ErrorTopicNotFinanceRelated"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "502":
+          $ref: "#/components/responses/BadGateway"
+
+  /topics/{topic}:
+    delete:
+      summary: "Remove a User Topic"
+      description: "Removes a news topic from the authenticated user's preferences. The topic must be the standardized English version."
+      tags:
+        - "Topics"
+      security:
+        - firebaseAuth: []
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          description: "The English topic name to remove (e.g., 'oil')."
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Topic was removed successfully."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Topic 'oil' removed successfully."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: "Not Found. The user is not subscribed to the specified topic."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorTopicNotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  # News
+  /news:
+    get:
+      summary: "Get User's News Feed"
+      description: |
+        Retrieves a paginated, combined feed of the latest news from all of the authenticated user's preferred topics.
+        Articles are automatically translated to the user's preferred language.
+      tags:
+        - "News"
+      security:
+        - firebaseAuth: []
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: "A paginated list of news articles."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  articles:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/NewsArticle"
+        "400":
+          description: "Invalid pagination parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorInvalidPagination"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: "User profile not found."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorUserNotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /news/fetch-news:
+    post:
+      summary: "Trigger Manual News Fetch"
+      description: |
+        Manually initiates a background process to fetch the latest news for all of the authenticated user's subscribed topics.
+        The API responds immediately with a 202 Accepted status. The actual fetching happens asynchronously.
+      tags:
+        - "News"
+      security:
+        - firebaseAuth: []
+      responses:
+        "202":
+          description: "News fetching process was successfully initiated."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "News fetching process initiated for your topics. New articles will be available shortly."
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /news/{topic}:
+    get:
+      summary: "Get News by Topic"
+      description: |
+        Retrieves a paginated list of news articles for a specific topic.
+        This is a public endpoint.
+        An optional `lang` query parameter can be provided to request on-demand translation.
+      tags:
+        - "News"
+      parameters:
+        - name: topic
+          in: path
+          required: true
+          description: "The English topic name to fetch news for (e.g., 'oil')."
+          schema:
+            type: string
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+        - name: lang
+          in: query
+          description: "Optional language code (e.g., 'es', 'zh-CN') to translate the articles into. If not provided, articles are returned in their original language (English)."
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "A paginated list of news articles for the specified topic."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  articles:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/NewsArticle"
+        "400":
+          description: "Invalid pagination parameters."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorInvalidPagination"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /profile:
+    get:
+      summary: "Get User Profile"
+      description: "Retrieves the authenticated user's profile information including email, preferred language, and subscribed topics."
+      tags:
+        - "Profile"
+      security:
+        - firebaseAuth: []
+      responses:
+        "200":
+          description: "User profile information retrieved successfully."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: "User profile not found."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorUserNotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    put:
+      summary: "Update User Profile"
+      description: "Updates the authenticated user's profile information including preferred language and subscribed topics."
+      tags:
+        - "Profile"
+      security:
+        - firebaseAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                preferredLanguage:
+                  type: string
+                  description: "The user's preferred language for news articles, using ISO 639-1 language code standard with optional region subtag (e.g., 'en', 'zh', 'zh-CN', 'ja', 'fr')."
+                  example: "zh-CN"
+                preferredTopics:
+                  type: array
+                  description: "The list of topics the user wants to subscribe to."
+                  items:
+                    type: string
+                    description: "A topic name in English."
+                    example: "gold"
+                  example: ["gold", "oil"]
+      responses:
+        "200":
+          description: "User profile information updated successfully."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "400":
+          description: "Bad Request. The request body is invalid."
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ErrorInvalidUpdateData"
+                  - $ref: "#/components/schemas/ErrorInvalidPreferredLanguage"
+                  - $ref: "#/components/schemas/ErrorInvalidPreferredTopics"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+components:
+  schemas:
+    # Main Data Models
+    NewsArticle:
+      type: object
+      properties:
+        id:
+          type: string
+          description: "The unique identifier for the news article (Firestore document ID)."
+          example: "aBcDeFgHiJkLmNoPqRsT"
+        topic:
+          type: string
+          description: "The English topic category of the article."
+          example: "oil"
+        title:
+          type: string
+          description: "The title of the news article. Can be original or translated depending on the request."
+          example: "Oil prices surge after OPEC+ decision"
+        summary:
+          type: string
+          description: "A brief summary of the news article. Can be original or translated."
+          example: "OPEC+ has decided to cut production, leading to a sharp increase in global oil prices..."
+        url:
+          type: string
+          format: uri
+          description: "The URL to the original source article."
+          example: "https://www.reuters.com/markets/commodities/oil-prices-surge-after-opec-decision-2023-10-26/"
+        source:
+          type: string
+          description: "The original source of the news (e.g., a news agency)."
+          example: "Reuters"
+        publishedAt:
+          type: string
+          format: date-time
+          description: "The timestamp when the article was published or fetched."
+          example: "2023-10-26T10:00:00.000Z"
+        translations:
+          type: object
+          description: "A map of available translations, with language codes as keys."
+          additionalProperties:
+            type: object
+            properties:
+              title:
+                type: string
+              summary:
+                type: string
+          example:
+            zh-CN:
+              title: "OPEC+决定后油价飙升"
+              summary: "OPEC+决定减产，导致全球油价大幅上涨..."
+
+    UserProfile:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: "The user's email address."
+          example: "user@example.com"
+        preferredLanguage:
+          type: string
+          description: "The user's preferred language for news articles, using ISO 639-1 language code standard with optional region subtag."
+          example: "en"
+        preferredTopics:
+          type: array
+          description: "The list of topics the user is subscribed to."
+          items:
+            type: string
+            description: "A topic name in English."
+            example: "gold"
+          example: ["gold", "oil", "cryptocurrency"]
+
+    # Generic Error
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              description: "A machine-readable error code."
+            message:
+              type: string
+              description: "A human-readable description of the error."
+
+    # Specific Error Schemas for documentation
+    ErrorMissingTopic:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - example:
+            error:
+              code: "MISSING_TOPIC"
+              message: "Request body must include a 'topic' field."
+    ErrorTopicTooLong:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - example:
+            error:
+              code: "TOPIC_TOO_LONG"
+              message: "Topic exceeds the maximum length of 50 characters."
+    ErrorTopicNotFinanceRelated:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - example:
+            error:
+              code: "TOPIC_NOT_FINANCE_RELATED"
+              message: "The provided topic is not related to finance."
+    ErrorTopicNotFound:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - example:
+            error:
+              code: "TOPIC_NOT_FOUND"
+              message: "The topic 'oil' is not in your preferred topics list."
+    ErrorInvalidPagination:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - example:
+            error:
+              code: "INVALID_PAGINATION_PARAMS"
+              message: "Query parameters 'limit' and 'page' must be positive integers. 'limit' cannot exceed 100."
+    ErrorUserNotFound:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - example:
+            error:
+              code: "USER_NOT_FOUND"
+              message: "User profile not found."
+    ErrorInvalidUpdateData:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - example:
+            error:
+              code: "INVALID_UPDATE_DATA"
+              message: "Request body must include at least one field to update (preferredLanguage or preferredTopics)."
+    ErrorInvalidPreferredLanguage:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - example:
+            error:
+              code: "INVALID_PREFERRED_LANGUAGE"
+              message: "preferredLanguage must be a valid ISO 639-1 language code with optional region subtag (e.g., 'en', 'zh', 'zh-CN', 'ja', 'fr')."
+    ErrorInvalidPreferredTopics:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - example:
+            error:
+              code: "INVALID_PREFERRED_TOPICS"
+              message: "preferredTopics must be an array of strings."
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: "The page number for pagination."
+      schema:
+        type: integer
+        default: 1
+        minimum: 1
+    Limit:
+      name: limit
+      in: query
+      description: "The number of items to return per page."
+      schema:
+        type: integer
+        default: 20
+        minimum: 1
+        maximum: 100
+
+  responses:
+    Unauthorized:
+      description: "Authentication failed. The `Authorization` header is missing, invalid, or the token has expired."
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/Error"
+              - example:
+                  error:
+                    code: "UNAUTHENTICATED"
+                    message: "Invalid or expired authentication token."
+    InternalServerError:
+      description: "An unexpected error occurred on the server."
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/Error"
+              - example:
+                  error:
+                    code: "INTERNAL_SERVER_ERROR"
+                    message: "An unexpected error occurred."
+    BadGateway:
+      description: "An error occurred with an upstream service (e.g., Gemini API)."
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/Error"
+              - example:
+                  error:
+                    code: "EXTERNAL_SERVICE_ERROR"
+                    message: "An error occurred with an external service."
+
+  securitySchemes:
+    firebaseAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: "Firebase ID Token"
+      description: "Firebase Authentication ID token. The token should be passed in the `Authorization` header as a Bearer token."
+
+security:
+  - firebaseAuth: []
