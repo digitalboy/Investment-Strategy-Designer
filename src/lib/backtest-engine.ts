@@ -1,5 +1,6 @@
 // src/lib/backtest-engine.ts
 import { StrategyConfig, Trigger, ETFData, BacktestResultDTO, ETFDataPoint, PerformanceMetrics, TradeStats } from '../types';
+import { IndicatorEngine } from './indicator-engine';
 
 interface AccountState {
 	cash: number;
@@ -21,10 +22,15 @@ interface ExecutionState {
 	accountHistory: { [date: string]: AccountState }; // 每日账户状态
 }
 
+export interface MarketContext {
+	vixData?: Map<string, number>;
+}
+
 export class BacktestEngine {
 	async runBacktest(
 		strategy: StrategyConfig,
-		etfData: ETFData
+		etfData: ETFData,
+		context: MarketContext = {}
 	): Promise<BacktestResultDTO> {
 		// 初始化账户状态
 		const accountState: AccountState = {
@@ -56,6 +62,19 @@ export class BacktestEngine {
 
 		// 待处理订单 (用于次日开盘执行)
 		let pendingOrders: { trigger: Trigger; triggerId: string; reason: string }[] = [];
+
+		// 预处理 VIX 数据 (与 filteredData 对齐)
+		const alignedVixData: number[] = [];
+		if (context.vixData) {
+			filteredData.forEach(point => {
+				const val = context.vixData!.get(point.d);
+				// 如果某天缺失 VIX，用前一天填充或 NaN，这里暂用 NaN
+				// 但为了 streak 计算，最好是连续的。
+				// 简单策略：如果当天没有，就沿用前一天，如果第一天就没有，用 0
+				const lastVal = alignedVixData.length > 0 ? alignedVixData[alignedVixData.length - 1] : 0;
+				alignedVixData.push(val !== undefined ? val : lastVal);
+			});
+		}
 
 		// 执行回测 - 遍历每一天
 		for (let i = 0; i < filteredData.length; i++) {
@@ -90,6 +109,10 @@ export class BacktestEngine {
 			// 保存账户历史
 			executionState.accountHistory[currentDate] = { ...currentAccountStateSnapshot };
 
+			// 准备 VIX 历史数据片段 (从开始到今天)
+			// 注意：这在数据量大时可能有性能损耗，但对于 VIX 策略是必要的
+			const currentVixHistory = alignedVixData.length > 0 ? alignedVixData.slice(0, i + 1) : undefined;
+
 			// 3. 检查触发器 (使用当日收盘数据)
 			for (let j = 0; j < strategy.triggers.length; j++) {
 				const trigger = strategy.triggers[j];
@@ -105,7 +128,7 @@ export class BacktestEngine {
 				}
 
 				// 检查触发器条件
-				if (this.checkTriggerCondition(trigger, filteredData, i, currentAccountStateSnapshot, currentClose)) {
+				if (IndicatorEngine.checkTriggerCondition(trigger, filteredData, i, currentVixHistory)) {
 					// 添加到待处理订单，将在下一天开盘执行
 					pendingOrders.push({
 						trigger,
@@ -123,7 +146,7 @@ export class BacktestEngine {
 		const performance = this.calculatePerformance(filteredData, executionState.accountHistory, strategy.initialCapital, accountState.tradeHistory);
 
 		// 准备图表数据
-		const chartData = this.prepareChartData(filteredData, executionState.accountHistory);
+		const chartData = this.prepareChartData(filteredData, executionState.accountHistory, strategy.initialCapital, context);
 
 		return {
 			metadata: {
@@ -134,228 +157,6 @@ export class BacktestEngine {
 			charts: chartData,
 			trades: accountState.tradeHistory
 		};
-	}
-
-	private checkTriggerCondition(
-		trigger: Trigger,
-		data: ETFDataPoint[],
-		currentIndex: number,
-		_accountState: AccountState,
-		_currentPrice: number
-	): boolean {
-		const condition = trigger.condition;
-
-		switch (condition.type) {
-			case 'drawdownFromPeak':
-				return this.checkDrawdownFromPeak(condition.params, data, currentIndex);
-			case 'priceStreak':
-				return this.checkPriceStreak(condition.params, data, currentIndex);
-			case 'newHigh':
-				return this.checkNewHigh(condition.params, data, currentIndex);
-			case 'newLow':
-				return this.checkNewLow(condition.params, data, currentIndex);
-			case 'periodReturn':
-				return this.checkPeriodReturn(condition.params, data, currentIndex);
-			case 'rsi':
-				return this.checkRSI(condition.params, data, currentIndex);
-			case 'maCross':
-				return this.checkMACross(condition.params, data, currentIndex);
-			default:
-				return false;
-		}
-	}
-
-	private checkDrawdownFromPeak(params: { days: number; percentage: number }, data: ETFDataPoint[], currentIndex: number): boolean {
-		const startDateIndex = Math.max(0, currentIndex - params.days);
-		const periodData = data.slice(startDateIndex, currentIndex + 1);
-
-		// 找到周期内的最高价
-		const peakPrice = Math.max(...periodData.map(d => d.h));
-		const currentPrice = data[currentIndex].c;
-
-		// 计算从高点的回撤百分比
-		const drawdown = ((peakPrice - currentPrice) / peakPrice) * 100;
-
-		return drawdown >= params.percentage;
-	}
-
-	private checkPriceStreak(params: { direction: 'up' | 'down'; count: number; unit: 'day' | 'week' }, data: ETFDataPoint[], currentIndex: number): boolean {
-		const { direction, count, unit } = params;
-
-		// 对于日线数据，我们只检查连续的天数
-		if (unit !== 'day') {
-			// 对于周线，需要先将日线数据聚合为周线
-			// 这里我们简化为只处理日线数据
-			console.warn('Currently only day unit is implemented for price streak check');
-		}
-
-		// 如果数据不够，返回false
-		if (currentIndex < count - 1) {
-			return false;
-		}
-
-		let streakCount = 0;
-		for (let offset = 0; offset < count - 1; offset++) {
-			const currentIdx = currentIndex - offset;
-			const prevIdx = currentIdx - 1;
-
-			if (prevIdx < 0) {
-				return false;
-			}
-
-			const prevPrice = data[prevIdx].c;
-			const currPrice = data[currentIdx].c;
-
-			if (direction === 'up' && currPrice > prevPrice) {
-				streakCount++;
-			} else if (direction === 'down' && currPrice < prevPrice) {
-				streakCount++;
-			} else {
-				return false;
-			}
-		}
-
-		return streakCount === count - 1;
-	}
-
-	private checkNewHigh(params: { days: number }, data: ETFDataPoint[], currentIndex: number): boolean {
-		const startDateIndex = Math.max(0, currentIndex - params.days);
-		const periodData = data.slice(startDateIndex, currentIndex); // 不包括当前天
-
-		if (periodData.length === 0) return false;
-
-		const maxHistoricalPrice = Math.max(...periodData.map(d => d.h));
-		const currentPrice = data[currentIndex].c;
-
-		return currentPrice > maxHistoricalPrice;
-	}
-
-	private checkNewLow(params: { days: number }, data: ETFDataPoint[], currentIndex: number): boolean {
-		const startDateIndex = Math.max(0, currentIndex - params.days);
-		const periodData = data.slice(startDateIndex, currentIndex); // 不包括当前天
-
-		if (periodData.length === 0) return false;
-
-		const minHistoricalPrice = Math.min(...periodData.map(d => d.l));
-		const currentPrice = data[currentIndex].c;
-
-		return currentPrice < minHistoricalPrice;
-	}
-
-	private checkPeriodReturn(params: { days: number; percentage: number; direction: 'up' | 'down' }, data: ETFDataPoint[], currentIndex: number): boolean {
-		const startDateIndex = Math.max(0, currentIndex - params.days);
-
-		const startPrice = data[startDateIndex].c;
-		const currentPrice = data[currentIndex].c;
-
-		const returnPercentage = ((currentPrice - startPrice) / startPrice) * 100;
-
-		if (params.direction === 'up') {
-			return returnPercentage >= params.percentage;
-		} else {
-			return returnPercentage <= -params.percentage;
-		}
-	}
-
-	/**
-	 * 检查 RSI (相对强弱指标) 条件
-	 *
-	 * @param params 参数包含:
-	 *   - period: 计算周期 (通常为 14)
-	 *   - threshold: 阈值 (如 30 或 70)
-	 *   - operator: 判断方向 ('above' > 阈值, 'below' < 阈值)
-	 * @param data ETF数据点数组
-	 * @param currentIndex 当前回测到的日期索引
-	 */
-	private checkRSI(
-		params: { period: number; threshold: number; operator: 'above' | 'below' },
-		data: ETFDataPoint[],
-		currentIndex: number
-	): boolean {
-		const { period, threshold, operator } = params;
-
-		// 1. 数据量检查
-		// RSI 计算需要前一日的数据来计算涨跌幅，所以需要 period + 1 个数据点
-		// 如果历史数据不足以计算指定周期的 RSI，直接返回 false
-		if (currentIndex < period) {
-			return false;
-		}
-
-		// 2. 计算周期内的总涨幅和总跌幅
-		// 采用 Cutler's RSI 算法 (基于简单移动平均 SMA)，无状态，适合当前架构
-		let sumGain = 0;
-		let sumLoss = 0;
-
-		// 回溯过去 period 天，计算每天的涨跌
-		for (let i = 0; i < period; i++) {
-			// 获取当天的索引和前一天的索引
-			const idx = currentIndex - i;
-			const prevIdx = idx - 1;
-
-			// 计算价格变动 (收盘价 - 前一日收盘价)
-			const change = data[idx].c - data[prevIdx].c;
-
-			if (change > 0) {
-				// 如果是涨，计入总涨幅
-				sumGain += change;
-			} else {
-				// 如果是跌，计入总跌幅 (取绝对值)
-				sumLoss += Math.abs(change);
-			}
-		}
-
-		// 3. 计算平均涨幅 (AvgGain) 和 平均跌幅 (AvgLoss)
-		const avgGain = sumGain / period;
-		const avgLoss = sumLoss / period;
-
-		// 4. 计算 RSI
-		let rsi = 0;
-
-		// 特殊情况处理：如果平均跌幅为 0，说明过去 N 天全是涨的，RSI 为 100
-		if (avgLoss === 0) {
-			rsi = 100;
-		} else {
-			// 正常计算：
-			// RS (相对强弱值) = 平均涨幅 / 平均跌幅
-			const rs = avgGain / avgLoss;
-			// RSI 公式 = 100 - (100 / (1 + RS))
-			rsi = 100 - (100 / (1 + rs));
-		}
-
-		// 5. 判断条件
-		// 如果操作符是 'above' (例如 RSI > 70 超买区)，判断 rsi > threshold
-		// 如果操作符是 'below' (例如 RSI < 30 超卖区)，判断 rsi < threshold
-		if (operator === 'above') {
-			return rsi > threshold;
-		} else {
-			return rsi < threshold;
-		}
-	}
-
-	private checkMACross(params: { period: number; direction: 'above' | 'below' }, data: ETFDataPoint[], currentIndex: number): boolean {
-		// 移动平均线交叉检查
-		// 计算指定周期的移动平均线
-		if (currentIndex < params.period) return false;
-
-		const sliceEnd = currentIndex + 1;
-		const sliceStart = sliceEnd - params.period;
-		const periodData = data.slice(sliceStart, sliceEnd);
-
-		const ma = periodData.reduce((sum, point) => sum + point.c, 0) / periodData.length;
-		const currentPrice = data[currentIndex].c;
-		const prevPrice = data[currentIndex - 1].c;
-
-		if (params.direction === 'above') {
-			// 当前价格从下往上穿过移动平均线
-			const prevPriceBelowMA = prevPrice <= ma;
-			const currentPriceAboveMA = currentPrice > ma;
-			return prevPriceBelowMA && currentPriceAboveMA;
-		} else {
-			// 当前价格从上往下穿过移动平均线
-			const prevPriceAboveMA = prevPrice >= ma;
-			const currentPriceBelowMA = currentPrice < ma;
-			return prevPriceAboveMA && currentPriceBelowMA;
-		}
 	}
 
 	private executeTriggerAction(
@@ -479,7 +280,7 @@ export class BacktestEngine {
 		accountHistory: { [date: string]: AccountState },
 		initialCapital: number,
 		tradeHistory: TradeRecord[]
-	): { strategy: PerformanceMetrics; benchmark: PerformanceMetrics } {
+	): { strategy: PerformanceMetrics; benchmark: PerformanceMetrics; dca: PerformanceMetrics } {
 		// 获取所有日期的账户价值
 		const dates = Object.keys(accountHistory).sort();
 
@@ -502,6 +303,13 @@ export class BacktestEngine {
 					tradeStats: emptyStats
 				},
 				benchmark: {
+					totalReturn: 0,
+					annualizedReturn: 0,
+					maxDrawdown: 0,
+					sharpeRatio: 0,
+					tradeStats: emptyStats
+				},
+				dca: {
 					totalReturn: 0,
 					annualizedReturn: 0,
 					maxDrawdown: 0,
@@ -563,6 +371,9 @@ export class BacktestEngine {
 		const strategySharpeRatio = this.calculateSharpeRatio(strategyValues);
 		const benchmarkSharpeRatio = this.calculateSharpeRatio(data.map(d => d.c));
 
+		// 计算 DCA 基准性能
+		const dcaResult = this.calculateWeeklyDCABenchmark(data, dates, initialCapital);
+
 		return {
 			strategy: {
 				totalReturn: strategyTotalReturn,
@@ -577,7 +388,8 @@ export class BacktestEngine {
 				maxDrawdown: benchmarkMaxDrawdown,
 				sharpeRatio: benchmarkSharpeRatio,
 				tradeStats: benchmarkTradeStats,
-			}
+			},
+			dca: dcaResult.stats
 		};
 	}
 
@@ -626,12 +438,16 @@ export class BacktestEngine {
 
 	private prepareChartData(
 		data: ETFDataPoint[],
-		accountHistory: { [date: string]: AccountState }
+		accountHistory: { [date: string]: AccountState },
+		initialCapital: number,
+		context?: MarketContext
 	): {
 		dates: string[];
 		strategyEquity: number[];
 		benchmarkEquity: number[];
+		dcaEquity: number[];
 		underlyingPrice: number[];
+		vixData?: number[];
 	} {
 		const dates = Object.keys(accountHistory).sort();
 
@@ -639,22 +455,185 @@ export class BacktestEngine {
 
 		// 基准权益：假设初始资本全用于购买ETF
 		const initialPrice = data[0].c;
-		const initialCapital = accountHistory[dates[0]].totalValue;
-		const sharesBought = initialCapital / initialPrice;
+		const initialCapitalValue = accountHistory[dates[0]].totalValue;
+		const sharesBought = initialCapitalValue / initialPrice;
 
 		const benchmarkEquity = data
 			.filter(point => dates.includes(point.d))
 			.map(point => point.c * sharesBought);
 
+		// 计算 DCA 净值曲线
+		const dcaResult = this.calculateWeeklyDCABenchmark(data, dates, initialCapital);
+		const dcaEquity = dcaResult.equityCurve;
+
 		const underlyingPrice = data
 			.filter(point => dates.includes(point.d))
 			.map(point => point.c);
+
+		let vixData: number[] | undefined;
+		if (context?.vixData && context.vixData.size > 0) {
+			// 如果 context 中有 VIX 数据，则将其映射到 dates
+			vixData = dates.map(date => context.vixData?.get(date) || 0);
+		}
 
 		return {
 			dates,
 			strategyEquity,
 			benchmarkEquity,
+			dcaEquity,
 			underlyingPrice,
+			vixData
 		};
+	}
+
+	/**
+	 * 获取日期的 ISO 周标识 (格式: "YYYY-Wxx")
+	 * 确保跨年周（如12月31日属于下一年的第一周）计算正确
+	 */
+	private getWeekIdentifier(dateStr: string): string {
+		const date = new Date(dateStr);
+		date.setHours(0, 0, 0, 0);
+		// 将日期设置为本周四，这是 ISO-8601 定义周数的标准方式
+		date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+		const week1 = new Date(date.getFullYear(), 0, 4);
+		// 计算周数
+		const weekNumber = 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+
+		return `${date.getFullYear()}-W${weekNumber.toString().padStart(2, '0')}`;
+	}
+
+	/**
+	 * 计算基准2：周定投 (Weekly DCA)
+	 * 策略：每周的第一个交易日（通常是周一，遇假期顺延）定额买入
+	 *
+	 * 采用"资本耗尽模型"：预先计算总周数，将本金平均分配到每周，
+	 * 确保回测结束时本金刚好全部投完，消除现金拖累误差。
+	 */
+	private calculateWeeklyDCABenchmark(
+		data: ETFDataPoint[],
+		dates: string[], // 用于对齐图表的全量日期
+		initialCapital: number
+	): { equityCurve: number[], stats: PerformanceMetrics } {
+		// 默认空统计
+		const emptyStats: PerformanceMetrics = {
+			totalReturn: 0,
+			annualizedReturn: 0,
+			maxDrawdown: 0,
+			sharpeRatio: 0,
+			tradeStats: {
+				totalTrades: 0,
+				buyCount: 0,
+				sellCount: 0,
+				totalInvested: 0,
+				totalProceeds: 0
+			}
+		};
+
+		// 过滤数据：只保留在 dates 范围内的数据点
+		const filteredData = data.filter(d => dates.includes(d.d));
+
+		if (filteredData.length === 0) {
+			return { equityCurve: [], stats: emptyStats };
+		}
+
+		// --- 阶段 1: 预扫描总周数 ---
+		const weeksSet = new Set<string>();
+		filteredData.forEach(d => weeksSet.add(this.getWeekIdentifier(d.d)));
+		const totalWeeks = weeksSet.size;
+
+		// 防御性编程：如果数据为空或不足一周
+		if (totalWeeks === 0) {
+			return { equityCurve: [], stats: emptyStats };
+		}
+
+		// --- 阶段 2: 计算每周应投金额 ---
+		// 这确保了资金在时间维度上的完美均匀分布
+		const weeklyAmount = initialCapital / totalWeeks;
+
+		// --- 阶段 3: 模拟交易 ---
+		let cash = initialCapital;
+		let positions = 0;
+		let lastWeekId = '';
+		const equityCurve: number[] = [];
+		let buyCount = 0;
+		let totalInvested = 0;
+
+		// 设置微小阈值处理浮点数比较
+		const EPSILON = 0.0001;
+
+		for (const point of filteredData) {
+			const currentWeekId = this.getWeekIdentifier(point.d);
+			const currentPrice = point.c;
+
+			// 触发条件：
+			// 1. 遇到了新的一周 (WeekID 变化)
+			// 2. 账户里还有钱 (Cash > EPSILON)
+			if (currentWeekId !== lastWeekId && cash > EPSILON) {
+
+				// 确定本次买入金额
+				// 正常情况下买 weeklyAmount
+				// 如果是最后一周或者余额不足一个单位，则 All-in 余额
+				let investAmount = weeklyAmount;
+				if (cash < weeklyAmount + EPSILON) {
+					investAmount = cash; // 花光剩余现金
+				}
+
+				// 执行买入 (假设支持碎股交易)
+				const quantity = investAmount / currentPrice;
+				positions += quantity;
+				cash -= investAmount;
+				buyCount++;
+				totalInvested += investAmount;
+
+				// 强制修正：防止出现极其微小的负数或残留
+				if (cash < EPSILON) cash = 0;
+
+				// 更新周标识，防止本周重复买入
+				lastWeekId = currentWeekId;
+			}
+
+			// 计算当日总资产 (现金 + 持仓市值)
+			const totalValue = cash + (positions * currentPrice);
+			equityCurve.push(totalValue);
+		}
+
+		// --- 阶段 4: 计算性能指标 ---
+		if (equityCurve.length === 0) {
+			return { equityCurve: [], stats: emptyStats };
+		}
+
+		const startValue = initialCapital; // DCA 起点是本金
+		const endValue = equityCurve[equityCurve.length - 1];
+
+		// 1. 总回报
+		const totalReturn = ((endValue - startValue) / startValue) * 100;
+
+		// 2. 年化回报
+		const startDate = new Date(dates[0]);
+		const endDate = new Date(dates[dates.length - 1]);
+		const years = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+		const annualizedReturn = years > 0 ? (Math.pow(endValue / startValue, 1 / years) - 1) * 100 : 0;
+
+		// 3. 最大回撤
+		const maxDrawdown = this.calculateMaxDrawdown(equityCurve);
+
+		// 4. 夏普比率
+		const sharpeRatio = this.calculateSharpeRatio(equityCurve);
+
+		const stats: PerformanceMetrics = {
+			totalReturn,
+			annualizedReturn,
+			maxDrawdown,
+			sharpeRatio,
+			tradeStats: {
+				totalTrades: buyCount,
+				buyCount: buyCount,
+				sellCount: 0,
+				totalInvested: totalInvested,
+				totalProceeds: 0
+			}
+		};
+
+		return { equityCurve, stats };
 	}
 }

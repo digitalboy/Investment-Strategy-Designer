@@ -42,6 +42,10 @@ export function generateTags(
                 tags.add('Return Based');
                 tags.add('Momentum');
                 break;
+            case 'vix':
+                tags.add('VIX');
+                tags.add('Sentiment');
+                break;
         }
     });
 

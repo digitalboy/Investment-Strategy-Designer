@@ -2,3 +2,4 @@
 export { backtestController } from './backtest';
 export { userController } from './user';
 export { strategyController } from './strategy';
+export { notificationController } from './notification';

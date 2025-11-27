@@ -15,7 +15,13 @@
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#environment-variables
 	 */
 	"vars": {
-		"FIREBASE_PROJECT_ID": "beike-e6301"
+		"FIREBASE_PROJECT_ID": "beike-e6301",
+		"RESEND_API_KEY": "re_QvaqMGWR_F7V2zuC82sHuWyTHJgJK7f2L"
+	},
+	"triggers": {
+		"crons": [
+			"15 21 * * 1-5"
+		]
 	},
 
 	"d1_databases": [

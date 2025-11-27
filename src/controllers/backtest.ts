@@ -3,8 +3,8 @@ import { Context } from 'hono';
 import { z } from 'zod';
 import { DatabaseService } from '../lib/database';
 import { CacheService } from '../lib/cache';
-import { BacktestEngine } from '../lib/backtest-engine';
-import { StrategyConfig, BacktestResultDTO } from '../types';
+import { BacktestEngine, MarketContext } from '../lib/backtest-engine';
+import { StrategyConfig, BacktestResultDTO, ETFData } from '../types';
 
 // Backtest request schema
 const backtestRequestSchema = z.object({
@@ -44,13 +44,23 @@ export const backtestController = {
 			const cacheService = new CacheService(c.env.ETF_STRATEGY_DATA);
 			const backtestEngine = new BacktestEngine();
 
-			// Get ETF data (SWR cache handles fetch/refresh internally)
-			const etfData = await cacheService.getETFData({
+			// Prepare data fetch promises - always fetch VIX data as an important market sentiment reference
+			const etfPromise = cacheService.getETFData({
 				symbol: etfSymbol,
 				startDate,
 				endDate,
 				ctx: c.executionCtx,
 			});
+
+			const vixPromise = cacheService.getETFData({
+				symbol: '^VIX',
+				startDate,
+				endDate,
+				ctx: c.executionCtx,
+			});
+
+			// Wait for all data
+			const [etfData, vixDataRaw] = await Promise.all([etfPromise, vixPromise]);
 
 			// Create strategy config
 			const strategyConfig: StrategyConfig = {
@@ -71,7 +81,13 @@ export const backtestController = {
 				}, 500);
 			}
 
-			const result: BacktestResultDTO = await backtestEngine.runBacktest(strategyConfig, etfData);
+			// Build Market Context
+			const context: MarketContext = {};
+			if (vixDataRaw && vixDataRaw.data) {
+				context.vixData = new Map(vixDataRaw.data.map(point => [point.d, point.c]));
+			}
+
+			const result: BacktestResultDTO = await backtestEngine.runBacktest(strategyConfig, etfData, context);
 
 			return c.json(result);
 		} catch (error) {

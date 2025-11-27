@@ -20,7 +20,7 @@ interface Variables {
 export const strategyController = {
 	createStrategy: async (c: Context<{ Bindings: Env; Variables: Variables }>) => {
 		try {
-			const { name, description, config, isPublic, returnRate, maxDrawdown } = await c.req.json();
+			const { name, description, config, isPublic, notificationsEnabled, returnRate, maxDrawdown } = await c.req.json();
 
 			// Basic validation
 			if (!name || typeof name !== 'string' || name.length < 1 || name.length > 255) {
@@ -97,7 +97,9 @@ export const strategyController = {
 
 			// Create the strategy
 			const tags = generateTags(config);
-			const strategy = await dbService.createStrategy(user.id, name, description, config, !!isPublic, returnRate, maxDrawdown, tags);
+			// notificationsEnabled defaults to true if not provided
+			const notificationsEnabledValue = notificationsEnabled !== undefined ? !!notificationsEnabled : true;
+			const strategy = await dbService.createStrategy(user.id, name, description, config, !!isPublic, notificationsEnabledValue, returnRate, maxDrawdown, tags);
 
 			return c.json({
 				id: strategy.id,
@@ -258,30 +260,30 @@ export const strategyController = {
 			// Parse the config from JSON string
 			const config: StrategyConfig = JSON.parse(strategy.config);
 
-			return c.json({
-				id: strategy.id,
-				name: strategy.name,
-				description: strategy.description,
-				config,
-				isPublic: !!strategy.is_public,
-				stats: {
-					views: strategy.view_count,
-					likes: strategy.like_count,
-					clones: strategy.clone_count
-				},
-				author: {
-					email: strategy.author_email || 'Unknown',
-					displayName: strategy.author_name,
-					photoUrl: strategy.author_photo
-				},
-				returnRate: strategy.return_rate,
-				maxDrawdown: strategy.max_drawdown,
-				createdAt: strategy.created_at,
-				updatedAt: strategy.updated_at,
-				isOwner
-			});
-		} catch (error) {
-			console.error('Get strategy error:', error);
+			            return c.json({
+			                id: strategy.id,
+			                name: strategy.name,
+			                description: strategy.description,
+			                config,
+			                isPublic: !!strategy.is_public,
+			                notificationsEnabled: !!strategy.notifications_enabled, // Return this
+			                stats: {
+			                    views: strategy.view_count,
+			                    likes: strategy.like_count,
+			                    clones: strategy.clone_count
+			                },
+			                author: {
+			                    email: strategy.author_email || 'Unknown',
+			                    displayName: strategy.author_name,
+			                    photoUrl: strategy.author_photo
+			                },
+			                returnRate: strategy.return_rate,
+			                maxDrawdown: strategy.max_drawdown,
+			                createdAt: strategy.created_at,
+			                updatedAt: strategy.updated_at,
+			                isOwner
+			            });
+			        } catch (error) {			console.error('Get strategy error:', error);
 			return c.json({
 				error: {
 					code: 'GET_STRATEGY_ERROR',
@@ -294,7 +296,7 @@ export const strategyController = {
 	updateStrategy: async (c: Context<{ Bindings: Env; Variables: Variables }>) => {
 		try {
 			const { id } = c.req.param();
-			const { name, description, config, isPublic, returnRate, maxDrawdown } = await c.req.json();
+			const { name, description, config, isPublic, notificationsEnabled, returnRate, maxDrawdown } = await c.req.json();
 
 			// Basic validation
 			if (name && (typeof name !== 'string' || name.length < 1 || name.length > 255)) {
@@ -362,6 +364,7 @@ export const strategyController = {
 				description !== undefined ? description : existingStrategy.description,
 				finalConfig,
 				isPublic !== undefined ? !!isPublic : !!existingStrategy.is_public,
+				notificationsEnabled !== undefined ? !!notificationsEnabled : !!existingStrategy.notifications_enabled,
 				returnRate,
 				maxDrawdown,
 				tags

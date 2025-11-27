@@ -1,6 +1,6 @@
 // src/lib/database.ts
 import { D1Database } from '@cloudflare/workers-types';
-import { UserEntity, StrategyEntity, StrategyConfig, CommentEntity } from '../types';
+import { UserEntity, StrategyEntity, StrategyConfig, CommentEntity, NotificationEntity } from '../types';
 
 export class DatabaseService {
 	private db: D1Database;
@@ -51,21 +51,21 @@ export class DatabaseService {
 	}
 
 	// 策略相关操作
-	async createStrategy(userId: string, name: string, description: string | undefined, config: StrategyConfig, isPublic: boolean = false, returnRate?: number, maxDrawdown?: number, tags?: string[]): Promise<StrategyEntity> {
+	async createStrategy(userId: string, name: string, description: string | undefined, config: StrategyConfig, isPublic: boolean = false, notificationsEnabled: boolean = false, returnRate?: number, maxDrawdown?: number, tags?: string[]): Promise<StrategyEntity> {
 		const id = crypto.randomUUID();
 		const now = new Date().toISOString();
 		const configStr = JSON.stringify(config);
 		const tagsStr = tags ? JSON.stringify(tags) : null;
 
 		const query = `
-      INSERT INTO strategies (id, user_id, name, description, config, is_public, view_count, like_count, clone_count, comment_count, return_rate, max_drawdown, tags, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, 0, 0, 0, 0, ?, ?, ?, ?, ?)
+      INSERT INTO strategies (id, user_id, name, description, config, is_public, notifications_enabled, view_count, like_count, clone_count, comment_count, return_rate, max_drawdown, tags, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, 0, 0, ?, ?, ?, ?, ?)
       RETURNING *
     `;
 
 		const strategy = await this.db
 			.prepare(query)
-			.bind(id, userId, name, description, configStr, isPublic ? 1 : 0, returnRate || null, maxDrawdown || null, tagsStr, now, now)
+			.bind(id, userId, name, description, configStr, isPublic ? 1 : 0, notificationsEnabled ? 1 : 0, returnRate || null, maxDrawdown || null, tagsStr, now, now)
 			.first<StrategyEntity | null>();
 
 		if (!strategy) {
@@ -104,21 +104,21 @@ export class DatabaseService {
 		return strategies.results;
 	}
 
-	async updateStrategy(id: string, userId: string, name: string, description: string | undefined, config: StrategyConfig, isPublic: boolean, returnRate?: number, maxDrawdown?: number, tags?: string[]): Promise<StrategyEntity | null> {
+	async updateStrategy(id: string, userId: string, name: string, description: string | undefined, config: StrategyConfig, isPublic: boolean, notificationsEnabled: boolean, returnRate?: number, maxDrawdown?: number, tags?: string[]): Promise<StrategyEntity | null> {
 		const now = new Date().toISOString();
 		const configStr = JSON.stringify(config);
 		const tagsStr = tags ? JSON.stringify(tags) : null;
 
 		const query = `
       UPDATE strategies
-      SET name = ?, description = ?, config = ?, is_public = ?, return_rate = ?, max_drawdown = ?, tags = ?, updated_at = ?
+      SET name = ?, description = ?, config = ?, is_public = ?, notifications_enabled = ?, return_rate = ?, max_drawdown = ?, tags = ?, updated_at = ?
       WHERE id = ? AND user_id = ?
       RETURNING *
     `;
 
 		const strategy = await this.db
 			.prepare(query)
-			.bind(name, description, configStr, isPublic ? 1 : 0, returnRate || null, maxDrawdown || null, tagsStr, now, id, userId)
+			.bind(name, description, configStr, isPublic ? 1 : 0, notificationsEnabled ? 1 : 0, returnRate || null, maxDrawdown || null, tagsStr, now, id, userId)
 			.first<StrategyEntity | null>();
 
 		return strategy;
@@ -255,5 +255,89 @@ export class DatabaseService {
 			.all<CommentEntity & { user_email: string; user_name?: string; user_photo?: string }>();
 
 		return comments.results;
+	}
+
+	// 监控与预警相关操作
+	async getMonitoredStrategies(): Promise<(StrategyEntity & { author_email: string; author_name?: string })[]> {
+		// 获取开启了通知的策略，同时关联用户信息以便发送邮件
+		const query = `
+			SELECT s.*, u.email as author_email, u.display_name as author_name
+			FROM strategies s
+			LEFT JOIN users u ON s.user_id = u.id
+			WHERE s.notifications_enabled = 1
+		`;
+		const result = await this.db.prepare(query).all<StrategyEntity & { author_email: string; author_name?: string }>();
+		return result.results;
+	}
+
+	async getStrategyState(strategyId: string): Promise<Record<string, string> | null> {
+		const query = 'SELECT last_execution_state FROM strategy_states WHERE strategy_id = ?';
+		const result = await this.db.prepare(query).bind(strategyId).first<{ last_execution_state: string } | null>();
+		
+		if (result && result.last_execution_state) {
+			try {
+				return JSON.parse(result.last_execution_state);
+			} catch (e) {
+				console.error(`Failed to parse strategy state for ${strategyId}`, e);
+				return null;
+			}
+		}
+		return null;
+	}
+
+	async saveStrategyState(strategyId: string, state: Record<string, string>): Promise<void> {
+		const now = new Date().toISOString();
+		const stateStr = JSON.stringify(state);
+		
+		const query = `
+			INSERT INTO strategy_states (strategy_id, last_execution_state, updated_at)
+			VALUES (?, ?, ?)
+			ON CONFLICT(strategy_id) DO UPDATE SET
+				last_execution_state = excluded.last_execution_state,
+				updated_at = excluded.updated_at
+		`;
+		
+		await this.db.prepare(query).bind(strategyId, stateStr, now).run();
+	}
+
+	// 通知相关操作
+	async createNotification(userId: string, title: string, content: string, type: 'signal' | 'system' = 'signal', metadata?: Record<string, any>): Promise<void> {
+		const id = crypto.randomUUID();
+		const now = new Date().toISOString();
+		const metadataStr = metadata ? JSON.stringify(metadata) : null;
+
+		const query = `
+			INSERT INTO notifications (id, user_id, type, title, content, is_read, metadata, created_at)
+			VALUES (?, ?, ?, ?, ?, 0, ?, ?)
+		`;
+
+		await this.db.prepare(query).bind(id, userId, type, title, content, metadataStr, now).run();
+	}
+
+	async getUserNotifications(userId: string, limit: number = 20, offset: number = 0): Promise<NotificationEntity[]> {
+		const query = `
+			SELECT * FROM notifications
+			WHERE user_id = ?
+			ORDER BY created_at DESC
+			LIMIT ? OFFSET ?
+		`;
+		const result = await this.db.prepare(query).bind(userId, limit, offset).all<NotificationEntity>();
+		return result.results;
+	}
+
+	async getUnreadNotificationCount(userId: string): Promise<number> {
+		const query = 'SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = 0';
+		const result = await this.db.prepare(query).bind(userId).first<{ count: number }>();
+		return result?.count || 0;
+	}
+
+	async markNotificationAsRead(userId: string, notificationId: string): Promise<void> {
+		const query = 'UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?';
+		await this.db.prepare(query).bind(notificationId, userId).run();
+	}
+
+	async markAllNotificationsAsRead(userId: string): Promise<void> {
+		const query = 'UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0';
+		await this.db.prepare(query).bind(userId).run();
 	}
 }

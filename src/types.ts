@@ -21,6 +21,7 @@ export interface StrategyEntity {
 	description?: string;
 	config: string;       // 注意：在数据库中是 JSON string，取出来后需要 JSON.parse
 	is_public: number;    // 0 or 1
+	notifications_enabled: number; // 0 or 1
 	view_count: number;
 	like_count: number;
 	clone_count: number;
@@ -46,6 +47,18 @@ export interface CommentEntity {
 export interface LikeEntity {
 	user_id: string;
 	strategy_id: string;
+	created_at: string;
+}
+
+// 对应 notifications 表
+export interface NotificationEntity {
+	id: string;
+	user_id: string;
+	type: 'signal' | 'system';
+	title: string;
+	content: string;
+	is_read: number; // 0 or 1
+	metadata?: string; // JSON string
 	created_at: string;
 }
 
@@ -75,7 +88,23 @@ export type TriggerCondition =
 	| { type: 'newLow'; params: { days: number } }
 	| { type: 'periodReturn'; params: { days: number; percentage: number; direction: 'up' | 'down' } }
 	| { type: 'rsi'; params: { period: number; threshold: number; operator: 'above' | 'below' } }
-	| { type: 'maCross'; params: { period: number; direction: 'above' | 'below' } };
+	| { type: 'maCross'; params: { period: number; direction: 'above' | 'below' } }
+	| {
+		type: 'vix';
+		params: {
+			// 默认为 threshold 模式以兼容旧数据
+			mode?: 'threshold' | 'streak' | 'breakout';
+			// Threshold mode
+			threshold?: number;
+			operator?: 'above' | 'below';
+			// Streak mode
+			streakDirection?: 'up' | 'down';
+			streakCount?: number;
+			// Breakout mode
+			breakoutType?: 'high' | 'low';
+			breakoutDays?: number;
+		}
+	};
 
 // 动作定义
 export interface TriggerAction {
@@ -151,12 +180,15 @@ export interface BacktestResultDTO {
 	performance: {
 		strategy: PerformanceMetrics;
 		benchmark: PerformanceMetrics;
+		dca: PerformanceMetrics;       // 周定投基准
 	};
 	charts: {
 		dates: string[];
 		strategyEquity: number[];
 		benchmarkEquity: number[];
+		dcaEquity: number[];           // 周定投净值曲线
 		underlyingPrice: number[];
+		vixData?: number[];
 	};
 	trades: Trade[];
 }
@@ -211,4 +243,15 @@ export interface UserSyncResponseDTO {
 	displayName?: string;
 	photoUrl?: string;
 	createdAt: string;
+}
+
+// 通知 DTO
+export interface NotificationDTO {
+	id: string;
+	title: string;
+	content: string;
+	type: 'signal' | 'system';
+	read: boolean;
+	timestamp: string;
+	metadata?: Record<string, any>;
 }

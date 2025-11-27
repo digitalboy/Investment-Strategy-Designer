@@ -2,13 +2,15 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { authMiddleware, optionalAuthMiddleware } from './middleware/auth';
-import { backtestController, userController, strategyController } from './controllers';
+import { backtestController, userController, strategyController, notificationController } from './controllers';
+import { MonitorService } from './lib/monitor-service';
 
 // 定义环境变量接口
 interface Env {
 	etf_strategy_db: D1Database;
 	ETF_STRATEGY_DATA: KVNamespace;
 	FIREBASE_PROJECT_ID: string;
+	RESEND_API_KEY?: string;
 }
 
 // Define Variables interface for context
@@ -55,9 +57,21 @@ api.delete('/strategies/:id', authMiddleware, strategyController.deleteStrategy)
 api.post('/strategies/:id/like', authMiddleware, strategyController.toggleLike);
 api.post('/strategies/:id/comments', authMiddleware, strategyController.addComment);
 
+// Notifications
+api.get('/notifications', authMiddleware, notificationController.getNotifications);
+api.put('/notifications/:id/read', authMiddleware, notificationController.markAsRead);
+api.put('/notifications/read-all', authMiddleware, notificationController.markAllRead);
+
 // 根路径返回项目信息
 app.get('/', (c) => {
 	return c.text('ETF Investment Strategy Designer Backend API');
 });
 
-export default app;
+export default {
+	fetch: app.fetch,
+	async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
+		const monitorService = new MonitorService(env);
+		ctx.waitUntil(monitorService.runDailyCheck(ctx));
+	},
+};
+
