@@ -341,7 +341,18 @@
     "dataError": "Data format error: Unable to parse performance metrics",
     "closeReport": "Close Report",
     "defaultStrategy": "Strategy",
-    "defaultSymbol": "Symbol"
+    "defaultSymbol": "Symbol",
+    "drawdownAnalysis": {
+      "title": "Historical Drawdowns",
+      "rank": "Rank",
+      "depth": "Depth",
+      "peak": "Peak",
+      "valley": "Valley",
+      "recovery": "Recovery",
+      "days": "{days} days",
+      "recovered": "Recovered",
+      "underwater": "Underwater"
+    }
   },
   "setupWizard": {
     "title": "Strategy Setup Wizard",

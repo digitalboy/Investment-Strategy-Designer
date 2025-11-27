@@ -128,6 +128,21 @@ export interface BacktestResultDTO {
         vixData?: number[];
     };
     trades: Trade[];
+    analysis: {
+        topDrawdowns: DrawdownEvent[];
+    };
+}
+
+export interface DrawdownEvent {
+    rank: number;
+    depthPercent: number;
+    peakDate: string;
+    peakPrice: number;
+    valleyDate: string;
+    valleyPrice: number;
+    recoveryDate: string | null;
+    daysToRecover: number;
+    isRecovered: boolean;
 }
 
 export interface Trade {

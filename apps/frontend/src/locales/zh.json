@@ -341,7 +341,18 @@
     "dataError": "数据格式错误: 无法解析性能指标",
     "closeReport": "关闭报告",
     "defaultStrategy": "策略",
-    "defaultSymbol": "标的"
+    "defaultSymbol": "标的",
+    "drawdownAnalysis": {
+      "title": "历史回撤分析",
+      "rank": "排名",
+      "depth": "最大跌幅",
+      "peak": "峰值",
+      "valley": "谷底",
+      "recovery": "恢复",
+      "days": "{days} 天",
+      "recovered": "已恢复",
+      "underwater": "未恢复"
+    }
   },
   "setupWizard": {
     "title": "策略设置向导",
