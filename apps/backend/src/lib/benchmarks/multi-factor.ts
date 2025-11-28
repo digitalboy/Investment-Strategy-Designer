@@ -1,9 +1,10 @@
 import { ETFDataPoint, PerformanceMetrics } from '../../types';
 import { PerformanceAnalyzer } from '../performance-analyzer';
+import { BenchmarkStrategy, BenchmarkResult } from './interface';
 
-export class ScoringBenchmark {
+export class MultiFactorBenchmark implements BenchmarkStrategy {
     /**
-     * 计算基准3：多因子评分模型 (Multi-Factor Scoring Model)
+     * 计算基准3 (旧)：多因子评分模型 (Multi-Factor Scoring Model)
      * 一个基于 VIX、RSI 和 回撤 的择时策略
      * 规则：
      * - VIX > 20 (+1), VIX > 30 (+1)
@@ -12,12 +13,13 @@ export class ScoringBenchmark {
      * - Score >= 2 -> 买入/持有
      * - RSI > 70 or DD > -2% -> 卖出/空仓
      */
-    static calculate(
+    calculate(
         data: ETFDataPoint[],
         dates: string[],
         initialCapital: number,
-        vixMap?: Map<string, number>
-    ): { equityCurve: number[], stats: PerformanceMetrics } {
+        context?: any
+    ): BenchmarkResult {
+        const vixMap = context?.vixMap || context; // Support passing Map directly or wrapped in object
 
         let cash = initialCapital;
         let positions = 0;

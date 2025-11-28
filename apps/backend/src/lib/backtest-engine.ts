@@ -1,9 +1,11 @@
 // src/lib/backtest-engine.ts
-import { StrategyConfig, Trigger, ETFData, BacktestResultDTO, ETFDataPoint, AccountState } from '../types';
+import { StrategyConfig, Trigger, ETFData, BacktestResultDTO, ETFDataPoint, AccountState, PerformanceMetrics } from '../types';
 import { IndicatorEngine } from './indicator-engine';
 import { PositionSizer } from './position-sizer';
 import { PerformanceAnalyzer } from './performance-analyzer';
-import { ScoringBenchmark } from './benchmarks/scoring-benchmark';
+import { SmartTrendBenchmark } from './benchmarks/smart-trend';
+import { BuyAndHoldBenchmark } from './benchmarks/buy-and-hold';
+import { WeeklyDCABenchmark } from './benchmarks/weekly-dca';
 
 interface ExecutionState {
 	lastTriggerExecutionIndex: { [triggerId: string]: number }; // 记录每个触发器的最后执行索引 (交易日)
@@ -128,24 +130,36 @@ export class BacktestEngine {
 					executionState.lastTriggerExecutionIndex[triggerId] = i;
 				}
 			}
-		}
+		} // <-- This closing brace correctly ends the main 'for' loop
 
-		// 计算性能指标
-		const performance = PerformanceAnalyzer.calculatePerformance(filteredData, executionState.accountHistory, strategy.initialCapital, accountState.tradeHistory);
-
-		// 准备图表数据
+		// 准备图表数据 (包括了 Buy&Hold 和 DCA 基准的计算)
 		const chartData = this.prepareChartData(filteredData, executionState.accountHistory, strategy.initialCapital, context);
 
-		// Calculate Multi-Factor Scoring Benchmark
-		const scoringResult = ScoringBenchmark.calculate(
+		// 计算性能指标 (只计算用户策略的)
+		const strategyStats = PerformanceAnalyzer.calculateMetricsFromCurve(
+			chartData.strategyEquity, 
+			chartData.dates, 
+			{ // 从 accountState.tradeHistory 聚合 TradeStats
+				totalTrades: accountState.tradeHistory.length,
+				buyCount: accountState.tradeHistory.filter(t => t.action === 'buy').length,
+				sellCount: accountState.tradeHistory.filter(t => t.action === 'sell').length,
+				totalInvested: accountState.tradeHistory.filter(t => t.action === 'buy').reduce((sum, t) => sum + (t.quantity * t.price), 0),
+				totalProceeds: accountState.tradeHistory.filter(t => t.action === 'sell').reduce((sum, t) => sum + (t.quantity * t.price), 0)
+			},
+			strategy.initialCapital
+		);
+
+		// Calculate Multi-Factor Scoring Benchmark (Using Smart Trend Logic)
+		const smartTrendBenchmark = new SmartTrendBenchmark();
+		const scoringResult = smartTrendBenchmark.calculate(
 			filteredData,
 			chartData.dates,
 			strategy.initialCapital,
-			context.vixData
+			context // Pass full context or needed parts
 		);
 
 		// 准备净值曲线数据用于回撤分析
-		const equityCurve = chartData.dates.map((date, i) => ({
+		const equityCurve = chartData.dates.map((date: string, i: number) => ({
 			date,
 			value: chartData.strategyEquity[i]
 		}));
@@ -159,15 +173,22 @@ export class BacktestEngine {
 				period: `${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}`,
 			},
 			performance: {
-				...performance,
+				strategy: strategyStats,
+				benchmark: chartData.benchmarkStats, // 来自 BuyAndHoldBenchmark
+				dca: chartData.dcaStats,             // 来自 WeeklyDCABenchmark
 				scoring: scoringResult.stats
 			},
 			analysis: {
 				topDrawdowns
 			},
 			charts: {
-				...chartData,
-				scoringEquity: scoringResult.equityCurve
+				dates: chartData.dates,
+				strategyEquity: chartData.strategyEquity,
+				benchmarkEquity: chartData.benchmarkEquity,
+				dcaEquity: chartData.dcaEquity,
+				scoringEquity: scoringResult.equityCurve,
+				underlyingPrice: chartData.underlyingPrice,
+				vixData: chartData.vixData
 			},
 			trades: accountState.tradeHistory
 		};
@@ -240,7 +261,9 @@ export class BacktestEngine {
 		dates: string[];
 		strategyEquity: number[];
 		benchmarkEquity: number[];
+		benchmarkStats: PerformanceMetrics;
 		dcaEquity: number[];
+		dcaStats: PerformanceMetrics;
 		underlyingPrice: number[];
 		vixData?: number[];
 	} {
@@ -248,17 +271,14 @@ export class BacktestEngine {
 
 		const strategyEquity = dates.map(date => accountHistory[date].totalValue);
 
-		// 基准权益：假设初始资本全用于购买ETF
-		const initialPrice = data[0].c;
-		const initialCapitalValue = accountHistory[dates[0]].totalValue;
-		const sharesBought = initialCapitalValue / initialPrice;
+		// 基准1：买入并持有
+		const buyAndHoldBenchmark = new BuyAndHoldBenchmark();
+		const bnhResult = buyAndHoldBenchmark.calculate(data, dates, initialCapital);
+		const benchmarkEquity = bnhResult.equityCurve;
 
-		const benchmarkEquity = data
-			.filter(point => dates.includes(point.d))
-			.map(point => point.c * sharesBought);
-
-		// 计算 DCA 净值曲线
-		const dcaResult = PerformanceAnalyzer.calculateWeeklyDCABenchmark(data, dates, initialCapital);
+		// 基准2：周定投
+		const weeklyDCABenchmark = new WeeklyDCABenchmark();
+		const dcaResult = weeklyDCABenchmark.calculate(data, dates, initialCapital);
 		const dcaEquity = dcaResult.equityCurve;
 
 		const underlyingPrice = data
@@ -275,7 +295,9 @@ export class BacktestEngine {
 			dates,
 			strategyEquity,
 			benchmarkEquity,
+			benchmarkStats: bnhResult.stats,
 			dcaEquity,
+			dcaStats: dcaResult.stats,
 			underlyingPrice,
 			vixData
 		};
