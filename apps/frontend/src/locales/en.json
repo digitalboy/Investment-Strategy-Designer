@@ -336,6 +336,7 @@
     "strategyCardTitle": "My Strategy",
     "benchmarkCardTitle": "Benchmark: Buy & Hold",
     "dcaCardTitle": "Benchmark: Weekly DCA",
+    "scoringCardTitle": "Benchmark: Multi-Factor Scoring",
     "noData": "No data available",
     "runBacktest": "Run a backtest to view results",
     "dataError": "Data format error: Unable to parse performance metrics",
@@ -623,7 +624,8 @@
     "totalProceeds": "Total Proceeds",
     "strategyDescription": "Strategy Description",
     "benchmarkDescription": "Buy and hold from the beginning",
-    "dcaDescription": "Fixed amount buy on first trading day of each week"
+    "dcaDescription": "Fixed amount buy on first trading day of each week",
+    "scoringDescription": "Smart timing model based on VIX/RSI/Drawdown"
   },
   "api": {
     "status": {

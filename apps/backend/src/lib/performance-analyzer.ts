@@ -488,10 +488,18 @@ export class PerformanceAnalyzer {
 				if (currentEvent) {
 					currentEvent.recoveryDate = date;
 					currentEvent.isRecovered = true;
-					// 计算恢复天数
-					const peak = new Date(currentEvent.peakDate!);
-					const recovery = new Date(date);
-					currentEvent.daysToRecover = Math.ceil((recovery.getTime() - peak.getTime()) / (1000 * 3600 * 24));
+					// 计算恢复天数 (交易日)
+					// 找到峰值日期的索引和恢复日期的索引
+					const peakIdx = equityCurve.findIndex(p => p.date === currentEvent!.peakDate);
+					const recoveryIdx = equityCurve.findIndex(p => p.date === date);
+					if (peakIdx !== -1 && recoveryIdx !== -1) {
+						currentEvent.daysToRecover = recoveryIdx - peakIdx;
+					} else {
+						// Fallback to calendar days if indices not found (should not happen)
+						const peak = new Date(currentEvent.peakDate!);
+						const recovery = new Date(date);
+						currentEvent.daysToRecover = Math.ceil((recovery.getTime() - peak.getTime()) / (1000 * 3600 * 24));
+					}
 
 					// 只有回撤幅度超过一定阈值 (例如 1%) 才记录，过滤噪音
 					if (currentEvent.depthPercent! < -1.0) {
@@ -536,11 +544,18 @@ export class PerformanceAnalyzer {
 
 		// --- 收尾: 处理直到回测结束还没回本的最后一次回撤 ---
 		if (currentEvent) {
-			// 计算截止到回测结束日期的天数
-			const lastDate = equityCurve[equityCurve.length - 1].date;
-			const peak = new Date(currentEvent.peakDate!);
-			const last = new Date(lastDate);
-			currentEvent.daysToRecover = Math.ceil((last.getTime() - peak.getTime()) / (1000 * 3600 * 24));
+			// 计算截止到回测结束日期的天数 (交易日)
+			const peakIdx = equityCurve.findIndex(p => p.date === currentEvent!.peakDate);
+			const lastIdx = equityCurve.length - 1;
+			
+			if (peakIdx !== -1) {
+				currentEvent.daysToRecover = lastIdx - peakIdx;
+			} else {
+				const lastDate = equityCurve[equityCurve.length - 1].date;
+				const peak = new Date(currentEvent.peakDate!);
+				const last = new Date(lastDate);
+				currentEvent.daysToRecover = Math.ceil((last.getTime() - peak.getTime()) / (1000 * 3600 * 24));
+			}
 
 			if (currentEvent.depthPercent! < -1.0) {
 				events.push(currentEvent as import('../types').DrawdownEvent);

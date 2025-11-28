@@ -130,8 +130,8 @@ export class MonitorService {
 				// 1. 冷却期检查：如果该触发器有冷却期且上次触发时间在冷却期内，则跳过
 				const lastFiredDate = lastState[triggerId];
 				if (lastFiredDate && trigger.cooldown) {
-					const daysSince = this.calculateDaysBetween(lastFiredDate, currentDate);
-					if (daysSince < trigger.cooldown.days) {
+					const tradingDaysSince = this.calculateTradingDaysBetween(lastFiredDate, currentDate, etfData.data);
+					if (tradingDaysSince < trigger.cooldown.days) {
 						console.log(`策略 ${strategy.name} 规则 #${i + 1} 处于冷却期，跳过。`);
 						continue; // 冷却期内，跳过此触发器
 					}
@@ -216,15 +216,30 @@ export class MonitorService {
 	}
 
 	/**
-	 * 计算两个日期之间的天数
-	 * @param d1 日期字符串1
-	 * @param d2 日期字符串2
-	 * @returns 天数差
+	 * 计算两个日期之间的交易日天数 (基于ETF历史数据索引差)
+	 * @param d1 上次触发日期
+	 * @param d2 当前日期
+	 * @param data ETF历史数据数组 (必须是按时间排序的)
+	 * @returns 交易日天数差，如果 d1 不在数据中则返回 Infinity (视为已过期)
 	 */
-	private calculateDaysBetween(d1: string, d2: string): number {
-		const date1 = new Date(d1);
-		const date2 = new Date(d2);
-		return Math.ceil((date2.getTime() - date1.getTime()) / (1000 * 3600 * 24));
+	private calculateTradingDaysBetween(d1: string, d2: string, data: import('../types').ETFDataPoint[]): number {
+		// 优化：从后往前查找，因为通常 d2 是最新的，d1 是较新的
+		// 或者使用二分查找？但这里数据量不大 (几百条)，简单的 findIndex 应该足够
+		// 注意：d1 可能是很久以前的，data 可能只包含最近 1.5 年的数据
+		
+		// 1. 找到 d2 的索引 (当前日期)
+		const idx2 = data.findIndex(p => p.d === d2);
+		if (idx2 === -1) return 0; // 当前日期不在数据中？这是一个异常情况，默认为0防止错误触发
+
+		// 2. 找到 d1 的索引 (上次触发日期)
+		const idx1 = data.findIndex(p => p.d === d1);
+		
+		if (idx1 === -1) {
+			// 如果 d1 不在当前加载的历史数据中，说明它太久远了，肯定超过了冷却期
+			return Infinity;
+		}
+
+		return idx2 - idx1;
 	}
 
 	/**

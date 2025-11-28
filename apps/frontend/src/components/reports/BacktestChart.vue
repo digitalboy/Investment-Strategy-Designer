@@ -93,6 +93,17 @@ const chartData = computed(() => {
 				tension: 0.1,
 				pointRadius: 0,
 				yAxisID: 'y',
+				order: 4
+			},
+			{
+				label: t('resultsReportDialog.scoringCardTitle'),
+				backgroundColor: '#e879f9',
+				borderColor: '#d946ef',
+				borderWidth: 2,
+				data: props.result.charts.scoringEquity || [],
+				stepped: true,
+				pointRadius: 0,
+				yAxisID: 'y',
 				order: 3
 			},
 			{

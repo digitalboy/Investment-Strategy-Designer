@@ -336,6 +336,7 @@
     "strategyCardTitle": "我的策略",
     "benchmarkCardTitle": "基准：买入并持有",
     "dcaCardTitle": "基准：周定投",
+    "scoringCardTitle": "基准：多因子评分",
     "noData": "暂无数据",
     "runBacktest": "请运行回测以查看结果",
     "dataError": "数据格式错误: 无法解析性能指标",
@@ -623,7 +624,8 @@
     "totalProceeds": "总回款",
     "strategyDescription": "策略说明",
     "benchmarkDescription": "期初全仓买入持有至今",
-    "dcaDescription": "每周第一个交易日定额买入"
+    "dcaDescription": "每周第一个交易日定额买入",
+    "scoringDescription": "基于VIX/RSI/回撤的智能择时模型"
   },
   "api": {
     "status": {

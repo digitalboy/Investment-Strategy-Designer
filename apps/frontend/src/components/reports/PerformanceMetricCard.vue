@@ -9,7 +9,7 @@ const { t } = useI18n()
 const props = defineProps<{
     title: string
     metrics: PerformanceMetrics
-    variant: 'strategy' | 'benchmark' | 'dca'
+    variant: 'strategy' | 'benchmark' | 'dca' | 'scoring'
     symbol?: string
     triggerCount?: number // New prop
 }>()
@@ -26,24 +26,30 @@ const cardClasses = computed(() => {
     if (props.variant === 'dca') {
         return 'border-violet-300/50 bg-linear-to-br from-white via-violet-50/70 to-purple-100/60 shadow-lg shadow-violet-500/20'
     }
+    if (props.variant === 'scoring') {
+        return 'border-fuchsia-300/50 bg-linear-to-br from-white via-fuchsia-50/70 to-pink-100/60 shadow-lg shadow-fuchsia-500/20'
+    }
     return 'border-slate-300/50 bg-linear-to-br from-white via-slate-50/70 to-gray-100/50 shadow-lg shadow-slate-500/10'
 })
 
 const headerBorderClass = computed(() => {
     if (props.variant === 'strategy') return 'border-emerald-200/60'
     if (props.variant === 'dca') return 'border-violet-200/60'
+    if (props.variant === 'scoring') return 'border-fuchsia-200/60'
     return 'border-slate-200/60'
 })
 
 const titleClass = computed(() => {
     if (props.variant === 'strategy') return 'text-emerald-700'
     if (props.variant === 'dca') return 'text-violet-700'
+    if (props.variant === 'scoring') return 'text-fuchsia-700'
     return 'text-slate-700'
 })
 
 const statsBgClass = computed(() => {
     if (props.variant === 'strategy') return 'bg-emerald-50/30'
     if (props.variant === 'dca') return 'bg-violet-50/30'
+    if (props.variant === 'scoring') return 'bg-fuchsia-50/30'
     return 'bg-slate-50/40'
 })
 </script>
@@ -58,9 +64,14 @@ const statsBgClass = computed(() => {
                     {{ symbol }}
                 </span>
             </CardTitle>
-            <p v-if="variant === 'benchmark' || variant === 'dca'" class="text-xs text-slate-500 mt-0">
-                {{ variant === 'dca' ? t('performanceMetrics.dcaDescription') :
-                    t('performanceMetrics.benchmarkDescription') }}
+            <p v-if="variant === 'benchmark'" class="text-xs text-slate-500 mt-0">
+                {{ t('performanceMetrics.benchmarkDescription') }}
+            </p>
+            <p v-else-if="variant === 'dca'" class="text-xs text-slate-500 mt-0">
+                {{ t('performanceMetrics.dcaDescription') }}
+            </p>
+            <p v-else-if="variant === 'scoring'" class="text-xs text-slate-500 mt-0">
+                {{ t('performanceMetrics.scoringDescription') }}
             </p>
             <p v-else-if="variant === 'strategy' && triggerCount !== undefined" class="text-xs text-slate-500 mt-0">
                 {{ triggerCount }} {{ t('strategy.header.triggers') }}
@@ -90,7 +101,7 @@ const statsBgClass = computed(() => {
             <!-- Stats Row -->
             <div
                 :class="['grid grid-cols-4 gap-2 text-[10px] pt-2 border-t border-emerald-200/60 -mx-3 px-3 -mb-3 pb-3 rounded-b-lg', statsBgClass]">
-                <template v-if="variant === 'strategy'">
+                <template v-if="variant === 'strategy' || variant === 'scoring'">
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.totalTrades') }}</span>
                         <span class="font-medium text-slate-900">{{ metrics.tradeStats.totalTrades }}</span>

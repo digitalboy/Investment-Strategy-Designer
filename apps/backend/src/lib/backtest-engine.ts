@@ -5,7 +5,7 @@ import { PositionSizer } from './position-sizer';
 import { PerformanceAnalyzer } from './performance-analyzer';
 
 interface ExecutionState {
-	lastTriggerExecution: { [triggerId: string]: string }; // 记录每个触发器的最后执行日期
+	lastTriggerExecutionIndex: { [triggerId: string]: number }; // 记录每个触发器的最后执行索引 (交易日)
 	accountHistory: { [date: string]: AccountState }; // 每日账户状态
 }
 
@@ -43,7 +43,7 @@ export class BacktestEngine {
 
 		// 初始化执行状态
 		const executionState: ExecutionState = {
-			lastTriggerExecution: {},
+			lastTriggerExecutionIndex: {},
 			accountHistory: {},
 		};
 
@@ -105,10 +105,10 @@ export class BacktestEngine {
 				const trigger = strategy.triggers[j];
 				const triggerId = `trigger_${j}`;
 
-				// 检查冷却期
-				const lastExecutionDate = executionState.lastTriggerExecution[triggerId];
-				if (lastExecutionDate && trigger.cooldown) {
-					const daysSinceLastExecution = this.calculateDaysBetween(lastExecutionDate, currentDate);
+				// 检查冷却期 (使用交易日索引)
+				const lastExecutionIndex = executionState.lastTriggerExecutionIndex[triggerId];
+				if (lastExecutionIndex !== undefined && trigger.cooldown) {
+					const daysSinceLastExecution = i - lastExecutionIndex;
 					if (daysSinceLastExecution < trigger.cooldown.days) {
 						continue; // 冷却期内，跳过此触发器
 					}
@@ -123,8 +123,8 @@ export class BacktestEngine {
 						reason: `Trigger ${j + 1} (Signal on ${currentDate})`
 					});
 
-					// 更新最后执行日期 (标记为今日触发)
-					executionState.lastTriggerExecution[triggerId] = currentDate;
+					// 更新最后执行索引 (标记为今日触发)
+					executionState.lastTriggerExecutionIndex[triggerId] = i;
 				}
 			}
 		}
