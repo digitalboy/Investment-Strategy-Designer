@@ -118,12 +118,14 @@ export interface BacktestResultDTO {
         strategy: PerformanceMetrics;
         benchmark: PerformanceMetrics;
         dca: PerformanceMetrics;       // 周定投基准
+        scoring: PerformanceMetrics;   // 多因子评分基准
     };
     charts: {
         dates: string[];
         strategyEquity: number[];
         benchmarkEquity: number[];
         dcaEquity: number[];           // 周定投净值曲线
+        scoringEquity: number[];       // 多因子评分净值曲线
         underlyingPrice: number[];
         vixData?: number[];
     };
