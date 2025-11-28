@@ -3,6 +3,7 @@ import { StrategyConfig, Trigger, ETFData, BacktestResultDTO, ETFDataPoint, Acco
 import { IndicatorEngine } from './indicator-engine';
 import { PositionSizer } from './position-sizer';
 import { PerformanceAnalyzer } from './performance-analyzer';
+import { ScoringBenchmark } from './benchmarks/scoring-benchmark';
 
 interface ExecutionState {
 	lastTriggerExecutionIndex: { [triggerId: string]: number }; // 记录每个触发器的最后执行索引 (交易日)
@@ -136,7 +137,7 @@ export class BacktestEngine {
 		const chartData = this.prepareChartData(filteredData, executionState.accountHistory, strategy.initialCapital, context);
 
 		// Calculate Multi-Factor Scoring Benchmark
-		const scoringResult = PerformanceAnalyzer.calculateScoringBenchmark(
+		const scoringResult = ScoringBenchmark.calculate(
 			filteredData,
 			chartData.dates,
 			strategy.initialCapital,
