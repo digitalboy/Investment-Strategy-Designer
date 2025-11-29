@@ -623,7 +623,8 @@
     "totalProceeds": "Total Proceeds",
     "strategyDescription": "Strategy Description",
     "benchmarkDescription": "Buy and hold from the beginning",
-    "dcaDescription": "Base weekly investment, increases 5% on consecutive drops",
+    "dcaDescription": "Smart Weekly DCA",
+    "dcaTooltip": "Weekly fixed investment, exponential boost on drops: +{rate}% after 2 down weeks, +{rate}%² after 3, etc.",
     "acceleration": "Acceleration",
     "accelerationRate": "Accel. Rate"
   },

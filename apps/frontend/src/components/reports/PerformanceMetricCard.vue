@@ -9,6 +9,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { Info } from 'lucide-vue-next'
 import type { PerformanceMetrics } from '@/types'
 
 const { t } = useI18n()
@@ -54,6 +61,13 @@ const selectedAcceleration = computed({
     set(value: string) {
         emit('update:dcaAcceleration', Number(value) / 100) // Convert back to decimal for parent
     }
+})
+
+// 当前加速率的百分比值
+const currentAccelerationPercent = computed(() => {
+    return props.metrics.dcaAccelerationRate !== undefined
+        ? Math.round(props.metrics.dcaAccelerationRate * 100)
+        : Math.round((props.dcaAcceleration || 0.12) * 100)
 })
 
 const cardClasses = computed(() => {
@@ -104,12 +118,22 @@ const statsBgClass = computed(() => {
             <p v-if="variant === 'benchmark'" class="text-xs text-slate-500 mt-0">
                 {{ t('performanceMetrics.benchmarkDescription') }}
             </p>
-            <p v-else-if="variant === 'dca'" class="text-xs text-slate-500 mt-0">
-                {{ t('performanceMetrics.dcaDescription') }}
+            <p v-else-if="variant === 'dca'" class="text-xs text-slate-500 mt-0 flex items-center gap-1">
+                <span>{{ t('performanceMetrics.dcaDescription') }}</span>
                 <span v-if="metrics.dcaAccelerationRate !== undefined"
-                    class="ml-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-bold">
+                    class="px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-bold whitespace-nowrap">
                     +{{ (metrics.dcaAccelerationRate * 100).toFixed(0) }}% {{ t('performanceMetrics.acceleration') }}
                 </span>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger as-child>
+                            <Info class="w-3.5 h-3.5 text-violet-400 hover:text-violet-600 cursor-help shrink-0" />
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" class="max-w-xs text-xs">
+                            {{ t('performanceMetrics.dcaTooltip', { rate: currentAccelerationPercent }) }}
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
             </p>
             <p v-else-if="variant === 'scoring'" class="text-xs text-slate-500 mt-0">
                 {{ t('performanceMetrics.scoringDescription') }}
@@ -157,12 +181,12 @@ const statsBgClass = computed(() => {
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.totalInvested') }}</span>
                         <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats.totalInvested, 0)
-                        }}</span>
+                            }}</span>
                     </div>
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.totalProceeds') }}</span>
                         <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats.totalProceeds, 0)
-                        }}</span>
+                            }}</span>
                     </div>
                 </template>
                 <template v-else-if="variant === 'dca'">
@@ -181,7 +205,7 @@ const statsBgClass = computed(() => {
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.totalInvested') }}</span>
                         <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats?.totalInvested, 0)
-                        }}</span>
+                            }}</span>
                     </div>
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.accelerationRate') }}</span>
@@ -214,7 +238,7 @@ const statsBgClass = computed(() => {
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.totalInvested') }}</span>
                         <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats?.totalInvested, 0)
-                        }}</span>
+                            }}</span>
                     </div>
                     <div></div>
                 </template>

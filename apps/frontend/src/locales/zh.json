@@ -623,7 +623,8 @@
     "totalProceeds": "总回款",
     "strategyDescription": "策略说明",
     "benchmarkDescription": "期初全仓买入持有至今",
-    "dcaDescription": "基础周定投，连跌时自动加码 5%",
+    "dcaDescription": "智能周定投 (Smart DCA)",
+    "dcaTooltip": "每周定额买入，连跌时指数加码：连跌2周加{rate}%，连跌3周加{rate}%²，以此类推",
     "acceleration": "加速",
     "accelerationRate": "加速率"
   },
