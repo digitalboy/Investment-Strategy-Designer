@@ -101,16 +101,11 @@ const strategyTriggerCount = computed(() => store.config.triggers?.length || 0)
 					class="flex-1 flex flex-col p-4 overflow-y-auto bg-linear-to-br from-slate-50 via-lime-50/10 to-emerald-50/20">
 
 					<!-- KPI Cards (Top Row) -->
-					<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 mb-4 shrink-0">
+					<div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4 shrink-0">
 						<!-- Strategy Card -->
 						<PerformanceMetricCard :title="t('resultsReportDialog.strategyCardTitle')"
 							:metrics="result.performance.strategy" variant="strategy" :symbol="result.metadata.symbol"
 							:triggerCount="strategyTriggerCount" />
-
-						<!-- Benchmark Card: Scoring (AI) -->
-						<PerformanceMetricCard v-if="result.performance.scoring"
-							:title="t('resultsReportDialog.scoringCardTitle')" :metrics="result.performance.scoring"
-							variant="scoring" />
 
 						<!-- Benchmark Card: Buy & Hold -->
 						<PerformanceMetricCard :title="t('resultsReportDialog.benchmarkCardTitle')"

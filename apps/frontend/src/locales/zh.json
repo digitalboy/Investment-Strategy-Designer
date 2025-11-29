@@ -336,7 +336,6 @@
     "strategyCardTitle": "我的策略",
     "benchmarkCardTitle": "基准：买入并持有",
     "dcaCardTitle": "基准：智能周定投 (Smart DCA)",
-    "scoringCardTitle": "基准：策略3-3 (自适应趋势)",
     "noData": "暂无数据",
     "runBacktest": "请运行回测以查看结果",
     "dataError": "数据格式错误: 无法解析性能指标",
@@ -625,7 +624,6 @@
     "strategyDescription": "策略说明",
     "benchmarkDescription": "期初全仓买入持有至今",
     "dcaDescription": "基础周定投，连跌时自动加码 5%",
-    "scoringDescription": "基于VIX/RSI/回撤的智能择时模型",
     "acceleration": "加速",
     "accelerationRate": "加速率"
   },

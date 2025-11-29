@@ -2,6 +2,13 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
 import type { PerformanceMetrics } from '@/types'
 
 const { t } = useI18n()
@@ -23,18 +30,31 @@ const formatNumber = (num: number | null | undefined, decimals = 2) => {
     return num.toFixed(decimals)
 }
 
-// Internal ref for slider value, synced with prop
-const internalDcaAcceleration = computed({
-  get() {
-    // Display value from metrics if available, otherwise from props
-    return props.metrics.dcaAccelerationRate !== undefined 
-            ? Math.round(props.metrics.dcaAccelerationRate * 100) 
-            : Math.round((props.dcaAcceleration || 0.12) * 100);
-  },
-  set(value) {
-    emit('update:dcaAcceleration', value / 100); // Convert back to decimal for parent
-  }
-});
+// DCA acceleration options
+const accelerationOptions = [
+    { value: '0', label: '0%' },
+    { value: '5', label: '5%' },
+    { value: '10', label: '10%' },
+    { value: '12', label: '12%' },
+    { value: '15', label: '15%' },
+    { value: '20', label: '20%' },
+    { value: '25', label: '25%' },
+    { value: '30', label: '30%' },
+    { value: '50', label: '50%' },
+]
+
+// Internal value for select, synced with prop
+const selectedAcceleration = computed({
+    get() {
+        const rate = props.metrics.dcaAccelerationRate !== undefined
+            ? Math.round(props.metrics.dcaAccelerationRate * 100)
+            : Math.round((props.dcaAcceleration || 0.12) * 100)
+        return String(rate)
+    },
+    set(value: string) {
+        emit('update:dcaAcceleration', Number(value) / 100) // Convert back to decimal for parent
+    }
+})
 
 const cardClasses = computed(() => {
     if (props.variant === 'strategy') {
@@ -84,28 +104,12 @@ const statsBgClass = computed(() => {
             <p v-if="variant === 'benchmark'" class="text-xs text-slate-500 mt-0">
                 {{ t('performanceMetrics.benchmarkDescription') }}
             </p>
-            <p v-else-if="variant === 'dca'" class="text-xs text-slate-500 mt-0 flex flex-col gap-2">
-                <span class="flex items-center gap-2">
-                    {{ t('performanceMetrics.dcaDescription') }}
-                    <span v-if="metrics.dcaAccelerationRate !== undefined"
-                        class="ml-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-bold">
-                        +{{ (metrics.dcaAccelerationRate * 100).toFixed(0) }}% {{ t('performanceMetrics.acceleration') }}
-                    </span>
+            <p v-else-if="variant === 'dca'" class="text-xs text-slate-500 mt-0">
+                {{ t('performanceMetrics.dcaDescription') }}
+                <span v-if="metrics.dcaAccelerationRate !== undefined"
+                    class="ml-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-bold">
+                    +{{ (metrics.dcaAccelerationRate * 100).toFixed(0) }}% {{ t('performanceMetrics.acceleration') }}
                 </span>
-                
-                <!-- DCA Acceleration Slider -->
-                <div class="flex items-center gap-2 text-slate-500 text-[10px] font-medium">
-                    <span class="shrink-0">{{ t('performanceMetrics.accelerationRate') }}:</span>
-                    <input
-                        type="range"
-                        v-model.number="internalDcaAcceleration"
-                        min="0"
-                        max="50"
-                        step="1"
-                        class="w-full h-1 bg-violet-100 rounded-lg appearance-none cursor-pointer accent-violet-600 hover:accent-violet-700 focus:outline-none focus:ring-1 focus:ring-violet-500/20"
-                    />
-                    <span class="shrink-0 font-bold text-violet-600">{{ internalDcaAcceleration }}%</span>
-                </div>
             </p>
             <p v-else-if="variant === 'scoring'" class="text-xs text-slate-500 mt-0">
                 {{ t('performanceMetrics.scoringDescription') }}
@@ -153,12 +157,12 @@ const statsBgClass = computed(() => {
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.totalInvested') }}</span>
                         <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats.totalInvested, 0)
-                            }}</span>
+                        }}</span>
                     </div>
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.totalProceeds') }}</span>
                         <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats.totalProceeds, 0)
-                            }}</span>
+                        }}</span>
                     </div>
                 </template>
                 <template v-else-if="variant === 'dca'">
@@ -177,9 +181,23 @@ const statsBgClass = computed(() => {
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.totalInvested') }}</span>
                         <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats?.totalInvested, 0)
-                            }}</span>
+                        }}</span>
                     </div>
-                    <div></div>
+                    <div>
+                        <span class="text-slate-500 block">{{ t('performanceMetrics.accelerationRate') }}</span>
+                        <Select v-model="selectedAcceleration">
+                            <SelectTrigger
+                                class="h-5 w-16 text-[10px] px-1.5 py-0 border-violet-200 bg-white/80 hover:bg-violet-50 focus:ring-violet-500/30">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent class="min-w-16">
+                                <SelectItem v-for="opt in accelerationOptions" :key="opt.value" :value="opt.value"
+                                    class="text-xs">
+                                    {{ opt.label }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </template>
                 <template v-else>
                     <div>
@@ -196,7 +214,7 @@ const statsBgClass = computed(() => {
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.totalInvested') }}</span>
                         <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats?.totalInvested, 0)
-                            }}</span>
+                        }}</span>
                     </div>
                     <div></div>
                 </template>

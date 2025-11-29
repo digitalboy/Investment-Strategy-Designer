@@ -336,7 +336,6 @@
     "strategyCardTitle": "My Strategy",
     "benchmarkCardTitle": "Benchmark: Buy & Hold",
     "dcaCardTitle": "Benchmark: Smart Weekly DCA",
-    "scoringCardTitle": "Benchmark: Strategy 3-3 (Adaptive Trend)",
     "noData": "No data available",
     "runBacktest": "Run a backtest to view results",
     "dataError": "Data format error: Unable to parse performance metrics",
@@ -625,9 +624,8 @@
     "strategyDescription": "Strategy Description",
     "benchmarkDescription": "Buy and hold from the beginning",
     "dcaDescription": "Base weekly investment, increases 5% on consecutive drops",
-    "scoringDescription": "Smart timing model based on VIX/RSI/Drawdown",
     "acceleration": "Acceleration",
-    "accelerationRate": "Acceleration Rate"
+    "accelerationRate": "Accel. Rate"
   },
   "api": {
     "status": {
