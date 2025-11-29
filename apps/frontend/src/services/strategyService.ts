@@ -4,15 +4,20 @@ import type { StrategyConfig, BacktestResultDTO, StrategySummaryDTO, CommentEnti
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://investment-strategy-designer-backend.digitalboyzone.workers.dev/api/v1'
 
 export const strategyService = {
-    async runBacktest(config: StrategyConfig, token?: string | null): Promise<BacktestResultDTO> {
+    async runBacktest(config: StrategyConfig, token?: string | null, dcaAcceleration?: number): Promise<BacktestResultDTO> {
         const headers: Record<string, string> = {}
         if (token) {
             headers['Authorization'] = `Bearer ${token}`
         }
 
+        const payload: any = { ...config };
+        if (dcaAcceleration !== undefined) {
+            payload.dcaAcceleration = dcaAcceleration;
+        }
+
         const response = await axios.post(
             `${API_BASE_URL}/backtest`,
-            config,
+            payload,
             { headers }
         )
         return response.data

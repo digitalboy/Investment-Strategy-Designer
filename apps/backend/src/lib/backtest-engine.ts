@@ -3,7 +3,7 @@ import { StrategyConfig, Trigger, ETFData, BacktestResultDTO, ETFDataPoint, Acco
 import { IndicatorEngine } from './indicator-engine';
 import { PositionSizer } from './position-sizer';
 import { PerformanceAnalyzer } from './performance-analyzer';
-import { SmartTrendBenchmark3_2 } from './benchmarks/smart-trend-3-2';
+import { AdaptiveTrendBenchmark3_3 } from './benchmarks/adaptive-trend-3-3';
 import { BuyAndHoldBenchmark } from './benchmarks/buy-and-hold';
 import { WeeklyDCABenchmark } from './benchmarks/weekly-dca';
 
@@ -14,6 +14,7 @@ interface ExecutionState {
 
 export interface MarketContext {
 	vixData?: Map<string, number>;
+	dcaAcceleration?: number; // Optional: for Smart Weekly DCA acceleration rate
 }
 
 export class BacktestEngine {
@@ -149,9 +150,9 @@ export class BacktestEngine {
 			strategy.initialCapital
 		);
 
-		// Calculate Multi-Factor Scoring Benchmark (Using Smart Trend Logic)
-		const smartTrendBenchmark = new SmartTrendBenchmark3_2();
-		const scoringResult = smartTrendBenchmark.calculate(
+		// Calculate Multi-Factor Scoring Benchmark (Using Adaptive Trend Logic)
+		const scoringBenchmark = new AdaptiveTrendBenchmark3_3();
+		const scoringResult = scoringBenchmark.calculate(
 			filteredData,
 			chartData.dates,
 			strategy.initialCapital,
@@ -278,7 +279,7 @@ export class BacktestEngine {
 
 		// 基准2：周定投
 		const weeklyDCABenchmark = new WeeklyDCABenchmark();
-		const dcaResult = weeklyDCABenchmark.calculate(data, dates, initialCapital);
+		const dcaResult = weeklyDCABenchmark.calculate(data, dates, initialCapital, context);
 		const dcaEquity = dcaResult.equityCurve;
 
 		const underlyingPrice = data

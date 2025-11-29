@@ -51,13 +51,18 @@ export const useStrategyStore = defineStore('strategy', () => {
         config.value.triggers[index] = trigger
     }
 
-    const runBacktest = async () => {
+    const runBacktest = async (dcaAcceleration?: number) => { // Allow passing dcaAcceleration as a direct argument
         isLoading.value = true
         error.value = null
         const authStore = useAuthStore()
 
         try {
-            const result = await strategyService.runBacktest(config.value, authStore.token)
+            const payload = {
+                ...config.value,
+                // If dcaAcceleration is passed, use it, otherwise don't include it in payload
+                ...(dcaAcceleration !== undefined && { dcaAcceleration })
+            };
+            const result = await strategyService.runBacktest(payload, authStore.token)
 
             // Normalize response data to handle potential structure mismatch
             // Note: Using 'any' to bypass strict type check on raw API response for normalization check

@@ -335,8 +335,8 @@
     "description": "View the historical backtest performance, return comparisons, and detailed trading data of the strategy.",
     "strategyCardTitle": "My Strategy",
     "benchmarkCardTitle": "Benchmark: Buy & Hold",
-    "dcaCardTitle": "Benchmark: Weekly DCA",
-    "scoringCardTitle": "Benchmark: Strategy 3-2 (Smart Trend)",
+    "dcaCardTitle": "Benchmark: Smart Weekly DCA",
+    "scoringCardTitle": "Benchmark: Strategy 3-3 (Adaptive Trend)",
     "noData": "No data available",
     "runBacktest": "Run a backtest to view results",
     "dataError": "Data format error: Unable to parse performance metrics",
@@ -619,13 +619,15 @@
     "sharpeRatio": "Sharpe Ratio",
     "totalTrades": "Total Trades",
     "buySell": "Buy/Sell",
-    "weeklyAmount": "Per Trade",
+    "weeklyAmount": "Avg. Trade",
     "totalInvested": "Total Invested",
     "totalProceeds": "Total Proceeds",
     "strategyDescription": "Strategy Description",
     "benchmarkDescription": "Buy and hold from the beginning",
-    "dcaDescription": "Fixed amount buy on first trading day of each week",
-    "scoringDescription": "Smart timing model based on VIX/RSI/Drawdown"
+    "dcaDescription": "Base weekly investment, increases 5% on consecutive drops",
+    "scoringDescription": "Smart timing model based on VIX/RSI/Drawdown",
+    "acceleration": "Acceleration",
+    "accelerationRate": "Acceleration Rate"
   },
   "api": {
     "status": {

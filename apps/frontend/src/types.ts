@@ -161,6 +161,7 @@ export interface PerformanceMetrics {
     maxDrawdown: number;
     sharpeRatio: number;
     tradeStats: TradeStats;
+    dcaAccelerationRate?: number; // for Smart Weekly DCA
 }
 
 export interface TradeStats {

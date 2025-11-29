@@ -25,8 +25,15 @@ const emit = defineEmits(['update:open'])
 // 选中的回撤事件，用于图表高亮显示
 const selectedDrawdown = ref<DrawdownEvent | null>(null)
 
+// 周定投的加速比例状态
+const dcaAcceleration = ref(0.12) // Default 12% as a decimal
+
 onMounted(() => {
 	console.log('ResultsReportDialog mounted')
+    // Initialize dcaAcceleration from the backtest result if available
+    if (result.value?.performance.dca?.dcaAccelerationRate !== undefined) {
+        dcaAcceleration.value = result.value.performance.dca.dcaAccelerationRate;
+    }
 })
 
 watch(() => props.open, (isOpen) => {
@@ -35,7 +42,22 @@ watch(() => props.open, (isOpen) => {
 	if (!isOpen) {
 		selectedDrawdown.value = null
 	}
+    // 当对话框打开时，初始化 dcaAcceleration
+    if (isOpen && result.value?.performance.dca?.dcaAccelerationRate !== undefined) {
+        dcaAcceleration.value = result.value.performance.dca.dcaAccelerationRate;
+    }
 })
+
+// 当 dcaAcceleration 改变时，重新运行回测
+watch(dcaAcceleration, (newValue, oldValue) => {
+    if (newValue !== oldValue) {
+        console.log('DCA Acceleration changed to', newValue, 're-running backtest...');
+        // 只有当有回测结果时才重新运行，避免首次打开就触发
+        if (store.backtestResult) {
+            store.runBacktest(newValue);
+        }
+    }
+});
 
 const store = useStrategyStore()
 const result = computed(() => store.backtestResult)
@@ -96,8 +118,11 @@ const strategyTriggerCount = computed(() => store.config.triggers?.length || 0)
 
 						<!-- Benchmark Card: Weekly DCA -->
 						<PerformanceMetricCard v-if="result.performance.dca"
-							:title="t('resultsReportDialog.dcaCardTitle')" :metrics="result.performance.dca"
-							variant="dca" />
+							:title="t('resultsReportDialog.dcaCardTitle')"
+							:metrics="result.performance.dca"
+							variant="dca"
+							:dcaAcceleration="dcaAcceleration"
+							@update:dcaAcceleration="dcaAcceleration = $event" />
 					</div>
 
 					<!-- Charts & Analysis (Split View) -->

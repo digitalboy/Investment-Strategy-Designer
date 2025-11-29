@@ -24,11 +24,12 @@ interface Env {
 export const backtestController = {
 	runBacktest: async (c: Context<{ Bindings: Env }>) => {
 		try {
-			const { etfSymbol, startDate, endDate, initialCapital, triggers } = await c.req.json();
+			const { etfSymbol, startDate, endDate, initialCapital, triggers, dcaAcceleration } = await c.req.json();
 
 			// Validate inputs
 			try {
-				backtestRequestSchema.parse({ etfSymbol, startDate, endDate, initialCapital, triggers });
+				// Allow passthrough for dcaAcceleration
+				backtestRequestSchema.passthrough().parse({ etfSymbol, startDate, endDate, initialCapital, triggers });
 			} catch (validationError: any) {
 				return c.json({
 					error: {
@@ -82,7 +83,9 @@ export const backtestController = {
 			}
 
 			// Build Market Context
-			const context: MarketContext = {};
+			const context: MarketContext = {
+				dcaAcceleration: typeof dcaAcceleration === 'number' ? dcaAcceleration : undefined // Pass if present, otherwise undefined
+			};
 			if (vixDataRaw && vixDataRaw.data) {
 				context.vixData = new Map(vixDataRaw.data.map(point => [point.d, point.c]));
 			}

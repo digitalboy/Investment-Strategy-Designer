@@ -231,6 +231,7 @@ export interface PerformanceMetrics {
 	maxDrawdown: number;      // 百分比
 	sharpeRatio: number;
 	tradeStats: TradeStats;
+	dcaAccelerationRate?: number; // for Smart Weekly DCA
 }
 
 export interface TradeStats {

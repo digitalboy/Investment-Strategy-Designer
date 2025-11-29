@@ -12,12 +12,29 @@ const props = defineProps<{
     variant: 'strategy' | 'benchmark' | 'dca' | 'scoring'
     symbol?: string
     triggerCount?: number // New prop
+    // For DCA Acceleration
+    dcaAcceleration?: number // Value from parent (ResultsReportDialog)
 }>()
+
+const emit = defineEmits(['update:dcaAcceleration'])
 
 const formatNumber = (num: number | null | undefined, decimals = 2) => {
     if (num === null || num === undefined || isNaN(num)) return '-'
     return num.toFixed(decimals)
 }
+
+// Internal ref for slider value, synced with prop
+const internalDcaAcceleration = computed({
+  get() {
+    // Display value from metrics if available, otherwise from props
+    return props.metrics.dcaAccelerationRate !== undefined 
+            ? Math.round(props.metrics.dcaAccelerationRate * 100) 
+            : Math.round((props.dcaAcceleration || 0.12) * 100);
+  },
+  set(value) {
+    emit('update:dcaAcceleration', value / 100); // Convert back to decimal for parent
+  }
+});
 
 const cardClasses = computed(() => {
     if (props.variant === 'strategy') {
@@ -67,8 +84,28 @@ const statsBgClass = computed(() => {
             <p v-if="variant === 'benchmark'" class="text-xs text-slate-500 mt-0">
                 {{ t('performanceMetrics.benchmarkDescription') }}
             </p>
-            <p v-else-if="variant === 'dca'" class="text-xs text-slate-500 mt-0">
-                {{ t('performanceMetrics.dcaDescription') }}
+            <p v-else-if="variant === 'dca'" class="text-xs text-slate-500 mt-0 flex flex-col gap-2">
+                <span class="flex items-center gap-2">
+                    {{ t('performanceMetrics.dcaDescription') }}
+                    <span v-if="metrics.dcaAccelerationRate !== undefined"
+                        class="ml-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-bold">
+                        +{{ (metrics.dcaAccelerationRate * 100).toFixed(0) }}% {{ t('performanceMetrics.acceleration') }}
+                    </span>
+                </span>
+                
+                <!-- DCA Acceleration Slider -->
+                <div class="flex items-center gap-2 text-slate-500 text-[10px] font-medium">
+                    <span class="shrink-0">{{ t('performanceMetrics.accelerationRate') }}:</span>
+                    <input
+                        type="range"
+                        v-model.number="internalDcaAcceleration"
+                        min="0"
+                        max="50"
+                        step="1"
+                        class="w-full h-1 bg-violet-100 rounded-lg appearance-none cursor-pointer accent-violet-600 hover:accent-violet-700 focus:outline-none focus:ring-1 focus:ring-violet-500/20"
+                    />
+                    <span class="shrink-0 font-bold text-violet-600">{{ internalDcaAcceleration }}%</span>
+                </div>
             </p>
             <p v-else-if="variant === 'scoring'" class="text-xs text-slate-500 mt-0">
                 {{ t('performanceMetrics.scoringDescription') }}
