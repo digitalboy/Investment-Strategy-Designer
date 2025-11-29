@@ -2,9 +2,9 @@ import { ETFDataPoint } from '../../types';
 import { PerformanceAnalyzer } from '../performance-analyzer';
 import { BenchmarkStrategy, BenchmarkResult } from './interface';
 
-export class SmartTrendBenchmark implements BenchmarkStrategy {
+export class SmartTrendBenchmark3_2 implements BenchmarkStrategy {
     /**
-     * 计算基准3（新）：智能趋势评分 (Smart Trend Score)
+     * 计算基准3.2：智能趋势评分 (Smart Trend Score)
      * 逻辑：
      * 1. 计算价格序列的线性回归斜率 (Linear Regression Slope)。
      * 2. 斜率 > 0 -> 上升趋势 -> 买入/持有。
@@ -43,7 +43,7 @@ export class SmartTrendBenchmark implements BenchmarkStrategy {
             if (i >= period - 1) {
                 // 获取过去 N 天的收盘价 (包括今天)
                 const prices = data.slice(i - period + 1, i + 1).map(d => d.c);
-                slope = SmartTrendBenchmark.calculateLinearRegressionSlope(prices);
+                slope = SmartTrendBenchmark3_2.calculateLinearRegressionSlope(prices);
             }
 
             // --- 2. 执行交易决策 ---

@@ -1,10 +1,10 @@
-import { ETFDataPoint, PerformanceMetrics } from '../../types';
+import { ETFDataPoint } from '../../types';
 import { PerformanceAnalyzer } from '../performance-analyzer';
 import { BenchmarkStrategy, BenchmarkResult } from './interface';
 
-export class MultiFactorBenchmark implements BenchmarkStrategy {
+export class MultiFactorBenchmark3_1 implements BenchmarkStrategy {
     /**
-     * 计算基准3 (旧)：多因子评分模型 (Multi-Factor Scoring Model)
+     * 计算基准3.1：多因子评分模型 (Multi-Factor Scoring Model)
      * 一个基于 VIX、RSI 和 回撤 的择时策略
      * 规则：
      * - VIX > 20 (+1), VIX > 30 (+1)
@@ -19,7 +19,7 @@ export class MultiFactorBenchmark implements BenchmarkStrategy {
         initialCapital: number,
         context?: any
     ): BenchmarkResult {
-        const vixMap = context?.vixMap || context; // Support passing Map directly or wrapped in object
+        const vixMap = context?.vixData; // Context is MarketContext, which has vixData
 
         let cash = initialCapital;
         let positions = 0;

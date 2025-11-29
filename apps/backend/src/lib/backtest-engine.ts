@@ -3,7 +3,7 @@ import { StrategyConfig, Trigger, ETFData, BacktestResultDTO, ETFDataPoint, Acco
 import { IndicatorEngine } from './indicator-engine';
 import { PositionSizer } from './position-sizer';
 import { PerformanceAnalyzer } from './performance-analyzer';
-import { SmartTrendBenchmark } from './benchmarks/smart-trend';
+import { SmartTrendBenchmark3_2 } from './benchmarks/smart-trend-3-2';
 import { BuyAndHoldBenchmark } from './benchmarks/buy-and-hold';
 import { WeeklyDCABenchmark } from './benchmarks/weekly-dca';
 
@@ -150,7 +150,7 @@ export class BacktestEngine {
 		);
 
 		// Calculate Multi-Factor Scoring Benchmark (Using Smart Trend Logic)
-		const smartTrendBenchmark = new SmartTrendBenchmark();
+		const smartTrendBenchmark = new SmartTrendBenchmark3_2();
 		const scoringResult = smartTrendBenchmark.calculate(
 			filteredData,
 			chartData.dates,

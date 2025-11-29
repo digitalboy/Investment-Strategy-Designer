@@ -336,7 +336,7 @@
     "strategyCardTitle": "My Strategy",
     "benchmarkCardTitle": "Benchmark: Buy & Hold",
     "dcaCardTitle": "Benchmark: Weekly DCA",
-    "scoringCardTitle": "Benchmark: Multi-Factor Scoring",
+    "scoringCardTitle": "Benchmark: Strategy 3-2 (Smart Trend)",
     "noData": "No data available",
     "runBacktest": "Run a backtest to view results",
     "dataError": "Data format error: Unable to parse performance metrics",

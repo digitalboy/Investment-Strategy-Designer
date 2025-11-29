@@ -336,7 +336,7 @@
     "strategyCardTitle": "我的策略",
     "benchmarkCardTitle": "基准：买入并持有",
     "dcaCardTitle": "基准：周定投",
-    "scoringCardTitle": "基准：多因子评分",
+    "scoringCardTitle": "基准：策略3-2 (智能趋势)",
     "noData": "暂无数据",
     "runBacktest": "请运行回测以查看结果",
     "dataError": "数据格式错误: 无法解析性能指标",
