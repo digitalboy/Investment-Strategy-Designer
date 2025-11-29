@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { DatabaseService } from '../lib/database';
 import { CacheService } from '../lib/cache';
 import { BacktestEngine, MarketContext } from '../lib/backtest-engine';
-import { StrategyConfig, BacktestResultDTO, ETFData } from '../types';
+import { StrategyConfig, BacktestResultDTO } from '../types';
 
 // Backtest request schema
 const backtestRequestSchema = z.object({

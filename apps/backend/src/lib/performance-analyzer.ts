@@ -1,5 +1,5 @@
 // src/lib/performance-analyzer.ts
-import { ETFDataPoint, AccountState, Trade, PerformanceMetrics, TradeStats } from '../types';
+import { ETFDataPoint,PerformanceMetrics, TradeStats } from '../types';
 
 export class PerformanceAnalyzer {
 	static calculateMaxDrawdown(values: number[]): number {
@@ -160,8 +160,8 @@ export class PerformanceAnalyzer {
 
 
 	static calculateMetricsFromCurve(
-		equityCurve: number[], 
-		dates: string[], 
+		equityCurve: number[],
+		dates: string[],
 		tradeStats: TradeStats,
 		initialCapital: number
 	): PerformanceMetrics {
@@ -290,7 +290,7 @@ export class PerformanceAnalyzer {
 			// 计算截止到回测结束日期的天数 (交易日)
 			const peakIdx = equityCurve.findIndex(p => p.date === currentEvent!.peakDate);
 			const lastIdx = equityCurve.length - 1;
-			
+
 			if (peakIdx !== -1) {
 				currentEvent.daysToRecover = lastIdx - peakIdx;
 			} else {

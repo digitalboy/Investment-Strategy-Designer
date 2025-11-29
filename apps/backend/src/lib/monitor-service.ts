@@ -46,7 +46,7 @@ export class MonitorService {
 		});
 		// 提取VIX历史收盘价序列
 		const globalVixHistory = vixRawData?.data.map(d => d.c) || [];
-		
+
 		if (globalVixHistory.length === 0) {
 			console.warn('未获取到VIX历史数据，VIX相关触发器将无法工作。');
 		}
@@ -69,7 +69,7 @@ export class MonitorService {
 		// 4. 逐个 Symbol 处理
 		for (const [symbol, strats] of strategiesBySymbol.entries()) {
 			const etfData = await this.fetchData(symbol, ctx); // 获取ETF的历史数据
-			
+
 			if (!etfData || etfData.data.length === 0) {
 				console.warn(`未获取到 ${symbol} 的数据，跳过相关策略。`);
 				continue;
@@ -83,9 +83,9 @@ export class MonitorService {
 			const lastDataDate = new Date(currentDate);
 			const now = new Date();
 			const diffDays = (now.getTime() - lastDataDate.getTime()) / (1000 * 3600 * 24);
-			if (diffDays > 5) { 
+			if (diffDays > 5) {
 				console.warn(`数据 ${symbol} 过旧 (${currentDate}), 跳过处理。`);
-				continue; 
+				continue;
 			}
 
 			// 为每个策略检查信号
@@ -93,7 +93,7 @@ export class MonitorService {
 				await this.checkStrategy(strat, etfData, currentPrice, currentDate, globalVixHistory);
 			}
 		}
-		
+
 		console.log('Daily check completed.');
 	}
 
@@ -107,15 +107,15 @@ export class MonitorService {
 	 */
 	private async checkStrategy(
 		strategy: any, // 期望是 StrategyEntity & { author_email: string; author_name?: string }
-		etfData: ETFData, 
+		etfData: ETFData,
 		currentPrice: number,
-		currentDate: string, 
+		currentDate: string,
 		vixHistory: number[] // VIX历史数据序列
 	) {
 		try {
 			const config = JSON.parse(strategy.config) as StrategyConfig;
 			const triggers = config.triggers;
-			
+
 			// 获取上次执行状态，用于冷却期判断
 			const lastState = await this.db.getStrategyState(strategy.id) || {};
 			const newState = { ...lastState };
@@ -126,7 +126,7 @@ export class MonitorService {
 			for (let i = 0; i < triggers.length; i++) {
 				const trigger = triggers[i];
 				const triggerId = `trigger_${i}`;
-				
+
 				// 1. 冷却期检查：如果该触发器有冷却期且上次触发时间在冷却期内，则跳过
 				const lastFiredDate = lastState[triggerId];
 				if (lastFiredDate && trigger.cooldown) {
@@ -149,7 +149,7 @@ export class MonitorService {
 				if (isConditionMet) {
 					hasTriggered = true;
 					newState[triggerId] = currentDate; // 更新该触发器的最后触发日期
-					
+
 					// 构建通知详情文本
 					const detailText = this.getConditionDescription(trigger, config.etfSymbol, currentPrice, currentDate, vixHistory);
 					const actionDesc = trigger.action.type === 'buy' ? '买入' : '卖出';
@@ -165,7 +165,7 @@ export class MonitorService {
 			// 如果有任何触发器触发，则更新策略状态并发送通知/邮件
 			if (hasTriggered) {
 				await this.db.saveStrategyState(strategy.id, newState); // 保存新的触发状态
-				
+
 				// 发送站内信 (始终记录，无论是否开启邮件)
 				const notificationTitle = `🔔 信号触发: ${strategy.name}`;
 				const notificationContent = `[${config.etfSymbol}] 检测到 ${triggeredDetails.length} 个交易信号:\n` + triggeredDetails.join('\n'); // 多个触发详情用换行符分隔
@@ -205,8 +205,8 @@ export class MonitorService {
 		// 获取足够长的历史数据以支持长周期指标 (e.g. 250天新高, VIX streak)
 		const endDate = new Date().toISOString().split('T')[0];
 		// 历史数据范围设置为1.5年，确保大部分指标有足够数据 (例如250个交易日 + 节假日等)
-		const startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000 * 1.5).toISOString().split('T')[0]; 
-		
+		const startDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000 * 1.5).toISOString().split('T')[0];
+
 		return this.cache.getETFData({
 			symbol,
 			startDate,
@@ -226,14 +226,14 @@ export class MonitorService {
 		// 优化：从后往前查找，因为通常 d2 是最新的，d1 是较新的
 		// 或者使用二分查找？但这里数据量不大 (几百条)，简单的 findIndex 应该足够
 		// 注意：d1 可能是很久以前的，data 可能只包含最近 1.5 年的数据
-		
+
 		// 1. 找到 d2 的索引 (当前日期)
 		const idx2 = data.findIndex(p => p.d === d2);
 		if (idx2 === -1) return 0; // 当前日期不在数据中？这是一个异常情况，默认为0防止错误触发
 
 		// 2. 找到 d1 的索引 (上次触发日期)
 		const idx1 = data.findIndex(p => p.d === d1);
-		
+
 		if (idx1 === -1) {
 			// 如果 d1 不在当前加载的历史数据中，说明它太久远了，肯定超过了冷却期
 			return Infinity;
@@ -275,7 +275,7 @@ export class MonitorService {
 		// 为了准确描述，需要获取一些当前值
 		const currentVix = vixHistory.length > 0 ? vixHistory[vixHistory.length - 1] : undefined;
 		const currentVixStr = currentVix !== undefined ? currentVix.toFixed(2) : 'N/A';
-		const currentPriceStr = currentPrice.toFixed(2); // 当前ETF价格
+		
 
 		switch (c.type) {
 			case 'drawdownFromPeak':
