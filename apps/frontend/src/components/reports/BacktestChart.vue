@@ -96,17 +96,6 @@ const chartData = computed(() => {
 				order: 4
 			},
 			{
-				label: t('resultsReportDialog.scoringCardTitle'),
-				backgroundColor: '#e879f9',
-				borderColor: '#d946ef',
-				borderWidth: 2,
-				data: props.result.charts.scoringEquity || [],
-				stepped: true,
-				pointRadius: 0,
-				yAxisID: 'y',
-				order: 3
-			},
-			{
 				label: t('strategy.backtestChart.weeklyDCA'),
 				backgroundColor: '#8b5cf6',
 				borderColor: '#8b5cf6',
@@ -310,7 +299,11 @@ const chartOptions = computed(() => ({
 						valueLabel += ': ';
 					}
 					if (context.parsed.y !== null) {
-						valueLabel += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+						if (label === 'VIX') { // Special handling for VIX
+							valueLabel += context.parsed.y.toFixed(2); // VIX does not have a currency symbol
+						} else {
+							valueLabel += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+						}
 					}
 					return valueLabel;
 				},
