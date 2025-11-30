@@ -3,19 +3,18 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select'
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { Info } from 'lucide-vue-next'
+import { Info, ChevronDown } from 'lucide-vue-next'
 import type { PerformanceMetrics } from '@/types'
 
 const { t } = useI18n()
@@ -209,18 +208,21 @@ const statsBgClass = computed(() => {
                     </div>
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.accelerationRate') }}</span>
-                        <Select v-model="selectedAcceleration">
-                            <SelectTrigger
-                                class="h-5 w-16 text-[10px] px-1.5 py-0 border-violet-200 bg-white/80 hover:bg-violet-50 focus:ring-violet-500/30">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent class="min-w-16">
-                                <SelectItem v-for="opt in accelerationOptions" :key="opt.value" :value="opt.value"
-                                    class="text-xs">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger as-child>
+                                <span
+                                    class="font-medium text-violet-600 hover:text-violet-800 cursor-pointer inline-flex items-center">
+                                    {{ selectedAcceleration }}%
+                                    <ChevronDown class="w-3 h-3 ml-0.5" />
+                                </span>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start" class="min-w-16">
+                                <DropdownMenuItem v-for="opt in accelerationOptions" :key="opt.value"
+                                    class="text-xs cursor-pointer" @click="selectedAcceleration = opt.value">
                                     {{ opt.label }}
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </template>
                 <template v-else>
