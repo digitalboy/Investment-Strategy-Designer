@@ -47,6 +47,8 @@ const accelerationOptions = [
     { value: '25', label: '25%' },
     { value: '30', label: '30%' },
     { value: '50', label: '50%' },
+    { value: '75', label: '75%' },
+    { value: '100', label: '100%' },
 ]
 
 // Internal value for select, synced with prop
@@ -180,12 +182,12 @@ const statsBgClass = computed(() => {
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.totalInvested') }}</span>
                         <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats.totalInvested, 0)
-                            }}</span>
+                        }}</span>
                     </div>
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.totalProceeds') }}</span>
                         <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats.totalProceeds, 0)
-                            }}</span>
+                        }}</span>
                     </div>
                 </template>
                 <template v-else-if="variant === 'dca'">
@@ -204,7 +206,7 @@ const statsBgClass = computed(() => {
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.totalInvested') }}</span>
                         <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats?.totalInvested, 0)
-                            }}</span>
+                        }}</span>
                     </div>
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.accelerationRate') }}</span>
@@ -240,7 +242,7 @@ const statsBgClass = computed(() => {
                     <div>
                         <span class="text-slate-500 block">{{ t('performanceMetrics.totalInvested') }}</span>
                         <span class="font-medium text-slate-900">${{ formatNumber(metrics.tradeStats?.totalInvested, 0)
-                            }}</span>
+                        }}</span>
                     </div>
                     <div></div>
                 </template>
