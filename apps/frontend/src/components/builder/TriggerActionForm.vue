@@ -46,6 +46,7 @@ const localAmount = computed({
 const PERCENT_VALUE_TYPES: ActionValueType[] = ['cashPercent', 'positionPercent', 'totalValuePercent']
 const FIXED_AMOUNT_DEFAULT = 1000
 const PERCENT_AMOUNT_DEFAULT = 10
+const INITIAL_CAPITAL = 10000 // 初始资金限制
 
 const actionValueOptions = computed<{ value: ActionValueType; label: string }[]>(() => {
     if (localActionType.value === 'buy') {
@@ -70,6 +71,10 @@ const actionAmountLimits = computed(() => {
     if (isPercentValueType.value) {
         return { min: 1, max: 100, step: 1 }
     }
+    // 固定金额：买入时限制最大值为初始资金
+    if (localActionType.value === 'buy') {
+        return { min: 1, max: INITIAL_CAPITAL, step: 100 }
+    }
     return { min: 1, max: undefined, step: 100 }
 })
 
@@ -81,6 +86,11 @@ const actionValueHint = computed(() => {
             return t('triggerActionForm.hints.positionPercent')
         case 'totalValuePercent':
             return t('triggerActionForm.hints.totalValuePercent')
+        case 'fixedAmount':
+            if (localActionType.value === 'buy') {
+                return t('triggerActionForm.hints.fixedAmountBuy', { max: INITIAL_CAPITAL.toLocaleString() })
+            }
+            return t('triggerActionForm.hints.default')
         default:
             return t('triggerActionForm.hints.default')
     }
@@ -100,6 +110,10 @@ watch(actionValueOptions, options => {
 const clampActionAmount = (value: number) => {
     if (isPercentValueType.value) {
         return Math.min(Math.max(value || PERCENT_AMOUNT_DEFAULT, 1), 100)
+    }
+    // 固定金额：买入时限制最大值为初始资金
+    if (localActionType.value === 'buy') {
+        return Math.min(Math.max(value || FIXED_AMOUNT_DEFAULT, 1), INITIAL_CAPITAL)
     }
     return Math.max(value || FIXED_AMOUNT_DEFAULT, 1)
 }

@@ -420,6 +420,7 @@
       "cashPercent": "使用账户当前可用现金的百分比进行下单",
       "positionPercent": "卖出当前持仓的一定百分比",
       "totalValuePercent": "调整仓位，使其占账户总资产的指定百分比",
+      "fixedAmountBuy": "输入固定美元金额买入（初始资金上限 ${max}）",
       "default": "输入本次交易的金额或百分比"
     }
   },

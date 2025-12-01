@@ -420,6 +420,7 @@
       "cashPercent": "Use a percentage of the account's current available cash for orders",
       "positionPercent": "Sell a certain percentage of the current position",
       "totalValuePercent": "Adjust the position to a specified percentage of the account's total assets",
+      "fixedAmountBuy": "Enter a fixed dollar amount to buy (max ${max} based on initial capital)",
       "default": "Enter the amount or percentage for this transaction"
     }
   },

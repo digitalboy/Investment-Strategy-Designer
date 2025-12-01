@@ -152,7 +152,8 @@ const describeTrigger = (trigger: Trigger) => {
             return {
                 condition: t('strategy.triggers.invalidTriggerConfig'),
                 action: t('strategy.triggers.actionMissing'),
-                cooldown: ''
+                cooldown: '',
+                actionType: undefined
             }
         }
 
@@ -161,7 +162,8 @@ const describeTrigger = (trigger: Trigger) => {
             return {
                 condition: t('strategy.triggers.triggerParamsMissing'),
                 action: t('strategy.triggers.actionMissing'),
-                cooldown: trigger.cooldown ? `${trigger.cooldown.days} ${t('common.day')}` : ''
+                cooldown: trigger.cooldown ? `${trigger.cooldown.days} ${t('common.day')}` : '',
+                actionType: trigger.action?.type as 'buy' | 'sell' | undefined
             }
         }
 
@@ -217,7 +219,7 @@ const describeTrigger = (trigger: Trigger) => {
             }
             case 'vix': {
                 const mode = c.params.mode || 'threshold';
-                
+
                 if (mode === 'streak') {
                     const dir = c.params.streakDirection === 'up' ? t('common.up') : t('common.down')
                     conditionText = t('strategy.triggers.conditions.vix', {
@@ -229,12 +231,12 @@ const describeTrigger = (trigger: Trigger) => {
                     // For now, let's construct a readable string using existing tokens or add new ones.
                     // Let's use the existing builder summary keys if possible, or add new keys to strategy.triggers.conditions
                     // Adding new keys is better.
-                    
+
                     // Since I cannot easily edit json again in this step without another tool call, I will format it here.
                     // But wait, I ALREADY updated en.json/zh.json with summary keys for builder.
                     // StrategyDashboard uses 'strategy.triggers.conditions.*'.
                     // I should have updated those keys too.
-                    
+
                     // Let's assume I can use a generic format or I'll fix the JSON in next step if needed.
                     // Actually, I can just update the locales now or handle it here.
                     // Let's try to use what we have.
@@ -282,14 +284,16 @@ const describeTrigger = (trigger: Trigger) => {
         return {
             condition: conditionText,
             action: actionText,
-            cooldown: cooldownText
+            cooldown: cooldownText,
+            actionType: a?.type as 'buy' | 'sell' | undefined
         }
     } catch (e) {
         console.error('Error formatting trigger:', e, trigger)
         return {
             condition: t('strategy.triggers.triggerDisplayError'),
             action: t('strategy.triggers.actionDisplayError'),
-            cooldown: ''
+            cooldown: '',
+            actionType: undefined
         }
     }
 }

@@ -2,13 +2,21 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Line } from 'vue-chartjs'
-import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement } from 'chart.js'
+import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement, Filler } from 'chart.js'
 import annotationPlugin from 'chartjs-plugin-annotation'
 import type { BacktestResultDTO, DrawdownEvent } from '@/types'
 
 const { t } = useI18n()
 
-ChartJS.register(Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement, annotationPlugin)
+ChartJS.register(Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement, Filler, annotationPlugin)
+
+// 创建渐变色的函数
+const createGradient = (ctx: CanvasRenderingContext2D, chartArea: any, colorStart: string, colorEnd: string) => {
+	const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom)
+	gradient.addColorStop(0, colorStart)
+	gradient.addColorStop(1, colorEnd)
+	return gradient
+}
 
 const props = defineProps<{
 	result: BacktestResultDTO
@@ -75,36 +83,54 @@ const chartData = computed(() => {
 		datasets: [
 			{
 				label: t('strategy.backtestChart.myStrategy'),
-				backgroundColor: '#4f46e5',
-				borderColor: '#4f46e5',
+				backgroundColor: (context: any) => {
+					const chart = context.chart
+					const { ctx, chartArea } = chart
+					if (!chartArea) return 'rgba(16, 185, 129, 0.3)'
+					return createGradient(ctx, chartArea, 'rgba(16, 185, 129, 0.4)', 'rgba(16, 185, 129, 0)')
+				},
+				borderColor: '#10b981',
 				borderWidth: 2,
 				data: props.result.charts.strategyEquity,
 				tension: 0.1,
 				pointRadius: 0,
 				yAxisID: 'y',
-				order: 2
+				order: 2,
+				fill: true
 			},
 			{
 				label: t('strategy.backtestChart.buyAndHold'),
-				backgroundColor: '#94a3b8',
+				backgroundColor: (context: any) => {
+					const chart = context.chart
+					const { ctx, chartArea } = chart
+					if (!chartArea) return 'rgba(148, 163, 184, 0.2)'
+					return createGradient(ctx, chartArea, 'rgba(148, 163, 184, 0.25)', 'rgba(148, 163, 184, 0)')
+				},
 				borderColor: '#94a3b8',
 				borderWidth: 1.5,
 				data: props.result.charts.benchmarkEquity,
 				tension: 0.1,
 				pointRadius: 0,
 				yAxisID: 'y',
-				order: 4
+				order: 4,
+				fill: true
 			},
 			{
 				label: t('strategy.backtestChart.weeklyDCA'),
-				backgroundColor: '#8b5cf6',
+				backgroundColor: (context: any) => {
+					const chart = context.chart
+					const { ctx, chartArea } = chart
+					if (!chartArea) return 'rgba(139, 92, 246, 0.2)'
+					return createGradient(ctx, chartArea, 'rgba(139, 92, 246, 0.3)', 'rgba(139, 92, 246, 0)')
+				},
 				borderColor: '#8b5cf6',
 				borderWidth: 1.5,
 				data: props.result.charts.dcaEquity || [],
 				tension: 0.1,
 				pointRadius: 0,
 				yAxisID: 'y',
-				order: 3
+				order: 3,
+				fill: true
 			},
 			{
 				label: t('strategy.backtestChart.etfPrice'),
@@ -278,6 +304,35 @@ const chartOptions = computed(() => ({
 	plugins: {
 		legend: {
 			position: 'top' as const,
+			labels: {
+				usePointStyle: true,
+				pointStyleWidth: 10,
+				// 自定义图例样式
+				generateLabels: (chart: any) => {
+					const datasets = chart.data.datasets
+					return datasets.map((dataset: any, i: number) => {
+						const meta = chart.getDatasetMeta(i)
+						// 买入/卖出使用三角形，其他使用正方形
+						let pointStyle: string = 'rect'
+						if (dataset.pointStyle === 'triangle') {
+							pointStyle = 'triangle'
+						}
+						return {
+							text: dataset.label,
+							fillStyle: typeof dataset.backgroundColor === 'function'
+								? dataset.borderColor
+								: dataset.backgroundColor,
+							strokeStyle: dataset.borderColor,
+							lineWidth: dataset.borderWidth || 1,
+							hidden: meta.hidden,
+							index: i,
+							pointStyle: pointStyle,
+							rotation: dataset.rotation || 0,
+							lineDash: dataset.borderDash || [],
+						}
+					})
+				}
+			}
 		},
 		annotation: {
 			annotations: drawdownAnnotations.value

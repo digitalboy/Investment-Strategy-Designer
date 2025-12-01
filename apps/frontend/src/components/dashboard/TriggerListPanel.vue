@@ -13,6 +13,7 @@ const { triggerSummaries, canEdit, emptyStateMessage } = defineProps<{
         condition: string
         action: string
         cooldown: string
+        actionType?: 'buy' | 'sell'
     }>
     canEdit: boolean
     emptyStateMessage: string
@@ -23,6 +24,23 @@ const emit = defineEmits<{
     'edit-trigger': [index: number]
     'remove-trigger': [index: number]
 }>()
+
+// 根据动作类型获取序号徽章样式
+const getBadgeClass = (actionType?: 'buy' | 'sell') => {
+    if (actionType === 'sell') {
+        return 'bg-gradient-to-br from-red-500 to-rose-600 shadow-red-500/30'
+    }
+    // 默认绿色（买入）
+    return 'bg-gradient-to-br from-lime-600 to-emerald-600 shadow-lime-500/30'
+}
+
+// 根据动作类型获取卡片边框样式
+const getCardClass = (actionType?: 'buy' | 'sell') => {
+    if (actionType === 'sell') {
+        return 'border-red-200/40 bg-gradient-to-br from-white via-red-50/50 to-rose-100/40 shadow-red-200/30 hover:shadow-red-300/40'
+    }
+    return 'border-emerald-200/40 bg-gradient-to-br from-white via-emerald-50/50 to-lime-100/40 shadow-emerald-200/30 hover:shadow-emerald-300/40'
+}
 </script>
 
 <template>
@@ -46,11 +64,11 @@ const emit = defineEmits<{
             </div>
             <ol v-else class="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
                 <li v-for="(summary, index) in triggerSummaries" :key="summary.id"
-                    class="rounded-2xl border border-emerald-200/40 bg-linear-to-br from-white via-emerald-50/50 to-lime-100/40 p-4 shadow-lg shadow-emerald-200/30 hover:shadow-xl hover:shadow-emerald-300/40 hover:-translate-y-1 transition-all duration-300 h-full">
+                    :class="['rounded-2xl border p-4 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full', getCardClass(summary.actionType)]">
                     <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between h-full">
                         <div class="flex items-start gap-3">
                             <span
-                                class="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-lime-600 to-emerald-600 text-white font-semibold shadow-lg shadow-lime-500/30">
+                                :class="['flex size-8 shrink-0 items-center justify-center rounded-full text-white text-sm font-semibold shadow-lg', getBadgeClass(summary.actionType)]">
                                 {{ summary.order }}
                             </span>
                             <div class="space-y-3">
