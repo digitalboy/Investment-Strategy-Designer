@@ -136,10 +136,11 @@ export class DatabaseService {
 	}
 
 	// 社区功能
-	async getPublicStrategies(sortBy: 'recent' | 'popular' | 'return' = 'recent', limit: number = 20, offset: number = 0): Promise<(StrategyEntity & { author_email: string; author_name?: string; author_photo?: string })[]> {
+	async getPublicStrategies(sortBy: 'recent' | 'popular' | 'return' | 'drawdown' = 'recent', limit: number = 20, offset: number = 0): Promise<(StrategyEntity & { author_email: string; author_name?: string; author_photo?: string })[]> {
 		let orderBy = 's.created_at DESC';
 		if (sortBy === 'popular') orderBy = 's.like_count DESC, s.view_count DESC';
 		if (sortBy === 'return') orderBy = 's.return_rate DESC NULLS LAST';
+		if (sortBy === 'drawdown') orderBy = 's.max_drawdown DESC NULLS LAST'; // 回撤是负数，DESC让绝对值小的排前面
 
 		const query = `
       SELECT s.*, u.email as author_email, u.display_name as author_name, u.photo_url as author_photo
@@ -222,7 +223,7 @@ export class DatabaseService {
 		const offset = (page - 1) * limit;
 
 		const query = `
-      WITH RECURSIVE 
+      WITH RECURSIVE
       paginated_roots AS (
         SELECT id
         FROM comments
@@ -273,7 +274,7 @@ export class DatabaseService {
 	async getStrategyState(strategyId: string): Promise<Record<string, string> | null> {
 		const query = 'SELECT last_execution_state FROM strategy_states WHERE strategy_id = ?';
 		const result = await this.db.prepare(query).bind(strategyId).first<{ last_execution_state: string } | null>();
-		
+
 		if (result && result.last_execution_state) {
 			try {
 				return JSON.parse(result.last_execution_state);
@@ -288,7 +289,7 @@ export class DatabaseService {
 	async saveStrategyState(strategyId: string, state: Record<string, string>): Promise<void> {
 		const now = new Date().toISOString();
 		const stateStr = JSON.stringify(state);
-		
+
 		const query = `
 			INSERT INTO strategy_states (strategy_id, last_execution_state, updated_at)
 			VALUES (?, ?, ?)
@@ -296,7 +297,7 @@ export class DatabaseService {
 				last_execution_state = excluded.last_execution_state,
 				updated_at = excluded.updated_at
 		`;
-		
+
 		await this.db.prepare(query).bind(strategyId, stateStr, now).run();
 	}
 

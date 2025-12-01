@@ -120,7 +120,7 @@ export const strategyController = {
 	getStrategies: async (c: Context<{ Bindings: Env; Variables: Variables }>) => {
 		try {
 			const scope = c.req.query('scope') || 'mine'; // 'mine' | 'public'
-			const sortBy = c.req.query('sort') as 'recent' | 'popular' | 'return' || 'recent';
+			const sortBy = c.req.query('sort') as 'recent' | 'popular' | 'return' | 'drawdown' || 'recent';
 
 			const dbService = new DatabaseService(c.env.etf_strategy_db);
 			let strategies: (StrategyEntity & { author_email: string; author_name?: string; author_photo?: string })[] = [];
@@ -260,30 +260,31 @@ export const strategyController = {
 			// Parse the config from JSON string
 			const config: StrategyConfig = JSON.parse(strategy.config);
 
-			            return c.json({
-			                id: strategy.id,
-			                name: strategy.name,
-			                description: strategy.description,
-			                config,
-			                isPublic: !!strategy.is_public,
-			                notificationsEnabled: !!strategy.notifications_enabled, // Return this
-			                stats: {
-			                    views: strategy.view_count,
-			                    likes: strategy.like_count,
-			                    clones: strategy.clone_count
-			                },
-			                author: {
-			                    email: strategy.author_email || 'Unknown',
-			                    displayName: strategy.author_name,
-			                    photoUrl: strategy.author_photo
-			                },
-			                returnRate: strategy.return_rate,
-			                maxDrawdown: strategy.max_drawdown,
-			                createdAt: strategy.created_at,
-			                updatedAt: strategy.updated_at,
-			                isOwner
-			            });
-			        } catch (error) {			console.error('Get strategy error:', error);
+			return c.json({
+				id: strategy.id,
+				name: strategy.name,
+				description: strategy.description,
+				config,
+				isPublic: !!strategy.is_public,
+				notificationsEnabled: !!strategy.notifications_enabled, // Return this
+				stats: {
+					views: strategy.view_count,
+					likes: strategy.like_count,
+					clones: strategy.clone_count
+				},
+				author: {
+					email: strategy.author_email || 'Unknown',
+					displayName: strategy.author_name,
+					photoUrl: strategy.author_photo
+				},
+				returnRate: strategy.return_rate,
+				maxDrawdown: strategy.max_drawdown,
+				createdAt: strategy.created_at,
+				updatedAt: strategy.updated_at,
+				isOwner
+			});
+		} catch (error) {
+			console.error('Get strategy error:', error);
 			return c.json({
 				error: {
 					code: 'GET_STRATEGY_ERROR',

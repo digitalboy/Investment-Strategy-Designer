@@ -285,7 +285,7 @@ export const useStrategyStore = defineStore('strategy', () => {
         }
     }
 
-    const fetchPublicStrategies = async (sortBy: 'recent' | 'popular' | 'return' = 'recent') => {
+    const fetchPublicStrategies = async (sortBy: 'recent' | 'popular' | 'return' | 'drawdown' = 'recent') => {
         isLoading.value = true
         error.value = null
 

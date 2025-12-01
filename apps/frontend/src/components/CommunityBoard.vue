@@ -16,7 +16,7 @@ const strategyStore = useStrategyStore()
 const authStore = useAuthStore()
 const { publicStrategies, userStrategies, isLoading, currentStrategyComments, hasMoreComments, commentsLoading } = storeToRefs(strategyStore)
 
-const sortBy = ref<'recent' | 'popular' | 'return'>('return')
+const sortBy = ref<'return' | 'drawdown' | 'popular' | 'recent'>('return')
 const showCommentsDialog = ref(false)
 const selectedStrategyId = ref<string | null>(null)
 const currentStrategyInfo = ref<{ name: string, author: { name?: string, photo?: string } } | null>(null)
@@ -38,7 +38,7 @@ const loadStrategies = async () => {
     await strategyStore.fetchPublicStrategies(sortBy.value)
 }
 
-const handleSortChange = async (newSort: 'recent' | 'popular' | 'return') => {
+const handleSortChange = async (newSort: 'return' | 'drawdown' | 'popular' | 'recent') => {
     sortBy.value = newSort
     await loadStrategies()
 }
@@ -163,13 +163,12 @@ const handleLoadMoreComments = async () => {
                     </div>
                 </div>
                 <div class="flex gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
-                    <button v-for="sort in ['recent', 'popular', 'return']" :key="sort"
+                    <button v-for="sort in ['return', 'drawdown', 'popular', 'recent']" :key="sort"
                         @click="handleSortChange(sort as any)" :class="[
                             'px-4 py-2 text-sm rounded-lg transition-all font-medium',
                             sortBy === sort ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                         ]">
-                        {{ sort === 'recent' ? t('community.recent') : (sort === 'popular' ? t('community.popular') :
-                            t('community.return')) }}
+                        {{ t(`community.${sort}`) }}
                     </button>
                 </div>
             </div>

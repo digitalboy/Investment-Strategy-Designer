@@ -31,7 +31,7 @@ export const strategyService = {
         )
     },
 
-    async getPublicStrategies(sortBy: 'recent' | 'popular' | 'return' = 'recent'): Promise<StrategySummaryDTO[]> {
+    async getPublicStrategies(sortBy: 'recent' | 'popular' | 'return' | 'drawdown' = 'recent'): Promise<StrategySummaryDTO[]> {
         const response = await axios.get(`${API_BASE_URL}/strategies?scope=public&sort=${sortBy}`)
         return response.data
     },
