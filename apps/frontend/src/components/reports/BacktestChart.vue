@@ -157,6 +157,19 @@ const chartData = computed(() => {
 				hidden: false // Always show VIX as an important market sentiment reference
 			},
 			{
+				label: t('strategy.backtestChart.tnx'),
+				backgroundColor: '#0ea5e9',
+				borderColor: '#0ea5e9',
+				borderWidth: 1.0,
+				borderDash: [3, 3],
+				data: props.result.charts.tnxData || [],
+				tension: 0.1,
+				pointRadius: 0,
+				yAxisID: 'y3',
+				order: 6,
+				hidden: false // US 10-Year Treasury Yield as reference
+			},
+			{
 				label: t('strategy.backtestChart.buy'),
 				data: buyPoints,
 				backgroundColor: '#16a34a',
@@ -356,6 +369,8 @@ const chartOptions = computed(() => ({
 					if (context.parsed.y !== null) {
 						if (label === 'VIX') { // Special handling for VIX
 							valueLabel += context.parsed.y.toFixed(2); // VIX does not have a currency symbol
+						} else if (label === t('strategy.backtestChart.tnx')) { // Special handling for TNX
+							valueLabel += (context.parsed.y / 10).toFixed(2) + '%'; // TNX: 42.50 means 4.25%
 						} else {
 							valueLabel += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
 						}
@@ -417,6 +432,25 @@ const chartOptions = computed(() => ({
 			},
 			ticks: {
 				color: '#ef4444'
+			}
+		},
+		y3: {
+			type: 'linear' as const,
+			display: true,
+			position: 'right' as const,
+			title: {
+				display: true,
+				text: t('strategy.backtestChart.tnx') + ' (%)'
+			},
+			grid: {
+				drawOnChartArea: false,
+			},
+			ticks: {
+				color: '#0ea5e9',
+				callback: function (value: any) {
+					// TNX value like 42.50 means 4.25%
+					return (value / 10).toFixed(2) + '%';
+				}
 			}
 		}
 	}

@@ -14,6 +14,7 @@ interface ExecutionState {
 
 export interface MarketContext {
 	vixData?: Map<string, number>;
+	tnxData?: Map<string, number>; // US 10-Year Treasury Yield (^TNX)
 	dcaAcceleration?: number; // Optional: for Smart Weekly DCA acceleration rate
 }
 
@@ -138,8 +139,8 @@ export class BacktestEngine {
 
 		// 计算性能指标 (只计算用户策略的)
 		const strategyStats = PerformanceAnalyzer.calculateMetricsFromCurve(
-			chartData.strategyEquity, 
-			chartData.dates, 
+			chartData.strategyEquity,
+			chartData.dates,
 			{ // 从 accountState.tradeHistory 聚合 TradeStats
 				totalTrades: accountState.tradeHistory.length,
 				buyCount: accountState.tradeHistory.filter(t => t.action === 'buy').length,
@@ -189,7 +190,8 @@ export class BacktestEngine {
 				dcaEquity: chartData.dcaEquity,
 				scoringEquity: scoringResult.equityCurve,
 				underlyingPrice: chartData.underlyingPrice,
-				vixData: chartData.vixData
+				vixData: chartData.vixData,
+				tnxData: chartData.tnxData
 			},
 			trades: accountState.tradeHistory
 		};
@@ -267,6 +269,7 @@ export class BacktestEngine {
 		dcaStats: PerformanceMetrics;
 		underlyingPrice: number[];
 		vixData?: number[];
+		tnxData?: number[];
 	} {
 		const dates = Object.keys(accountHistory).sort();
 
@@ -292,6 +295,12 @@ export class BacktestEngine {
 			vixData = dates.map(date => context.vixData?.get(date) || 0);
 		}
 
+		let tnxData: number[] | undefined;
+		if (context?.tnxData && context.tnxData.size > 0) {
+			// 如果 context 中有 TNX 数据，则将其映射到 dates
+			tnxData = dates.map(date => context.tnxData?.get(date) || 0);
+		}
+
 		return {
 			dates,
 			strategyEquity,
@@ -300,7 +309,8 @@ export class BacktestEngine {
 			dcaEquity,
 			dcaStats: dcaResult.stats,
 			underlyingPrice,
-			vixData
+			vixData,
+			tnxData
 		};
 	}
 }

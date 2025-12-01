@@ -194,6 +194,7 @@ export interface BacktestResultDTO {
 		scoringEquity: number[];       // 多因子评分净值曲线
 		underlyingPrice: number[];
 		vixData?: number[];
+		tnxData?: number[]; // US 10-Year Treasury Yield
 	};
 	trades: Trade[];
 }

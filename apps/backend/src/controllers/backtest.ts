@@ -60,8 +60,16 @@ export const backtestController = {
 				ctx: c.executionCtx,
 			});
 
+			// Fetch US 10-Year Treasury Yield (^TNX) as reference
+			const tnxPromise = cacheService.getETFData({
+				symbol: '^TNX',
+				startDate,
+				endDate,
+				ctx: c.executionCtx,
+			});
+
 			// Wait for all data
-			const [etfData, vixDataRaw] = await Promise.all([etfPromise, vixPromise]);
+			const [etfData, vixDataRaw, tnxDataRaw] = await Promise.all([etfPromise, vixPromise, tnxPromise]);
 
 			// Create strategy config
 			const strategyConfig: StrategyConfig = {
@@ -88,6 +96,10 @@ export const backtestController = {
 			};
 			if (vixDataRaw && vixDataRaw.data) {
 				context.vixData = new Map(vixDataRaw.data.map(point => [point.d, point.c]));
+			}
+			if (tnxDataRaw && tnxDataRaw.data) {
+				// TNX values are displayed as e.g. 42.50 meaning 4.25%
+				context.tnxData = new Map(tnxDataRaw.data.map(point => [point.d, point.c]));
 			}
 
 			const result: BacktestResultDTO = await backtestEngine.runBacktest(strategyConfig, etfData, context);
