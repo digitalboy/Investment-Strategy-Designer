@@ -21,7 +21,7 @@ import { Info } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 
 const { t } = useI18n({ useScope: 'global' })
-const emit = defineEmits(['navigate-home'])
+
 
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
@@ -48,7 +48,7 @@ watch(() => authStore.isAuthenticated, (isAuthenticated) => {
     if (isAuthenticated) {
         notificationStore.fetchNotifications(true)
     } else {
-        notificationStore.$reset() // Reset store if available or manually clear
+        notificationStore.reset() // Reset store if available or manually clear
         notifications.value = []
         unreadCount.value = 0
     }
@@ -95,13 +95,13 @@ const handleLogout = () => {
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center gap-8">
-                    <div class="flex items-center gap-3 cursor-pointer" @click="$emit('navigate-home')">
+                    <RouterLink to="/" class="flex items-center gap-3 cursor-pointer">
                         <div
                             class="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center text-white font-bold">
                             Q
                         </div>
                         <span class="font-bold text-xl tracking-tight text-slate-800">VESTLab QuantStrategy</span>
-                    </div>
+                    </RouterLink>
                 </div>
                 <div class="flex items-center gap-4">
                     <!-- Notifications Bell -->

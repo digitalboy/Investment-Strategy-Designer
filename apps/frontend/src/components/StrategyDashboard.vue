@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import { useStrategyStore } from '@/stores/strategy'
@@ -19,6 +20,7 @@ import {
 import TriggerBuilderDialog from './TriggerBuilderDialog.vue'
 import ResultsReportDialog from './ResultsReportDialog.vue'
 import SaveStrategyDialog from './SaveStrategyDialog.vue'
+import SetupWizardDialog from './SetupWizardDialog.vue'
 import StockLoading from './StockLoading.vue'
 import type { Trigger } from '@/types'
 import { toast } from 'vue-sonner'
@@ -28,19 +30,56 @@ import StrategyHeader from './dashboard/StrategyHeader.vue'
 import TriggerListPanel from './dashboard/TriggerListPanel.vue'
 import ExecutionGuidePanel from './dashboard/ExecutionGuidePanel.vue'
 
-const emit = defineEmits(['edit-setup', 'back'])
+// No emits needed for routing version
+// const emit = defineEmits(['edit-setup', 'back'])
 
 const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
 
 const store = useStrategyStore()
 const authStore = useAuthStore()
 const { config, currentStrategyMetadata, currentStrategyName, backtestResult, error, isLoading } = storeToRefs(store)
 const triggers = computed(() => config.value.triggers)
 
+// Strategy Initialization
+const initStrategy = async () => {
+    const strategyId = route.params.id as string
+    if (strategyId) {
+        try {
+            await store.loadStrategy(strategyId)
+        } catch (e) {
+            console.error('Failed to load strategy:', e)
+            toast.error(t('strategy.messages.loadFailed'))
+            router.push('/')
+        }
+    } else if (route.name === 'strategy-create') {
+        // Creating a new strategy. 
+        // If config is empty (page refresh), we might want to show setup wizard or redirect.
+        // For now, if totally empty, reset.
+        if (!store.config.triggers) {
+             store.reset()
+        }
+    }
+}
+
+onMounted(() => {
+    initStrategy()
+})
+
+// Watch for route changes (e.g. if switching from one strategy to another directly)
+watch(
+  () => route.params.id,
+  (newId) => {
+    if (newId) {
+       store.loadStrategy(newId as string)
+    }
+  }
+)
+
 // StrategyHeader related actions
 const handleNameUpdate = async (newName: string) => {
     if (!currentStrategyMetadata.value) {
-        // If it's a new strategy (not saved yet), just update the local store name
         store.currentStrategyName = newName
         return
     }
@@ -54,7 +93,6 @@ const handleNameUpdate = async (newName: string) => {
         })
     } catch (e) {
         console.error('Failed to update name:', e)
-        // Revert handled by component via props update
     }
 }
 
@@ -88,7 +126,7 @@ const handleNotificationsUpdate = async (enabled: boolean) => {
 
 const canEdit = computed(() => {
     if (!authStore.isAuthenticated) return false
-    if (!currentStrategyMetadata.value) return true
+    if (!currentStrategyMetadata.value) return true // Draft/New strategy
     return !!currentStrategyMetadata.value.isOwner
 })
 
@@ -96,6 +134,7 @@ const showTriggerBuilder = ref(false)
 const showResults = ref(false)
 const showSaveDialog = ref(false)
 const showDeleteDialog = ref(false)
+const showSetupWizard = ref(false)
 const editingTriggerIndex = ref<number | null>(null)
 
 const openTriggerBuilder = () => {
@@ -218,28 +257,9 @@ const describeTrigger = (trigger: Trigger) => {
                 break
             }
             case 'vix': {
-                const mode = c.params.mode || 'threshold';
-
+                 const mode = c.params.mode || 'threshold';
                 if (mode === 'streak') {
                     const dir = c.params.streakDirection === 'up' ? t('common.up') : t('common.down')
-                    conditionText = t('strategy.triggers.conditions.vix', {
-                        operator: 'streak', // Special marker for switch below, but we construct string manually
-                        threshold: 0
-                    })
-                    // Override with specific string format since we don't have a dedicated key in strategy.triggers.conditions yet or need to reuse
-                    // Ideally we add keys to en.json/zh.json for strategy.triggers.conditions.vix_streak
-                    // For now, let's construct a readable string using existing tokens or add new ones.
-                    // Let's use the existing builder summary keys if possible, or add new keys to strategy.triggers.conditions
-                    // Adding new keys is better.
-
-                    // Since I cannot easily edit json again in this step without another tool call, I will format it here.
-                    // But wait, I ALREADY updated en.json/zh.json with summary keys for builder.
-                    // StrategyDashboard uses 'strategy.triggers.conditions.*'.
-                    // I should have updated those keys too.
-
-                    // Let's assume I can use a generic format or I'll fix the JSON in next step if needed.
-                    // Actually, I can just update the locales now or handle it here.
-                    // Let's try to use what we have.
                     conditionText = `VIX ${t('triggerConditionForm.descriptions.priceStreak.middle')} ${c.params.streakCount} ${t('common.day')} ${dir}`
                 } else if (mode === 'breakout') {
                     const type = c.params.breakoutType === 'high' ? t('triggerConditionForm.descriptions.vix.breakoutHigh') : t('triggerConditionForm.descriptions.vix.breakoutLow')
@@ -332,6 +352,8 @@ const handleRunBacktest = async () => {
 
 const onStrategySaved = () => {
     console.log('Strategy saved successfully')
+    // Optionally navigate to the new ID if saved?
+    // But save dialog might already handle ID update in store.
 }
 
 const handleUpdate = async () => {
@@ -344,7 +366,6 @@ const handleUpdate = async () => {
     }
 
     const strategyId = currentStrategyMetadata.value.id
-    console.log('Updating strategy with ID:', strategyId, typeof strategyId)
 
     try {
         await store.updateStrategy({
@@ -353,7 +374,6 @@ const handleUpdate = async () => {
             isPublic: currentStrategyMetadata.value.isPublic
         })
         toast.success(t('strategy.messages.strategyUpdateSuccess'))
-        // 刷新用户策略列表以反映更新
         if (authStore.isAuthenticated) {
             store.fetchUserStrategies()
         }
@@ -369,13 +389,22 @@ const handleDelete = async () => {
     try {
         await store.deleteStrategy(currentStrategyMetadata.value.id)
         toast.success(t('strategy.messages.strategyDeleted'))
-        emit('back')
+        router.push('/')
     } catch (e: any) {
         console.error('Failed to delete strategy:', e)
         toast.error(e.message || t('strategy.messages.deleteFailed'))
     } finally {
         showDeleteDialog.value = false
     }
+}
+
+const handleBack = () => {
+    console.log('Navigating back to home via router.push("/")')
+    router.push('/')
+}
+
+const handleEditSetup = () => {
+    showSetupWizard.value = true
 }
 </script>
 
@@ -384,7 +413,7 @@ const handleDelete = async () => {
         <!-- Header Section -->
         <StrategyHeader :title="strategyTitle" :metadata="currentStrategyMetadata" :config="config"
             :trigger-count="triggers.length" :is-loading="isLoading" :can-adjust-setup="canAdjustSetup"
-            @back="$emit('back')" @edit-setup="$emit('edit-setup')" @update-name="handleNameUpdate"
+            @back="handleBack" @edit-setup="handleEditSetup" @update-name="handleNameUpdate"
             @update-visibility="handleVisibilityUpdate" @update-notifications="handleNotificationsUpdate" />
 
         <div class="flex flex-col gap-6 xl:flex-row">
@@ -447,6 +476,7 @@ const handleDelete = async () => {
         <TriggerBuilderDialog v-model:open="showTriggerBuilder" :editing-index="editingTriggerIndex" />
         <ResultsReportDialog v-model:open="showResults" />
         <SaveStrategyDialog v-model:open="showSaveDialog" @saved="onStrategySaved" />
+        <SetupWizardDialog v-model:open="showSetupWizard" />
 
         <Transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0"
             enter-to-class="opacity-100" leave-active-class="transition duration-150 ease-in"

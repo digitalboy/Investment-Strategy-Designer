@@ -1,23 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
+// import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
-import { useStrategyStore } from '@/stores/strategy'
 import { useLanguageStore } from '@/stores/language'
 import Navbar from '@/components/Navbar.vue'
-import WelcomeState from '@/components/WelcomeState.vue'
-import StrategyDashboard from '@/components/StrategyDashboard.vue'
-import CommunityBoard from '@/components/CommunityBoard.vue'
-import SetupWizardDialog from '@/components/SetupWizardDialog.vue'
 import NewsTicker from '@/components/NewsTicker.vue'
 import { Toaster } from '@/components/ui/sonner'
 
-const { t } = useI18n({ useScope: 'global' })
+// const { t } = useI18n({ useScope: 'global' })
 const languageStore = useLanguageStore()
 const authStore = useAuthStore()
-const strategyStore = useStrategyStore()
-const showSetupWizard = ref(false)
-const showEditor = ref(false)
 const forceRerenderKey = ref(0) // 用于强制组件重新渲染
 
 // 监听语言变化并强制组件重新渲染以确保UI更新
@@ -33,41 +25,6 @@ watch(
 onMounted(() => {
   authStore.init()
 })
-
-const startCreate = () => {
-  strategyStore.reset()
-  showSetupWizard.value = true
-}
-
-const onSetupCompleted = () => {
-  showEditor.value = true
-}
-
-const editSetup = () => {
-  showSetupWizard.value = true
-}
-
-const exitEditor = () => {
-  showEditor.value = false
-  // 刷新策略数据以反映更新
-  strategyStore.fetchPublicStrategies()
-  if (authStore.isAuthenticated) {
-    strategyStore.fetchUserStrategies()
-  }
-}
-
-const handleNavigateHome = () => {
-  showEditor.value = false
-}
-
-const handleViewStrategy = async (strategyId: string) => {
-  try {
-    await strategyStore.loadStrategy(strategyId)
-    showEditor.value = true
-  } catch (error) {
-    console.error('Failed to load strategy', error)
-  }
-}
 </script>
 
 <template>
@@ -142,74 +99,23 @@ const handleViewStrategy = async (strategyId: string) => {
     </div>
 
     <!-- 导航栏 -->
-    <Navbar @navigate-home="handleNavigateHome" class="relative z-30" />
+    <Navbar class="relative z-30" />
 
     <!-- 主要内容区域 -->
     <main class="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 pb-24">
       <!-- 视图过渡容器 -->
-      <Transition mode="out-in" enter-active-class="transition-all duration-500 ease-out"
-        enter-from-class="opacity-0 scale-95 translate-y-8" enter-to-class="opacity-100 scale-100 translate-y-0"
-        leave-active-class="transition-all duration-300 ease-in" leave-from-class="opacity-100 scale-100"
-        leave-to-class="opacity-0 scale-95">
-        <!-- 编辑器视图 -->
-        <div v-if="showEditor" key="editor-view" class="animate-fade-in">
-          <StrategyDashboard @edit-setup="editSetup" @back="exitEditor" />
-        </div>
-
-        <!-- 主视图 -->
-        <div v-else key="main-view" class="animate-fade-in">
-          <!-- 未登录：欢迎页 + 社区 -->
-          <div v-if="!authStore.isAuthenticated" class="space-y-16">
-            <WelcomeState @start-create="startCreate" />
-
-            <!-- 分隔装饰 -->
-            <!-- <div class="relative py-8">
-              <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                <div class="w-full border-t border-gradient-to-r from-transparent via-emerald-200 to-transparent"></div>
-              </div>
-              <div class="relative flex justify-center">
-                <span
-                  class="bg-linear-to-r from-slate-50 via-lime-50/50 to-slate-50 px-6 text-sm font-medium text-slate-500 tracking-wider uppercase">
-                  {{ t('common.selectedStrategies') }}
-                </span>
-              </div>
-            </div> -->
-
-            <CommunityBoard @create-strategy="startCreate" @view-strategy="handleViewStrategy" />
-          </div>
-
-          <!-- 已登录：社区面板（我的策略 + 公开策略） -->
-          <div v-else class="space-y-8">
-            <!-- 欢迎横幅 -->
-            <div
-              class="relative overflow-hidden rounded-3xl bg-linear-to-r from-lime-600 via-emerald-600 to-lime-600 px-8 py-12 shadow-2xl shadow-lime-500/20">
-              <div
-                class="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,.05)_50%,transparent_75%,transparent_100%)] bg-size-[250%_250%] animate-shimmer">
-              </div>
-              <div class="relative">
-                <h2 class="text-3xl font-bold text-white mb-3 tracking-tight">
-                  {{ t('common.welcomeBack') }}, {{ t('dashboard.strategyMaster') }} 👋
-                </h2>
-                <p class="text-emerald-100 text-lg max-w-2xl">
-                  {{ t('dashboard.continueOptimizing') }}
-                </p>
-              </div>
-            </div>
-
-            <CommunityBoard @create-strategy="startCreate" @view-strategy="handleViewStrategy" />
-          </div>
-        </div>
-      </Transition>
+      <RouterView v-slot="{ Component }">
+        <Transition mode="out-in" enter-active-class="transition-all duration-500 ease-out"
+          enter-from-class="opacity-0 scale-95 translate-y-8" enter-to-class="opacity-100 scale-100 translate-y-0"
+          leave-active-class="transition-all duration-300 ease-in" leave-from-class="opacity-100 scale-100"
+          leave-to-class="opacity-0 scale-95">
+          <component :is="Component" />
+        </Transition>
+      </RouterView>
     </main>
-
-    <!-- 设置向导对话框 -->
-    <SetupWizardDialog v-model:open="showSetupWizard" @completed="onSetupCompleted" />
 
     <!-- News Ticker (Fixed Bottom) -->
     <NewsTicker />
-
-    <!-- 底部装饰线 (moved slightly up or hidden if ticker is present, let's keep it behind or remove it) -->
-    <!-- <div class="fixed bottom-0 left-0 right-0 h-1 bg-linear-to-r from-lime-500 via-emerald-500 to-lime-600 opacity-80 z-50"></div> -->
   </div>
 </template>
 
