@@ -134,14 +134,31 @@ watch(localValueType, (next: ActionValueType, previous: ActionValueType | undefi
     }
 })
 
-// When amount changes, clamp it
+// When amount changes, clamp it immediately
 watch(localAmount, value => {
     const numeric = Number(value)
     const clamped = clampActionAmount(numeric)
     if (clamped !== numeric) {
+        // Use nextTick to avoid infinite loop
         localAmount.value = clamped
     }
+}, { immediate: true })
+
+// Also watch actionType changes to re-clamp when switching to buy
+watch(localActionType, () => {
+    if (!isPercentValueType.value) {
+        const clamped = clampActionAmount(Number(localAmount.value))
+        if (clamped !== localAmount.value) {
+            localAmount.value = clamped
+        }
+    }
 })
+
+// Handler for input blur to ensure value is clamped
+const handleAmountBlur = () => {
+    const clamped = clampActionAmount(Number(localAmount.value))
+    localAmount.value = clamped
+}
 
 </script>
 
@@ -183,7 +200,7 @@ watch(localAmount, value => {
                 <Label class="text-xs text-slate-500">{{ t('triggerActionForm.value') }}</Label>
                 <div class="relative">
                     <Input type="number" v-model="localAmount" class="h-10 pr-10" :min="actionAmountLimits.min"
-                        :max="actionAmountLimits.max" :step="actionAmountLimits.step" />
+                        :max="actionAmountLimits.max" :step="actionAmountLimits.step" @blur="handleAmountBlur" />
                     <span class="absolute right-3 top-2.5 text-xs text-slate-500">{{
                         actionValueSuffix }}</span>
                 </div>
