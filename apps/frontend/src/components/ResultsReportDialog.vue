@@ -13,7 +13,9 @@ import { Button } from '@/components/ui/button'
 import PerformanceMetricCard from './reports/PerformanceMetricCard.vue'
 import BacktestChart from './reports/BacktestChart.vue'
 import DrawdownAnalysisCard from './reports/DrawdownAnalysisCard.vue'
+import PolymarketPanel from './reports/PolymarketPanel.vue'
 import type { DrawdownEvent } from '@/types'
+import type { ChartAnnotationMarket } from '@/services/polymarketService'
 
 const { t } = useI18n({ useScope: 'global' })
 const props = defineProps<{
@@ -25,15 +27,18 @@ const emit = defineEmits(['update:open'])
 // 选中的回撤事件，用于图表高亮显示
 const selectedDrawdown = ref<DrawdownEvent | null>(null)
 
+// 选中的预测市场，用于图表高亮显示
+const selectedMarket = ref<ChartAnnotationMarket | null>(null)
+
 // 周定投的加速比例状态
 const dcaAcceleration = ref(0.12) // Default 12% as a decimal
 
 onMounted(() => {
 	console.log('ResultsReportDialog mounted')
-    // Initialize dcaAcceleration from the backtest result if available
-    if (result.value?.performance.dca?.dcaAccelerationRate !== undefined) {
-        dcaAcceleration.value = result.value.performance.dca.dcaAccelerationRate;
-    }
+	// Initialize dcaAcceleration from the backtest result if available
+	if (result.value?.performance.dca?.dcaAccelerationRate !== undefined) {
+		dcaAcceleration.value = result.value.performance.dca.dcaAccelerationRate;
+	}
 })
 
 watch(() => props.open, (isOpen) => {
@@ -41,22 +46,23 @@ watch(() => props.open, (isOpen) => {
 	// 对话框关闭时清除选中状态
 	if (!isOpen) {
 		selectedDrawdown.value = null
+		selectedMarket.value = null
 	}
-    // 当对话框打开时，初始化 dcaAcceleration
-    if (isOpen && result.value?.performance.dca?.dcaAccelerationRate !== undefined) {
-        dcaAcceleration.value = result.value.performance.dca.dcaAccelerationRate;
-    }
+	// 当对话框打开时，初始化 dcaAcceleration
+	if (isOpen && result.value?.performance.dca?.dcaAccelerationRate !== undefined) {
+		dcaAcceleration.value = result.value.performance.dca.dcaAccelerationRate;
+	}
 })
 
 // 当 dcaAcceleration 改变时，重新运行回测
 watch(dcaAcceleration, (newValue, oldValue) => {
-    if (newValue !== oldValue) {
-        console.log('DCA Acceleration changed to', newValue, 're-running backtest...');
-        // 只有当有回测结果时才重新运行，避免首次打开就触发
-        if (store.backtestResult) {
-            store.runBacktest(newValue);
-        }
-    }
+	if (newValue !== oldValue) {
+		console.log('DCA Acceleration changed to', newValue, 're-running backtest...');
+		// 只有当有回测结果时才重新运行，避免首次打开就触发
+		if (store.backtestResult) {
+			store.runBacktest(newValue);
+		}
+	}
 });
 
 const store = useStrategyStore()
@@ -64,6 +70,16 @@ const result = computed(() => store.backtestResult)
 const resultTitle = computed(() => store.currentStrategyName || store.currentStrategyMetadata?.name || '策略')
 const currentSymbol = computed(() => result.value?.metadata?.symbol || store.config.etfSymbol || '标的')
 const strategyTriggerCount = computed(() => store.config.triggers?.length || 0)
+
+// Polymarket 需要的日期范围
+const chartDateRange = computed(() => {
+	const dates = result.value?.charts?.dates
+	if (!dates || dates.length === 0) return undefined
+	const first = dates[0]
+	const last = dates[dates.length - 1]
+	if (!first || !last) return undefined
+	return { start: first, end: last }
+})
 </script>
 
 <template>
@@ -113,22 +129,27 @@ const strategyTriggerCount = computed(() => store.config.triggers?.length || 0)
 
 						<!-- Benchmark Card: Weekly DCA -->
 						<PerformanceMetricCard v-if="result.performance.dca"
-							:title="t('resultsReportDialog.dcaCardTitle')"
-							:metrics="result.performance.dca"
-							variant="dca"
-							:dcaAcceleration="dcaAcceleration"
+							:title="t('resultsReportDialog.dcaCardTitle')" :metrics="result.performance.dca"
+							variant="dca" :dcaAcceleration="dcaAcceleration"
 							@update:dcaAcceleration="dcaAcceleration = $event" />
 					</div>
 
 					<!-- Charts & Analysis (Split View) -->
 					<div class="flex flex-col xl:flex-row gap-4 flex-1 min-h-[500px]">
-						<!-- Main Chart (Takes remaining space) -->
-						<div class="flex-1 min-h-[400px] xl:min-h-0 h-full">
-							<BacktestChart :result="result" :selectedDrawdown="selectedDrawdown" class="h-full" />
+						<!-- Polymarket Panel (Left Sidebar) -->
+						<div class="xl:w-72 2xl:w-80 shrink-0 h-full min-h-[400px] xl:min-h-0 order-2 xl:order-1">
+							<PolymarketPanel :dateRange="chartDateRange" :selectedMarket="selectedMarket"
+								@select="selectedMarket = $event" class="h-full" />
 						</div>
 
-						<!-- Drawdown Analysis (Sidebar) -->
-						<div class="xl:w-80 2xl:w-96 shrink-0 h-full min-h-[400px] xl:min-h-0">
+						<!-- Main Chart (Takes remaining space) -->
+						<div class="flex-1 min-h-[400px] xl:min-h-0 h-full order-1 xl:order-2">
+							<BacktestChart :result="result" :selectedDrawdown="selectedDrawdown"
+								:selectedMarket="selectedMarket" class="h-full" />
+						</div>
+
+						<!-- Drawdown Analysis (Right Sidebar) -->
+						<div class="xl:w-72 2xl:w-80 shrink-0 h-full min-h-[400px] xl:min-h-0 order-3">
 							<DrawdownAnalysisCard :drawdowns="result.analysis?.topDrawdowns || []"
 								:selectedDrawdown="selectedDrawdown" @select="selectedDrawdown = $event"
 								class="h-full" />

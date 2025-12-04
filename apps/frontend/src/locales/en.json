@@ -198,7 +198,13 @@
       "sell": "Sell",
       "shares": "shares",
       "atPrice": "@ $",
-      "reason": "Reason"
+      "reason": "Reason",
+      "polymarket": "Prediction Markets",
+      "polymarketLegend": "Polymarket Prediction Markets",
+      "markets": "markets",
+      "winner": "Winner",
+      "viewOnPolymarket": "View on Polymarket",
+      "more": "more"
     },
     "triggerList": {
       "title": "Trigger Panel",
@@ -649,5 +655,14 @@
     "networkError": "Network error, please check your connection and try again.",
     "requestFailed": "Request failed, please try again later.",
     "httpStatus": "Request failed, HTTP {status}"
+  },
+  "polymarket": {
+    "title": "Prediction Markets",
+    "noMarkets": "No prediction markets available for this period",
+    "volume": "traded",
+    "active": "Active",
+    "andMore": "+{count} more markets",
+    "start": "Market Start",
+    "pending": "Pending"
   }
 }

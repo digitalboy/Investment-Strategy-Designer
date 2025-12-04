@@ -5,10 +5,17 @@ import { Line } from 'vue-chartjs'
 import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement, Filler } from 'chart.js'
 import annotationPlugin from 'chartjs-plugin-annotation'
 import type { BacktestResultDTO, DrawdownEvent } from '@/types'
+import type { ChartAnnotationMarket } from '@/services/polymarketService'
 
 const { t } = useI18n()
 
 ChartJS.register(Title, Tooltip, Legend, LineElement, CategoryScale, LinearScale, PointElement, Filler, annotationPlugin)
+
+const props = defineProps<{
+	result: BacktestResultDTO
+	selectedDrawdown?: DrawdownEvent | null
+	selectedMarket?: ChartAnnotationMarket | null
+}>()
 
 // 创建渐变色的函数
 const createGradient = (ctx: CanvasRenderingContext2D, chartArea: any, colorStart: string, colorEnd: string) => {
@@ -17,11 +24,6 @@ const createGradient = (ctx: CanvasRenderingContext2D, chartArea: any, colorStar
 	gradient.addColorStop(1, colorEnd)
 	return gradient
 }
-
-const props = defineProps<{
-	result: BacktestResultDTO
-	selectedDrawdown?: DrawdownEvent | null
-}>()
 
 const chartData = computed(() => {
 	if (!props.result) return { labels: [], datasets: [] }
@@ -307,6 +309,108 @@ const drawdownAnnotations = computed(() => {
 	return annotations
 })
 
+// Polymarket 预测市场注解
+const polymarketAnnotations = computed(() => {
+	if (!props.selectedMarket) return {}
+
+	const market = props.selectedMarket
+	const dates = props.result.charts.dates || []
+	if (!dates.length) return {}
+
+	const chartStart = dates[0]
+	const chartEnd = dates[dates.length - 1]
+	if (!chartStart || !chartEnd) return {}
+
+	// Clamp market dates to chart range
+	const xMin = market.startDate < chartStart ? chartStart : market.startDate
+	const xMax = market.endDate > chartEnd ? chartEnd : market.endDate
+
+	// Skip if no overlap
+	if (xMin > chartEnd || xMax < chartStart) return {}
+
+	const annotations: Record<string, any> = {}
+
+	// 背景颜色根据状态
+	const bgColor = market.closed
+		? (market.winner === 'Yes' ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.12)')
+		: 'rgba(168, 85, 247, 0.12)' // 紫色表示进行中
+
+	const borderColor = market.closed
+		? (market.winner === 'Yes' ? 'rgba(34, 197, 94, 0.6)' : 'rgba(239, 68, 68, 0.6)')
+		: 'rgba(168, 85, 247, 0.6)'
+
+	// 预测市场区域
+	annotations.marketBox = {
+		type: 'box',
+		xMin,
+		xMax,
+		backgroundColor: bgColor,
+		borderColor: borderColor,
+		borderWidth: 2,
+		borderDash: market.closed ? [] : [6, 4], // 进行中用虚线
+	}
+
+	// 开始标记线
+	if (market.startDate >= chartStart) {
+		annotations.marketStartLine = {
+			type: 'line',
+			xMin: market.startDate,
+			xMax: market.startDate,
+			borderColor: '#a855f7',
+			borderWidth: 2,
+			borderDash: [4, 4],
+			label: {
+				display: true,
+				content: '🎰 ' + t('polymarket.start'),
+				position: 'start',
+				backgroundColor: 'rgba(168, 85, 247, 0.9)',
+				color: '#fff',
+				font: { size: 10, weight: 'bold' },
+				padding: 3,
+				borderRadius: 4,
+			}
+		}
+	}
+
+	// 结束标记线
+	if (market.endDate <= chartEnd) {
+		const endLabel = market.closed
+			? (market.winner === 'Yes' ? '✅ Yes' : '❌ No')
+			: '⏳ ' + t('polymarket.pending')
+
+		const endBgColor = market.closed
+			? (market.winner === 'Yes' ? 'rgba(34, 197, 94, 0.9)' : 'rgba(239, 68, 68, 0.9)')
+			: 'rgba(234, 179, 8, 0.9)'
+
+		annotations.marketEndLine = {
+			type: 'line',
+			xMin: market.endDate,
+			xMax: market.endDate,
+			borderColor: market.closed ? (market.winner === 'Yes' ? '#22c55e' : '#ef4444') : '#eab308',
+			borderWidth: 2,
+			borderDash: market.closed ? [] : [4, 4],
+			label: {
+				display: true,
+				content: endLabel,
+				position: 'end',
+				backgroundColor: endBgColor,
+				color: '#fff',
+				font: { size: 10, weight: 'bold' },
+				padding: 3,
+				borderRadius: 4,
+			}
+		}
+	}
+
+	return annotations
+})
+
+// 合并所有注解（回撤 + 预测市场可同时显示）
+const allAnnotations = computed(() => ({
+	...drawdownAnnotations.value,
+	...polymarketAnnotations.value
+}))
+
 const chartOptions = computed(() => ({
 	responsive: true,
 	maintainAspectRatio: false,
@@ -348,7 +452,7 @@ const chartOptions = computed(() => ({
 			}
 		},
 		annotation: {
-			annotations: drawdownAnnotations.value
+			annotations: allAnnotations.value
 		},
 		tooltip: {
 			callbacks: {
