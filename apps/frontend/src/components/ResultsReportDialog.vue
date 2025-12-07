@@ -10,6 +10,7 @@ import {
 	DialogDescription,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { Download } from 'lucide-vue-next'
 import PerformanceMetricCard from './reports/PerformanceMetricCard.vue'
 import BacktestChart from './reports/BacktestChart.vue'
 import DrawdownAnalysisCard from './reports/DrawdownAnalysisCard.vue'
@@ -80,6 +81,108 @@ const chartDateRange = computed(() => {
 	if (!first || !last) return undefined
 	return { start: first, end: last }
 })
+
+// 存储从 PolymarketPanel 获取的数据
+const polymarketData = ref<ChartAnnotationMarket[]>([])
+
+const handlePolymarketDataLoaded = (data: ChartAnnotationMarket[]) => {
+	polymarketData.value = data
+}
+
+// 按周采样图表数据（每周取最后一个交易日）
+const sampleWeeklyData = <T,>(dates: string[], data: T[]): { dates: string[], values: T[] } => {
+	const result: { dates: string[], values: T[] } = { dates: [], values: [] }
+	if (!dates.length || !data.length) return result
+
+	let lastWeek = -1
+	for (let i = 0; i < dates.length; i++) {
+		const date = new Date(dates[i]!)
+		const week = Math.floor(date.getTime() / (7 * 24 * 60 * 60 * 1000))
+		if (week !== lastWeek) {
+			// 新的一周，保存上周最后一天的数据
+			if (result.dates.length > 0 && i > 0) {
+				result.dates[result.dates.length - 1] = dates[i - 1]!
+				result.values[result.values.length - 1] = data[i - 1]!
+			}
+			result.dates.push(dates[i]!)
+			result.values.push(data[i]!)
+			lastWeek = week
+		} else {
+			// 同一周，更新为最新数据
+			result.dates[result.dates.length - 1] = dates[i]!
+			result.values[result.values.length - 1] = data[i]!
+		}
+	}
+	return result
+}
+
+// 导出数据为 JSON（用于 AI 分析提示语）
+const exportDataForAI = () => {
+	if (!result.value) return
+
+	const r = result.value
+	const dates = r.charts?.dates || []
+
+	// 按周采样图表数据
+	const weeklyStrategy = sampleWeeklyData(dates, r.charts?.strategyEquity || [])
+	const weeklyBenchmark = sampleWeeklyData(dates, r.charts?.benchmarkEquity || [])
+	const weeklyDca = sampleWeeklyData(dates, r.charts?.dcaEquity || [])
+	const weeklyPrice = sampleWeeklyData(dates, r.charts?.underlyingPrice || [])
+
+	const exportData = {
+		exportInfo: {
+			exportedAt: new Date().toISOString(),
+			purpose: 'AI Analysis Prompt - Investment Strategy Backtest Results',
+			notice: 'Chart data is sampled weekly to reduce size. Full daily data available in the app.'
+		},
+		strategy: {
+			name: resultTitle.value,
+			symbol: currentSymbol.value,
+			dateRange: chartDateRange.value,
+			triggerCount: strategyTriggerCount.value
+		},
+		triggers: store.config.triggers || [],
+		performance: {
+			strategy: r.performance?.strategy || {},
+			benchmark: r.performance?.benchmark || {},
+			dca: r.performance?.dca || {}
+		},
+		topDrawdowns: (r.analysis?.topDrawdowns || []).slice(0, 5),
+		predictionMarkets: polymarketData.value
+			.sort((a, b) => b.volume - a.volume)
+			.slice(0, 10)
+			.map(m => ({
+				title: m.title,
+				primaryQuestion: m.primaryQuestion,
+				volume: m.volumeFormatted,
+				startDate: m.startDate,
+				endDate: m.endDate,
+				closed: m.closed,
+				winner: m.winner,
+				outcomes: m.outcomes
+			})),
+		chartData: {
+			sampling: 'weekly',
+			dataPoints: weeklyStrategy.dates.length,
+			dates: weeklyStrategy.dates,
+			strategyEquity: weeklyStrategy.values,
+			benchmarkEquity: weeklyBenchmark.values,
+			dcaEquity: weeklyDca.values,
+			underlyingPrice: weeklyPrice.values
+		}
+	}
+
+	// 下载 JSON 文件
+	const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+	const url = URL.createObjectURL(blob)
+	const a = document.createElement('a')
+	a.href = url
+	a.download = `strategy-analysis-${currentSymbol.value}-${new Date().toISOString().split('T')[0]}.json`
+	document.body.appendChild(a)
+	a.click()
+	document.body.removeChild(a)
+	URL.revokeObjectURL(url)
+}
 </script>
 
 <template>
@@ -139,7 +242,8 @@ const chartDateRange = computed(() => {
 						<!-- Polymarket Panel (Left Sidebar) -->
 						<div class="xl:w-72 2xl:w-80 shrink-0 h-full min-h-[400px] xl:min-h-0 order-2 xl:order-1">
 							<PolymarketPanel :dateRange="chartDateRange" :selectedMarket="selectedMarket"
-								@select="selectedMarket = $event" class="h-full" />
+								@select="selectedMarket = $event" @dataLoaded="handlePolymarketDataLoaded"
+								class="h-full" />
 						</div>
 
 						<!-- Main Chart (Takes remaining space) -->
@@ -174,7 +278,12 @@ const chartDateRange = computed(() => {
 				</div>
 
 				<!-- Footer -->
-				<div class="p-4 border-t border-slate-100 bg-white flex justify-end shrink-0 z-10">
+				<div class="p-4 border-t border-slate-100 bg-white flex justify-end gap-3 shrink-0 z-10">
+					<Button @click="exportDataForAI" variant="outline"
+						class="border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg px-4">
+						<Download class="w-4 h-4 mr-2" />
+						{{ t('resultsReportDialog.downloadData') }}
+					</Button>
 					<Button @click="$emit('update:open', false)"
 						class="bg-linear-to-r from-lime-600 to-emerald-600 hover:from-lime-700 hover:to-emerald-700 text-white shadow-md shadow-lime-500/30 transition-all rounded-lg px-6">
 						{{ t('resultsReportDialog.closeReport') }}

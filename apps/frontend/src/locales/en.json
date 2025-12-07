@@ -199,7 +199,7 @@
       "shares": "shares",
       "atPrice": "@ $",
       "reason": "Reason",
-      "polymarket": "Prediction Markets",
+      "polymarket": "Polymarket",
       "polymarketLegend": "Polymarket Prediction Markets",
       "markets": "markets",
       "winner": "Winner",
@@ -348,6 +348,7 @@
     "runBacktest": "Run a backtest to view results",
     "dataError": "Data format error: Unable to parse performance metrics",
     "closeReport": "Close Report",
+    "downloadData": "Download Data (JSON)",
     "defaultStrategy": "Strategy",
     "defaultSymbol": "Symbol",
     "drawdownAnalysis": {
@@ -657,7 +658,7 @@
     "httpStatus": "Request failed, HTTP {status}"
   },
   "polymarket": {
-    "title": "Prediction Markets",
+    "title": "Polymarket",
     "noMarkets": "No prediction markets available for this period",
     "volume": "traded",
     "active": "Active",

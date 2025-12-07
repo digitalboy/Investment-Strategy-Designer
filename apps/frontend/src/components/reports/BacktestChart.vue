@@ -321,12 +321,59 @@ const polymarketAnnotations = computed(() => {
 	const chartEnd = dates[dates.length - 1]
 	if (!chartStart || !chartEnd) return {}
 
-	// Clamp market dates to chart range
-	const xMin = market.startDate < chartStart ? chartStart : market.startDate
-	const xMax = market.endDate > chartEnd ? chartEnd : market.endDate
+	// 标准化日期格式 (去掉时间部分)
+	const normalizeDate = (d: string): string => d.split('T')[0] || d
+	const marketStart = normalizeDate(market.startDate)
+	const marketEnd = normalizeDate(market.endDate)
 
-	// Skip if no overlap
-	if (xMin > chartEnd || xMax < chartStart) return {}
+	// 找到最接近的日期索引（必须使用图表中实际存在的日期）
+	const findClosestDateIdx = (targetDate: string, preferAfter: boolean): number => {
+		const target = new Date(targetDate).getTime()
+		let closestIdx = -1
+		let closestDiff = Infinity
+
+		for (let i = 0; i < dates.length; i++) {
+			const dateStr = dates[i]
+			if (!dateStr) continue
+			const dateTime = new Date(dateStr).getTime()
+			const diff = preferAfter ? (dateTime - target) : (target - dateTime)
+
+			// 如果是找开始日期，优先找 >= targetDate 的最近日期
+			// 如果是找结束日期，优先找 <= targetDate 的最近日期
+			if (preferAfter && dateTime >= target && diff < closestDiff) {
+				closestDiff = diff
+				closestIdx = i
+			} else if (!preferAfter && dateTime <= target && Math.abs(diff) < closestDiff) {
+				closestDiff = Math.abs(diff)
+				closestIdx = i
+			}
+		}
+
+		// 如果没找到，退而求其次找最近的
+		if (closestIdx === -1) {
+			for (let i = 0; i < dates.length; i++) {
+				const dateStr = dates[i]
+				if (!dateStr) continue
+				const diff = Math.abs(new Date(dateStr).getTime() - target)
+				if (diff < closestDiff) {
+					closestDiff = diff
+					closestIdx = i
+				}
+			}
+		}
+
+		return closestIdx
+	}
+
+	// 使用图表中实际存在的日期
+	const startIdx = findClosestDateIdx(marketStart, true)  // 找 >= 的最近日期
+	const endIdx = findClosestDateIdx(marketEnd, false)     // 找 <= 的最近日期
+
+	// 如果找不到有效索引，返回空
+	if (startIdx < 0 || endIdx < 0 || startIdx > endIdx) return {}
+
+	const xMinDate = dates[startIdx]!
+	const xMaxDate = dates[endIdx]!
 
 	const annotations: Record<string, any> = {}
 
@@ -342,20 +389,20 @@ const polymarketAnnotations = computed(() => {
 	// 预测市场区域
 	annotations.marketBox = {
 		type: 'box',
-		xMin,
-		xMax,
+		xMin: xMinDate,
+		xMax: xMaxDate,
 		backgroundColor: bgColor,
 		borderColor: borderColor,
 		borderWidth: 2,
 		borderDash: market.closed ? [] : [6, 4], // 进行中用虚线
 	}
 
-	// 开始标记线
-	if (market.startDate >= chartStart) {
+	// 开始标记线 (只在图表范围内显示)
+	if (startIdx > 0) {  // 不在最左边时才显示开始线
 		annotations.marketStartLine = {
 			type: 'line',
-			xMin: market.startDate,
-			xMax: market.startDate,
+			xMin: xMinDate,
+			xMax: xMinDate,
 			borderColor: '#a855f7',
 			borderWidth: 2,
 			borderDash: [4, 4],
@@ -372,8 +419,8 @@ const polymarketAnnotations = computed(() => {
 		}
 	}
 
-	// 结束标记线
-	if (market.endDate <= chartEnd) {
+	// 结束标记线 (只在图表范围内显示)
+	if (endIdx < dates.length - 1) {  // 不在最右边时才显示结束线
 		const endLabel = market.closed
 			? (market.winner === 'Yes' ? '✅ Yes' : '❌ No')
 			: '⏳ ' + t('polymarket.pending')
@@ -384,8 +431,8 @@ const polymarketAnnotations = computed(() => {
 
 		annotations.marketEndLine = {
 			type: 'line',
-			xMin: market.endDate,
-			xMax: market.endDate,
+			xMin: xMaxDate,
+			xMax: xMaxDate,
 			borderColor: market.closed ? (market.winner === 'Yes' ? '#22c55e' : '#ef4444') : '#eab308',
 			borderWidth: 2,
 			borderDash: market.closed ? [] : [4, 4],

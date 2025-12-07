@@ -9,7 +9,7 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from '@/components/ui/accordion'
-import { Dices, TrendingUp, Clock, ExternalLink, Loader2, CheckCircle2 } from 'lucide-vue-next'
+import { Dices, TrendingUp, Clock, ExternalLink, Loader2 } from 'lucide-vue-next'
 import { polymarketService, type ChartAnnotationMarket } from '@/services/polymarketService'
 
 const props = defineProps<{
@@ -19,6 +19,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     select: [market: ChartAnnotationMarket | null]
+    dataLoaded: [data: ChartAnnotationMarket[]]
 }>()
 
 const { t } = useI18n()
@@ -46,6 +47,7 @@ const loadMarkets = async () => {
                 response.data,
                 props.dateRange
             )
+            emit('dataLoaded', markets.value)
         }
     } catch (e) {
         error.value = 'Failed to load prediction markets'
@@ -101,8 +103,8 @@ const formatDate = (dateStr: string) => {
 
 <template>
     <Card
-        class="h-full flex flex-col border-slate-200/60 shadow-lg shadow-purple-200/30 bg-white/80 backdrop-blur-sm overflow-hidden">
-        <CardHeader class="pb-3 border-b border-slate-100 bg-linear-to-r from-purple-50/50 to-indigo-50/50">
+        class="h-full flex flex-col border-slate-200/60 shadow-lg shadow-slate-200/40 bg-white/80 backdrop-blur-sm overflow-hidden">
+        <CardHeader class="pb-3 border-b border-slate-100">
             <CardTitle class="text-base font-semibold flex items-center gap-2 text-slate-800">
                 <Dices class="w-4 h-4 text-purple-500" />
                 {{ t('polymarket.title') }}

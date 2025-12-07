@@ -348,6 +348,7 @@
     "runBacktest": "请运行回测以查看结果",
     "dataError": "数据格式错误: 无法解析性能指标",
     "closeReport": "关闭报告",
+    "downloadData": "下载数据 (JSON)",
     "defaultStrategy": "策略",
     "defaultSymbol": "标的",
     "drawdownAnalysis": {
@@ -657,7 +658,7 @@
     "httpStatus": "请求失败，HTTP {status}"
   },
   "polymarket": {
-    "title": "预测市场",
+    "title": "Polymarket",
     "noMarkets": "该时间段内暂无预测市场数据",
     "volume": "交易量",
     "active": "进行中",
