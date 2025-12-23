@@ -139,7 +139,14 @@
     "contactEmailLabel": "邮箱：",
     "contactXAccountLabel": "X 账号：",
     "contactWechatLabel": "微信：",
-    "close": "关闭"
+    "close": "关闭",
+    "tools": {
+      "label": "小工具",
+      "usMarketPulse": "美股市场简报",
+      "wechatEditor": "微信公众号排版",
+      "investmentResearch": "投研深度拆解",
+      "stockDebate": "个股多空辩论"
+    }
   },
   "strategy": {
     "title": "投资策略",

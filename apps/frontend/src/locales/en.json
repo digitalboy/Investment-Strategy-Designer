@@ -139,7 +139,14 @@
     "contactEmailLabel": "Email:",
     "contactXAccountLabel": "X account:",
     "contactWechatLabel": "WeChat:",
-    "close": "Close"
+    "close": "Close",
+    "tools": {
+      "label": "Tools",
+      "usMarketPulse": "US Market Pulse",
+      "wechatEditor": "WeChat Editor",
+      "investmentResearch": "Investment Research Assistant",
+      "stockDebate": "Stock Debate AI"
+    }
   },
   "strategy": {
     "title": "Investment Strategy",

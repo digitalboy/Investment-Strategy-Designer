@@ -15,9 +15,8 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Globe, Bell } from 'lucide-vue-next'
+import { Globe, Bell, Info, Wrench } from 'lucide-vue-next'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Info } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 
 const { t } = useI18n({ useScope: 'global' })
@@ -120,6 +119,40 @@ const handleLogout = () => {
                         <Globe class="h-4 w-4 text-slate-500" />
                         <LanguageSelector />
                     </div>
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger
+                            class="focus:outline-none p-1 rounded-full hover:bg-slate-100 flex items-center gap-1 text-slate-600">
+                            <Wrench class="h-4 w-4" />
+                            <span class="text-sm">{{ t('navbar.tools.label') }}</span>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem as-child>
+                                <a href="https://us-market-pulse-889627047453.us-west1.run.app/" target="_blank"
+                                    rel="noopener noreferrer" class="flex items-center gap-2">
+                                    {{ t('navbar.tools.usMarketPulse') }}
+                                </a>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem as-child>
+                                <a href="https://wechat-markdown-editor-ai-889627047453.us-west1.run.app/"
+                                    target="_blank" rel="noopener noreferrer" class="flex items-center gap-2">
+                                    {{ t('navbar.tools.wechatEditor') }}
+                                </a>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem as-child>
+                                <a href="https://investment-research-assistant-889627047453.us-west1.run.app/"
+                                    target="_blank" rel="noopener noreferrer" class="flex items-center gap-2">
+                                    {{ t('navbar.tools.investmentResearch') }}
+                                </a>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem as-child>
+                                <a href="https://stockdebate-ai-889627047453.us-west1.run.app/" target="_blank"
+                                    rel="noopener noreferrer" class="flex items-center gap-2">
+                                    {{ t('navbar.tools.stockDebate') }}
+                                </a>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
 
                     <button type="button" class="p-1 rounded-full hover:bg-slate-100 text-slate-500"
                         @click="showContactDialog = true" aria-label="Contact author">
